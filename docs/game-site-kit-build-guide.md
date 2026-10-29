@@ -31,24 +31,24 @@
 - Tailwind CSS
 - MDX/Markdown 内容
 - Git + GitHub
-- Vercel 或支持静态文件的托管平台
+- Cloudflare 或支持静态文件的托管平台
 - 第一阶段沿用所选模板原有包管理器；进入 Monorepo 后统一决定使用 pnpm 或 Yarn，不要长期保留多份冲突锁文件。
 
 ### 0.4 开源模板选择
 
-**主底座：** https://github.com/timlrx/tailwind-nextjs-starter-blog
+**主底座：** <https://github.com/timlrx/tailwind-nextjs-starter-blog>
 
 适合从内容站起步，参考其 MDX 内容、文章页面、元信息和站点地图相关实现。仓库使用 MIT License，但必须保留原许可声明，并检查所用依赖、字体和素材的各自许可。
 
-**游戏首页视觉参考：** https://github.com/TencentEdgeOne/game-landing-page
+**游戏首页视觉参考：** <https://github.com/TencentEdgeOne/game-landing-page>
 
 适合参考游戏落地页的视觉结构、响应式布局和模块化组件。使用其代码前，必须在当前检出的版本中检查 LICENSE；如果许可不明确，只参考设计思路，不复制代码或素材。
 
-**可选视觉参考：** https://github.com/Dorian1999/Indie-Game-Website-Next.js-Template
+**可选视觉参考：** <https://github.com/Dorian1999/Indie-Game-Website-Next.js-Template>
 
 其方向更偏独立游戏产品/品牌官网，不完全等同于小游戏攻略站。可参考页面视觉，但不要直接将它与主底座合并。使用前仍需核对 LICENSE、依赖和素材授权。
 
-**Next.js 静态导出官方说明：** https://nextjs.org/docs/app/guides/static-exports
+**Next.js 静态导出官方说明：** <https://nextjs.org/docs/app/guides/static-exports>
 
 内容站通常可优先考虑静态生成；在加入 `output: 'export'` 前，需要确认所用路由、图片处理和其他功能都与静态导出兼容。
 
@@ -123,18 +123,18 @@
 
 ### 建议页面
 
-| 路径 | 内容 | 必须具备 |
-|---|---|---|
-| `/` | 游戏首页 | 主要介绍、Play 按钮、简介、操作预览、攻略内链、FAQ |
-| `/how-to-play` | 新手指南 | 玩法目标、开始方式、基本操作 |
-| `/controls` | 操作指南 | 键盘/鼠标/触屏说明，以实际测试为准 |
-| `/guides` | 指南目录 | 文章列表、摘要、分类或标签 |
-| `/guides/[slug]` | 指南文章 | 标题、正文、目录、更新时间、相关内容 |
-| `/faq` | 常见问题 | 真实、有用的问题和答案 |
-| `/about` | 关于本站 | 说明本站定位及与原游戏的关系 |
-| `/privacy` | 隐私政策 | 根据实际使用的分析、广告、Cookies 和第三方服务编写 |
-| `/contact` | 联系方式 | 可用的联系方法 |
-| `/updates` | 更新记录 | 可选；只有确实维护更新记录时再启用 |
+| 路径             | 内容     | 必须具备                                           |
+| ---------------- | -------- | -------------------------------------------------- |
+| `/`              | 游戏首页 | 主要介绍、Play 按钮、简介、操作预览、攻略内链、FAQ |
+| `/how-to-play`   | 新手指南 | 玩法目标、开始方式、基本操作                       |
+| `/controls`      | 操作指南 | 键盘/鼠标/触屏说明，以实际测试为准                 |
+| `/guides`        | 指南目录 | 文章列表、摘要、分类或标签                         |
+| `/guides/[slug]` | 指南文章 | 标题、正文、目录、更新时间、相关内容               |
+| `/faq`           | 常见问题 | 真实、有用的问题和答案                             |
+| `/about`         | 关于本站 | 说明本站定位及与原游戏的关系                       |
+| `/privacy`       | 隐私政策 | 根据实际使用的分析、广告、Cookies 和第三方服务编写 |
+| `/contact`       | 联系方式 | 可用的联系方法                                     |
+| `/updates`       | 更新记录 | 可选；只有确实维护更新记录时再启用                 |
 
 如果模板现有路由命名与此不同，可以保留合理现状，但最终 URL 必须统一、稳定且不重复。
 
@@ -225,7 +225,7 @@ export const siteConfig = {
     ads: false,
     analytics: false,
   },
-} as const;
+} as const
 ```
 
 示例只用于表达配置职责；上线时应根据真实品牌重新设计名称、颜色、文案和资源。
@@ -555,7 +555,7 @@ build-site：
 - 每个站点的 About、Privacy、Contact 等页面真实可用。
 - 页面正文要回答特定用户意图，不能只重复关键词。
 
-Next.js 官方 sitemap 参考：https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap
+Next.js 官方 sitemap 参考：<https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap>
 
 ### 8.2 性能和交互
 
@@ -612,16 +612,16 @@ Next.js 官方 sitemap 参考：https://nextjs.org/docs/app/api-reference/file-c
 
 ## 建议执行顺序与阶段门槛
 
-| 阶段 | 主要产出 | 进入下一阶段的条件 |
-|---|---|---|
-| 1. 模板审计 | 可运行开源底座、审计报告 | dev 和 build 通过，许可与风险明确 |
-| 2. 单站完成 | Car Soccer 页面与 Play | 核心页面、响应式、导航与游戏外链通过 |
-| 3. 配置/内容模型 | `site.config.ts`、Game/Guide/FAQ schema | 站点差异不再散落硬编码，内容可校验 |
-| 4. 公共模块 | 通用 UI、启动器、SEO 等 | 公共组件无游戏专属硬编码 |
-| 5. Monorepo | `apps/` 与有限的 `packages/` | 当前站点迁移前后通过同一套验收 |
-| 6. 第二站验证 | `puzzle-demo` 或其他类型站点 | 配置和内容可分离，两个站互不串站 |
-| 7. 自动化脚本 | create/validate/build | 能创建、检查、单独构建站点 |
-| 8. 发布 | 域名、SEO、性能与部署清单 | 无发布阻断项，手工核验项已处理 |
+| 阶段             | 主要产出                                | 进入下一阶段的条件                   |
+| ---------------- | --------------------------------------- | ------------------------------------ |
+| 1. 模板审计      | 可运行开源底座、审计报告                | dev 和 build 通过，许可与风险明确    |
+| 2. 单站完成      | Car Soccer 页面与 Play                  | 核心页面、响应式、导航与游戏外链通过 |
+| 3. 配置/内容模型 | `site.config.ts`、Game/Guide/FAQ schema | 站点差异不再散落硬编码，内容可校验   |
+| 4. 公共模块      | 通用 UI、启动器、SEO 等                 | 公共组件无游戏专属硬编码             |
+| 5. Monorepo      | `apps/` 与有限的 `packages/`            | 当前站点迁移前后通过同一套验收       |
+| 6. 第二站验证    | `puzzle-demo` 或其他类型站点            | 配置和内容可分离，两个站互不串站     |
+| 7. 自动化脚本    | create/validate/build                   | 能创建、检查、单独构建站点           |
+| 8. 发布          | 域名、SEO、性能与部署清单               | 无发布阻断项，手工核验项已处理       |
 
 ## 推荐的执行纪律
 

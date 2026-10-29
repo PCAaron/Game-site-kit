@@ -195,11 +195,7 @@ npx degit 'timlrx/tailwind-nextjs-starter-blog'
 yarn
 ```
 
-Please note, that if you are using Windows, you may need to run:
-
-```bash
-$env:PWD = $(Get-Location).Path
-```
+Please note, that if you are using Windows, you no longer need to set `$env:PWD` manually — `yarn dev` and `yarn build` set `INIT_CWD` via `scripts/next-with-init-cwd.mjs`.
 
 ## Development
 
