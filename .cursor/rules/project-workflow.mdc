@@ -1,0 +1,14 @@
+---
+description: Game Site Kit — 先读 AGENTS 与阶段 Spec，受控实施与验证
+alwaysApply: true
+---
+
+# Game Site Kit — 项目工作流（Cursor）
+
+1. **先读** [`AGENTS.md`](../../AGENTS.md)，再读 [`specs/00-project-charter.md`](../../specs/00-project-charter.md) 与用户任务对应的 [`specs/phases/`](../../specs/phases/) Spec。
+2. **读状态** [`docs/agent/STATUS.md`](../../docs/agent/STATUS.md) 与基线 [`docs/agent/reports/template-audit.md`](../../docs/agent/reports/template-audit.md)；不得假设脚本、依赖或已实现能力。
+3. **范围**：只做任务授权的阶段；禁止无关重构、依赖升级、替换 contentlayer、拼接其他 Starter。
+4. **保护用户变更**；修改前说明计划、文件与验证命令。
+5. **沿用仓库模式**：Next App Router、contentlayer2、`data/siteMetadata.js`、现有 SEO 文件位置。
+6. **验证**：用 `package.json` 中真实脚本（常见：`yarn typecheck`、`yarn lint`、`yarn build`）；未执行不得报 PASS。
+7. **完成时报告**：修改文件、验证结果、风险；里程碑更新 STATUS/WORKLOG。长文 SEO 路线见 [`docs/game-site-kit-seo-architecture-and-template-iteration-guide.md`](../../docs/game-site-kit-seo-architecture-and-template-iteration-guide.md)。
