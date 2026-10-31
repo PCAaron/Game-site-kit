@@ -38,7 +38,9 @@
 | **共享** | metadata/canonical/sitemap **生成机制**（演进中） |
 | **原型专属** | 各 archetype 的页面类型、索引规则、JSON-LD 类型选择（**proposed**） |
 
-**validated 缺口（须后续阶段修复，非否认现有代码）：** 模板 `siteUrl` 仍为演示域名；frontmatter `canonicalUrl` 未接入文章 metadata；sitemap 未覆盖游戏/Wiki 路由；无 per-archetype 页面策略表。
+**validated 缺口（须后续阶段修复，非否认现有代码）：** 模板 `siteUrl` 仍为演示域名；frontmatter `canonicalUrl` 未接入文章 metadata；sitemap 未覆盖游戏/Wiki 路由。
+
+**Phase 2 文档（proposed 策略，未实现）：** [`specs/seo/`](../seo/)、[`specs/01-site-archetypes.md`](../01-site-archetypes.md)、ballgames 实例 [`specs/instances/ballgames/README.md`](../instances/ballgames/README.md)。
 
 ---
 

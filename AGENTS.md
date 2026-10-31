@@ -35,7 +35,8 @@
 |---|---|---|
 | 0 | [`specs/phases/00-template-audit.md`](specs/phases/00-template-audit.md) | 基线审计（已完成） |
 | 1 | [`specs/phases/01-agent-workflow-foundation.md`](specs/phases/01-agent-workflow-foundation.md) | Agent 文档骨架 |
-| 2+ | SEO 指南 §19 起 | 后续按需新增 `specs/phases/` 文件 |
+| 2 | [`specs/phases/02-seo-page-model-and-content-contract.md`](specs/phases/02-seo-page-model-and-content-contract.md) | SEO 页面模型与内容契约 |
+| 3+ | SEO 指南 §20 起 | 后续按需新增 `specs/phases/` 文件 |
 
 ## 执行规则（Operating Rules）
 

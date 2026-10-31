@@ -30,3 +30,30 @@
 
 - `specs/`、`.agents/skills/` 仍缺失（Agent-Ready 第二步，非 Phase 1 范围）。
 - Phase 1 收尾已纳入 Git 基线 commit（见 `git log -1`）。
+
+---
+
+## 2026-10-31 — Phase 2：SEO 页面模型与内容契约（文档）
+
+**范围：** Kit 级 portal 页面类型、逻辑内容模型、SEO 子 Spec（01–05）；与 [`specs/ballgames/ballgames-specs-v1.md`](../../specs/ballgames/ballgames-specs-v1.md) 分层对齐。**未**改应用代码或依赖。
+
+### 交付
+
+- `specs/phases/02-seo-page-model-and-content-contract.md`
+- `specs/01-site-archetypes.md`、`specs/04-config-and-content-models.md`
+- `specs/seo/01`–`05-*.md`
+- `specs/instances/ballgames/README.md`
+- 更新 `AGENTS.md`、`docs/agent/STATUS.md`、`ballgames-specs-v1` 顶部 Kit 引用
+
+### 验证
+
+| Check | Result |
+|---|---|
+| 文档引用路径存在性 | PASS |
+| `git diff` 无 package/应用代码 | PASS |
+| `yarn build` | 未执行（文档任务） |
+
+### 遗留
+
+- Phase 3：代码层 SEO Foundation。
+- Phase 4：P0 两页实现与 DoD。

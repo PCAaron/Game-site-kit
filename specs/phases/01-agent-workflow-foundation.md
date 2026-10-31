@@ -33,6 +33,6 @@ SEO 指南 §18 中的完整 `specs/` 树为**长期目标**；本阶段只交�
 
 SEO 实现、内容模型、游戏页、wiki 页、iframe 运行时、广告、依赖升级、Phase 2+ 实施。
 
-## 下一阶段（勿自动启动）
+## 下一阶段
 
-**Phase 2 — SEO 页面模型与内容契约**（SEO 指南 §19）：为 ballgames.io `game-portal` 定义页面类型、URL、索引与内容字段最小集。
+[`02-seo-page-model-and-content-contract.md`](02-seo-page-model-and-content-contract.md) — **completed**（2026-10-31）。

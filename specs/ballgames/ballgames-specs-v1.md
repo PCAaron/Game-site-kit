@@ -1,5 +1,7 @@
 # ballgames.io 开发 Spec v1
 
+> **Kit 契约：** 跨实例 SEO 与逻辑内容模型见 [`specs/phases/02-seo-page-model-and-content-contract.md`](../phases/02-seo-page-model-and-content-contract.md)、[`specs/instances/ballgames/README.md`](../instances/ballgames/README.md)。本文档为 **P0 实例层**（TDK 定稿、正文、DoD）；与 Kit 冲突时以 Kit 索引/sitemap/诚实 structured data 规则为准。
+
 > 范围冻结：本期只实现两个页面（/、/hockey-bros）和最小支撑系统。其余页面不做，但数据模型和模板必须能直接复用——这样 P1 每加一页只是填数据，不是开发新功能。
 
 ---
