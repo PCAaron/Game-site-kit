@@ -300,7 +300,7 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 | Git whitespace check | `git diff --check` | PASS | 编辑前基线干净 exit 0；编辑后无 whitespace error |
 | Diff scope | `git diff 916314c..4e80893 --stat` | PASS（**retroactive 记录修正**） | **3 文件**：STATUS、WORKLOG、Phase 3 Spec；**无**应用代码、配置、依赖、ballgames 产品 Spec、部署 workflow。原表「仅 Phase 3 Spec + WORKLOG」与实际上一轮 commit 不符 |
 | Decision status phrases | `rg` 待批准类关键词于 Phase 3 Spec | PASS | §6.2/§8.2/§10 已修正；§7.4 trailing-slash **实施方案**单独批准表述保留 |
-| Prettier check | `yarn prettier --check`（六文档） | **记录不一致 — 见 reconciliation** | **Previous task（本条目原写）：**「六文件均有格式 warn（含 ADR 0003）」。**Final Pass 历史可核对清单：** Architecture Review、Conflict Matrix、Phase 3 Spec、STATUS、WORKLOG 为 FAIL；ADR 0003 为 PASS（见上文 Final Pass Validation 表）。**本条目 commit 未单独留存 prettier 终端输出**；不得将 ADR 0003 在历史 PASS 与 FAIL 之间无证据改写。逐文件 **2026-11-02 新执行** 见 [WORKLOG 验证证据 remediation](#2026-11-02--worklog-validation-evidence--change-scope-consistency-remediation文档)。未运行 `--write` |
+| Prettier check | `yarn prettier --check`（六文档） | **记录不一致 — 见 reconciliation** | **Previous task（本条目原写）：**「六文件均有格式 warn（含 ADR 0003）」。**Final Pass 历史可核对清单：** Architecture Review、Conflict Matrix、Phase 3 Spec、STATUS、WORKLOG 为 FAIL；ADR 0003 为 PASS（见上文 Final Pass Validation 表）。**本条目 commit 未单独留存 prettier 终端输出**；不得将 ADR 0003 在历史 PASS 与 FAIL 之间无证据改写。逐文件 **2026-11-02 最新只读执行** 见 [WORKLOG Validation Evidence Consistency Remediation](#2026-11-02--worklog-validation-evidence-consistency-remediation)。未运行 `--write` |
 | Markdown lint | 无仓库脚本 | **NOT RUN** | |
 | Internal links | 人工 spot-check 相对路径 | PASS | ADR/Matrix/Review/Phase 3 交叉引用未改路径 |
 | Build / lint / typecheck | — | **NOT RUN** | documentation-only |
@@ -382,3 +382,74 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 - 六文档 Prettier 仍为 FAIL；整篇格式化属单独 formatting-only 任务，本任务未授权。
 - Final Pass 与本次 check 对 ADR 0003 结果差异原因未证实。
+
+---
+
+## 2026-11-02 — WORKLOG Validation Evidence Consistency Remediation
+
+### Reviewed baseline
+
+| Item | Value |
+|---|---|
+| Branch | `spec` |
+| HEAD（编辑前） | `9c24d5349d1fd19908ea61771dfe1ca2f7d9819a` |
+| Parent commit | `4e808930f83936eab9ce2687c01a972fe51d9a0b`（`docs: Phase 3 spec decision status and WORKLOG verification`） |
+| Prior remediation commit on branch | `9c24d53`（`docs: WORKLOG validation evidence and change scope consistency`）— 本任务在其上追加独立证据条目并同步 STATUS 引用 |
+| Working tree（编辑前） | 干净（`git status --short` 无输出） |
+
+### Scope
+
+- **仅修改：** `docs/agent/STATUS.md`、`docs/agent/WORKLOG.md`（本条目 + STATUS Last verified checks）。
+- **只读校验、未改内容：** Architecture Review、Conflict Matrix、ADR 0003、Phase 3 Spec。
+- **未修改：** 应用代码、依赖、lockfile、Prettier 配置、架构文档、ADR 决策正文、Phase 3 实现、部署/Next 配置；**未**运行 `prettier --write`；**未** commit/push。
+
+### Findings
+
+1. **STATUS vs 历史 WORKLOG：** `STATUS.md` Last verified 曾写 Prettier「六文档均 FAIL」，而 Final Pass 条目内可核对清单为 Architecture Review、Conflict Matrix、Phase 3 Spec、STATUS、WORKLOG **FAIL**，ADR 0003 **PASS** — 二者对 ADR 0003 结论冲突。
+2. **缺失/不完整追溯：** STATUS 已声明 WORKLOG validation evidence remediation，但权威「最新只读 check + 历史/新结果区分」须由独立 WORKLOG 条目承载；此前存在标题相近的 [Change Scope 条目](#2026-11-02--worklog-validation-evidence--change-scope-consistency-remediation文档)，本条目为 **证据一致性** 的独立复核与 STATUS 指针更新。
+3. **未证实项：** Final Pass 对 ADR 0003 的 PASS 与本次（及 Change Scope 条目）对同路径的 FAIL **无法**在无 blob/版本 diff 终端输出下归因；保留 Final Pass 历史表述，标为可核对历史，**不得**无证据改写 ADR 0003 历史 PASS/FAIL。
+
+### Fresh validation results（本任务新执行；**编辑 STATUS/WORKLOG 正文之前**于 HEAD `9c24d53`）
+
+- **Prettier version：** 3.8.1（`yarn prettier --version`）
+- **Configuration：** `prettier.config.js`；无 `.prettierignore`；无 Markdown lint 仓库脚本
+- **Execution date：** 2026-11-02
+- **Combined command：** `yarn prettier --check docs/architecture/architecture-consistency-review.md docs/architecture/architecture-conflict-matrix.md docs/agent/decisions/0003-site-instance-url-and-seo-source.md specs/phases/03-minimum-seo-foundation.md docs/agent/STATUS.md docs/agent/WORKLOG.md`
+- **Combined exit code：** 1（六文件均 `[warn]`）
+
+| File | Fresh result | Evidence |
+|---|---|---|
+| Architecture Review | **FAIL** | Combined + `yarn prettier --check docs/architecture/architecture-consistency-review.md` → exit 1；`[warn] docs/architecture/architecture-consistency-review.md` |
+| Conflict Matrix | **FAIL** | Combined + per-file check → exit 1；`[warn] docs/architecture/architecture-conflict-matrix.md` |
+| ADR 0003 | **FAIL** | Combined + per-file check → exit 1；`[warn] docs/agent/decisions/0003-site-instance-url-and-seo-source.md` |
+| Phase 3 Spec | **FAIL** | Combined + per-file check → exit 1；`[warn] specs/phases/03-minimum-seo-foundation.md` |
+| STATUS | **FAIL** | Combined + per-file check → exit 1；`[warn] docs/agent/STATUS.md` |
+| WORKLOG | **FAIL** | Combined + per-file check → exit 1；`[warn] docs/agent/WORKLOG.md` |
+
+**Historical vs fresh（摘要）：**
+
+| Source | ADR 0003 | Other five | Verifiability |
+|---|---|---|---|
+| Final Pass WORKLOG 表 | PASS | FAIL | 条目内命令与清单可核对 |
+| Phase 3 Spec 决策状态修正条目（原写） | 曾写含 ADR warn | 六文件 warn | 与 Final Pass 冲突；无独立终端输出 |
+| **This task（fresh @ 9c24d53）** | FAIL | FAIL | 上表命令 exit 1 |
+
+### Changes
+
+- **`docs/agent/STATUS.md`：** Last verified checks 行改为引用本条目；最新 Prettier 结论与 WORKLOG 逐文件表一致（六 FAIL）；区分 Final Pass 历史 5+1 清单。
+- **`docs/agent/WORKLOG.md`：** 追加本条目（Fresh validation、Findings、历史保留说明）。
+
+### Remaining issues
+
+- 六目标文档 Prettier 仍为 **FAIL**；整篇 `--write` 格式化须 **单独 formatting-only 任务** 与用户明确授权。
+- Final Pass ADR 0003 **PASS** vs 本次 ADR 0003 **FAIL** 差异 **未证实原因**。
+
+### Phase status（本 remediation 不改变）
+
+| Item | Status |
+|---|---|
+| DEC-003-A–D | Accepted |
+| DEC-003-E | Investigation recorded；实施方案未批准 |
+| Phase 3 | **specified / implementation gated / not started** |
+| Phase 4 | **not started** |
+| Shared Core | **not an approved phase / deferred** |
