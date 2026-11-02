@@ -134,11 +134,29 @@ interface PortalHomeContent {
 
 职责与合并规则：
 
-- SiteInstance `metadata` 提供站点级默认 title/description、language/locale 与可选默认 social image。
-- PortalHomeContent 提供首页 publicationStatus、page title、page description、indexable 和可选 page-specific OG image。
-- 页面 title/description 来自 PortalHomeContent；SiteInstance 只作为明确 fallback。`ogImage` 缺失时可回退 `socialBanner`。
+- SiteInstance `metadata` 提供站点级默认 title/description、language/locale 与可选默认 social image；这些默认值不得掩盖 PortalHome 必填 SEO 缺失。
+- PortalHomeContent 提供首页 publicationStatus、必填 page title、必填 page description、indexable 和可选 page-specific OG image。
+- indexable PortalHome 必须显式提供非空 title/description；缺失或无效值是配置错误 / validation failure，不得静默回退 SiteInstance title/description。
+- `ogImage` 缺失时可回退 SiteInstance `socialBanner`。
 - canonical 不写入 PortalHomeContent，由 `siteUrl()` 生成；不得建立第二个 canonical 事实源。
-- `updatedAt` 属于页面内容生命周期，不属于 SiteInstance。
+- `updatedAt` 是根级页面内容生命周期字段，不属于 SiteInstance，也不得在 `seo` 下重复。
+
+| Field | PortalHomeContent | SiteInstance | Rule |
+|---|---|---|---|
+| `title` | Required | Site-level default | PortalHome 必须显式提供；缺失即 validation failure |
+| `description` | Required | Site-level default | PortalHome 必须显式提供；缺失即 validation failure |
+| `indexable` | Required | `defaultIndexable` | 页面级显式控制 |
+| `ogImage` | Optional | `socialBanner` | 页面值覆盖站点默认图 |
+| `canonical` | Not stored | `canonicalOrigin` | 由 `siteUrl()` 生成 |
+| `updatedAt` | Root-level optional | Not provided | 页面内容生命周期单一来源 |
+
+PortalHome 映射到共享 resolved SEO 表示时：
+
+```text
+ResolvedPageSEO.updatedAt = PortalHomeContent.updatedAt
+```
+
+该值存在且有效时可供 sitemap `lastmod` 使用。缺失时不得使用当前构建时间、文件处理时间或其他虚构时间补齐。
 
 ballgames §2 规则 1 的 `status === "published"` 当前建议映射为 §3.1 的 `publicationStatus === "published"`，不是第二个实现字段。该语义解释仍待 DEC-003-B 批准。
 
@@ -235,7 +253,8 @@ Phase 3 可用 fixture 验证该接口；不得在本阶段实现首页正文或
 
 ### 9.2 Page metadata
 
-- title/description/OG 按 page descriptor + site defaults 生成。
+- PortalHome title/description 必须来自 PortalHomeContent；SiteInstance title/description 仅为站点级默认值，不得作为缺失 PortalHome 必填字段的静默 fallback。其他页面类型按各自已批准契约解析。
+- PortalHome `ogImage` 可选；缺失时可回退 SiteInstance `socialBanner`。
 - canonical 与 `openGraph.url` 必须相同。
 - `seo.indexable === false` 或非 published 页面输出 `noindex`；不得进入 sitemap。
 - indexable 页面才可输出 `index,follow`。
@@ -365,6 +384,9 @@ Rich Results Test 只能辅助语法/类型检查，不证明 Google 必然展�
 - [ ] 非根 canonical 无尾斜杠；无 duplicate/slash variant。
 - [ ] canonical 与 Open Graph URL 完全一致。
 - [ ] page type、publicationStatus、indexable、canonical validity、content checks 和 route existence 分别验证。
+- [ ] PortalHome title/description 缺失时 validation failure；不得由 SiteInstance 默认值静默补齐。
+- [ ] PortalHome 可选 `ogImage` 缺失时仅回退 SiteInstance `socialBanner`。
+- [ ] `ResolvedPageSEO.updatedAt` 只映射自根级 `PortalHomeContent.updatedAt`；缺失时不伪造时间。
 - [ ] draft、archived、non-indexable、disabled 和 missing route 不进入 production sitemap。
 - [ ] Phase 3 fixture 对 R1 exact-two set 通过正反校验。
 - [ ] Phase 4 页面上线后，production sitemap 恰好包含两个权威 URL。

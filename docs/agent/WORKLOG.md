@@ -171,3 +171,49 @@
 - DEC-003-A–D 仍为 Proposed / Pending user decision。
 - DEC-003-E 调查授权仍为 Pending；未授权修改 `trailingSlash`、static export、部署或 redirect。
 - ADR 0003 仍为 Proposed；Phase 3 为 specified / implementation gated / not started。
+
+---
+
+## 2026-11-02 — Phase 3 Final Documentation Consistency Pass（文档）
+
+**Reviewed revision：** `spec` / `534db2c7bf55b1c43b727bd50949fff594ba8e79`；与独立评审指定 HEAD 一致，编辑前工作区干净。
+
+**范围：** 最终修复六项文档一致性问题。未批准 ADR 0003，未开始 Phase 3/4，未修改应用代码、配置、依赖、workflow 或权威 ballgames 产品 Spec。
+
+### Findings remediated
+
+1. Architecture Review 将 PortalHome 更正为 **Proposed Contract / Pending Approval**，区分通用模型未集成、ADR/Phase 3 已指定、用户未批准、应用未实现。
+2. Conflict Matrix 定义 issue type taxonomy；ACM-003 为 `Pending decision`、ACM-009 为 `Pending decision`、ACM-013 为 `Implementation gap`；矩阵级复核另更正 ACM-007/016/017/026/028/029，优先级与 11/16/4 汇总不变。
+3. ADR 0003 与 Phase 3 Spec 统一 PortalHome SEO：title/description 是必填页面字段，缺失即 validation failure；SiteInstance 仅提供站点级默认值，不静默补齐；`ogImage` 可回退 `socialBanner`；canonical 仅由 `siteUrl()` 生成。
+4. 两文档统一 `ResolvedPageSEO.updatedAt = PortalHomeContent.updatedAt`；根字段为单一来源，不在 `seo` 重复，缺失时不以构建时间伪造。
+5. STATUS 将 `aa8e1db...` 明确为 Phase 3 readiness remediation base commit，并记录 latest reviewed HEAD `534db2c...` 与分支 `spec`。
+6. Prettier 精确失败清单与范围已记录；不运行 `--write`，不做整篇格式化。
+
+### Files changed
+
+- `docs/architecture/architecture-consistency-review.md`
+- `docs/architecture/architecture-conflict-matrix.md`
+- `docs/agent/decisions/0003-site-instance-url-and-seo-source.md`
+- `specs/phases/03-minimum-seo-foundation.md`
+- `docs/agent/STATUS.md`
+- `docs/agent/WORKLOG.md`
+
+### Validation
+
+| Check | Result |
+|---|---|
+| `git diff --check` | PASS |
+| Matrix structure / priorities | PASS：31 rows；每行 12 列；P0 11、P1 16、P2 4 |
+| ACM classifications | PASS：ACM-003/009 `Pending decision`；ACM-013 `Implementation gap` |
+| PortalHome contract cross-check | PASS：required title/description、OG fallback、helper canonical、updatedAt 单一映射均一致 |
+| `yarn prettier --check docs/architecture/architecture-consistency-review.md docs/architecture/architecture-conflict-matrix.md docs/agent/decisions/0003-site-instance-url-and-seo-source.md specs/phases/03-minimum-seo-foundation.md docs/agent/STATUS.md docs/agent/WORKLOG.md` | FAIL：Architecture Review、Conflict Matrix、Phase 3 Spec、STATUS、WORKLOG；ADR 0003 PASS |
+| Build / lint / typecheck / deployment | **Not run — documentation-only scope**；`yarn lint` 含 `--fix` |
+
+Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c1fd670b9ad0db7d5a4990f754891a51` 的六个 Git blob 做只读 `prettier.check`，当时与当前相同的五文件 FAIL，ADR 0003 PASS；当前 reviewed HEAD / 编辑前与最终检查仍是同一清单。因此现存五项是 **早于本轮且早于最近 Phase 3 readiness remediation 的格式差异**，不是本轮引入；没有证据显示 formatter 不可用或配置故障。建议单独 formatting-only 任务审阅整篇重排。
+
+### Remaining decisions
+
+- ADR 0003 仍为 **Proposed**；DEC-003-A–D 均 Pending user decision。
+- DEC-003-E 仍仅等待调查授权；未批准任何 trailing-slash、export、部署或 redirect 变更。
+- `status` → `publicationStatus` 仍为 Proposed mapping，未修改权威产品 Spec。
+- Phase 3 仍为 **specified / implementation gated / not started**；Phase 4 仍为 **not started**；Shared Core 仍非获批阶段。

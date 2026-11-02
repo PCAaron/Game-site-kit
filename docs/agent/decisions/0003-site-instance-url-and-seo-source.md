@@ -101,11 +101,29 @@ interface PortalHomeContent {
 
 职责分配：
 
-- SiteInstance `metadata` 提供站点级默认 title/description、language/locale 与可选默认 social image。
-- PortalHomeContent 提供首页发布态及 page-level title/description/indexable；可选 `ogImage` 覆盖站点默认 social image。
-- 首页 title/description 以 PortalHomeContent 为页面事实源；SiteInstance 只提供明确的 fallback，不得在两个对象中维护两个互不相关的首页值。
+- SiteInstance `metadata` 提供站点级默认 title/description、language/locale 与可选默认 social image；这些是站点级默认值，不是缺失 PortalHome 必填 SEO 的静默 fallback。
+- PortalHomeContent 提供首页发布态及必填的 page-level title/description/indexable；可选 `ogImage` 覆盖站点默认 social image。
+- indexable PortalHome 必须显式提供非空 title/description；缺失或无效值属于配置错误 / validation failure，不得用 SiteInstance title/description 掩盖。
+- `ogImage` 缺失时可以回退 SiteInstance `socialBanner`。
 - `canonical` 不存入 PortalHomeContent，由 `siteUrl()` 生成；共享 PageSEO 的可选 canonical 在此页面类型上采用 helper 默认值。
-- `updatedAt` 是页面内容生命周期字段；它不属于 SiteInstance。
+- `updatedAt` 是根级页面内容生命周期字段；它不属于 SiteInstance，也不在 `seo` 中重复存储。
+
+| Field         | PortalHomeContent   | SiteInstance       | Resolution rule                                    |
+| ------------- | ------------------- | ------------------ | -------------------------------------------------- |
+| `title`       | Required            | Site-level default | PortalHome 必须显式提供；缺失即 validation failure |
+| `description` | Required            | Site-level default | PortalHome 必须显式提供；缺失即 validation failure |
+| `indexable`   | Required            | `defaultIndexable` | PortalHome 使用页面级显式控制                      |
+| `ogImage`     | Optional            | `socialBanner`     | 页面值优先；缺失时可回退站点默认图                 |
+| `canonical`   | Not stored          | `canonicalOrigin`  | 始终由 `siteUrl()` 生成                            |
+| `updatedAt`   | Root-level optional | Not provided       | 由页面内容生命周期拥有                             |
+
+PortalHome 解析为共享 SEO 表示时，必须应用：
+
+```text
+ResolvedPageSEO.updatedAt = PortalHomeContent.updatedAt
+```
+
+`updatedAt` 只存储一次；存在且有效时可作为 sitemap `lastmod`。缺失时不得以当前构建时间、文件处理时间或其他虚构时间补齐。
 
 理由：站点身份配置相对稳定，而首页正文、审核、SEO 放行与更新时间有独立生命周期。Phase 3 只冻结接口和 eligibility；实际首页内容集成属于 Phase 4。
 

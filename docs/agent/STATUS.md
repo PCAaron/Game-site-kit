@@ -4,7 +4,8 @@
 - **Baseline commit:** `723499bf9e590b398ed888cffc834a9c54274d00`（`v2.4.0-9-g723499b`）
 - **Last updated:** 2026-11-02
 - **Current reviewed branch:** `spec`
-- **Current remediation baseline:** `aa8e1db5c1fd670b9ad0db7d5a4990f754891a51`
+- **Phase 3 readiness remediation base commit:** `aa8e1db5c1fd670b9ad0db7d5a4990f754891a51`
+- **Latest reviewed HEAD:** `534db2c7bf55b1c43b727bd50949fff594ba8e79`
 - **Historical architecture remediation baseline:** `aca82e6b0c8c8467295fba274777ac6b043948e1`
 - **Pages deployment branch:** `main`（依据 `.github/workflows/pages.yml`；不等同于当前检出分支）
 
@@ -60,7 +61,19 @@
 | Phase 2 文档路径校验 | PASS | 2026-10-31 |
 | Phase 2.2 契约对齐 | PASS | 2026-11-02 文档-only；`git diff` 无应用代码 |
 | Phase 3 readiness cross-document checks | PASS | 2026-11-02；ACM priorities、PortalHome/PageSEO、DEC-003-E gate 一致 |
-| `yarn prettier --check`（六个目标文档） | FAIL | 5 个既有 Markdown 文件有格式差异；未运行 `--write` |
+| `yarn prettier --check docs/architecture/architecture-consistency-review.md docs/architecture/architecture-conflict-matrix.md docs/agent/decisions/0003-site-instance-url-and-seo-source.md specs/phases/03-minimum-seo-foundation.md docs/agent/STATUS.md docs/agent/WORKLOG.md` | FAIL | 编辑前与最终检查均为同 5 个文件；详见下方 inventory；未运行 `--write` |
+
+### Prettier failure inventory
+
+失败文件：
+
+- `docs/architecture/architecture-consistency-review.md`
+- `docs/architecture/architecture-conflict-matrix.md`
+- `specs/phases/03-minimum-seo-foundation.md`
+- `docs/agent/STATUS.md`
+- `docs/agent/WORKLOG.md`
+
+`docs/agent/decisions/0003-site-instance-url-and-seo-source.md` 通过。上述五个失败在本任务编辑前、工作区干净且 HEAD 为 `534db2c7bf55b1c43b727bd50949fff594ba8e79` 时已可复现，因此分类为 **pre-existing formatting differences at the reviewed HEAD**；本轮文档编辑未运行 `--write`，也未对整篇 Markdown 做格式化。Prettier 可用，配置能够完成检查；没有证据表明失败由 formatter 不可用或仓库级配置错误导致。建议另立 formatting-only 任务，审阅整篇重排 diff 后处理。
 
 ## Human decisions required
 

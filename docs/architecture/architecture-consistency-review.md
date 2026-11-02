@@ -5,6 +5,7 @@
 > **原始评审基线：** `main` / `c6cc024d9493d4c60d8fb785346d4cb369c6538b`
 > **首次 remediation 基线：** `spec` / `aca82e6b0c8c8467295fba274777ac6b043948e1`
 > **Phase 3 readiness remediation 基线：** `spec` / `aa8e1db5c1fd670b9ad0db7d5a4990f754891a51`
+> **Final consistency pass reviewed HEAD：** `spec` / `534db2c7bf55b1c43b727bd50949fff594ba8e79`
 > **业务权威：** `specs/ballgames/ballgames-specs-v1.md`
 > **实施状态：** 未修改应用代码、依赖、业务 Spec 或部署配置；未开始后续 Phase
 
@@ -29,7 +30,7 @@
 
 - 当前 `siteUrl` 仍是模板演示域名，且 `next.config.js` 使用 `trailingSlash: true`，与 ballgames 无尾斜杠 canonical 冲突。
 - sitemap 仍输出博客、项目、标签和文章，缺少 `publicationStatus + seo.indexable + canonical` 过滤，无法满足 R1 恰好 2 条 URL。
-- PortalHome 没有明确发布态字段，SitemapCandidate 却要求 `publicationStatus === "published"`；首页资格推导未闭合。
+- ADR 0003 与 Phase 3 Spec 已提出 PortalHomeContent 发布与 SEO 契约，但仍待用户批准，且尚未集成到通用内容模型或应用实现；首页资格因此尚未形成获批、可执行的闭环。
 - R1 iframe 依赖仍未核实的 embed 许可，当前 `frame-src` 只允许 `giscus.app`，静态导出路径也没有仓库内可验证的响应头落点。
 - Portal 页面、Catalog、Game Detail、Launcher 和 portal Structured Data 尚未实现。
 
@@ -181,9 +182,17 @@
 
 ### 6.1 PortalHome publication eligibility
 
-**Missing Specification**
+**Proposed Contract / Pending Approval**
 
-通用 `SitemapCandidate` 要求页面类型启用、`publicationStatus === "published"`、`seo.indexable === true` 且 canonical 有效，但 `specs/04-config-and-content-models.md` 的 PortalHome 只有 PageSEO、区块顺序、FAQ 与 ItemList 成员，没有发布态。
+通用 `SitemapCandidate` 要求页面类型启用、`publicationStatus === "published"`、`seo.indexable === true` 且 canonical 有效。PortalHome 契约并非完全缺失：ADR 0003 与 Phase 3 Spec 已提出独立 `PortalHomeContent` 接口及 eligibility 行为；但 `specs/04-config-and-content-models.md` 尚未集成该 publication contract，用户批准仍待定，应用也未实现。
+
+| Layer | Actual state |
+|---|---|
+| `specs/04-config-and-content-models.md` | PortalHome publication contract 尚未集成 |
+| ADR 0003 | Proposed `PortalHomeContent` contract 已存在 |
+| Phase 3 Spec | 接口、PageSEO 映射与 eligibility 行为已指定 |
+| User approval | Pending |
+| Application implementation | Not implemented |
 
 评估的来源方案：
 
@@ -206,7 +215,7 @@ interface PortalHomeContent {
 }
 ```
 
-`PortalHomeContent` 应是首页发布态和 page-level SEO 的单一来源。SiteInstance 仅提供站点级默认 title/description、language/locale、可选默认 social image、`portal_home` 启用状态和 URL 规则。页面 title/description/ogImage 优先使用 `PortalHomeContent.seo`，缺失可选 OG image 时才回退站点默认值；必填 page title/description 不应由两个对象同时独立维护。
+`PortalHomeContent` 应是首页发布态和 page-level SEO 的单一来源。SiteInstance 仅提供站点级默认 title/description、language/locale、可选默认 social image、`portal_home` 启用状态和 URL 规则。PortalHome 的 title/description 是必填页面字段，缺失时必须校验失败，不得以 SiteInstance 值静默补齐；只有缺失可选 `ogImage` 时才回退站点 `socialBanner`。
 
 canonical 不存入 PortalHomeContent，由 `siteUrl()` 生成；这与共享 PageSEO 中“canonical 缺省由 helper 自指向”的规则一致，并避免第二个 URL 事实源。首页只有同时满足以下条件才可进入 R1 sitemap：
 
@@ -217,7 +226,7 @@ AND PortalHomeContent.seo.indexable 为 true
 AND siteUrl() 等于首页 canonical
 ```
 
-Phase 3 可以定义并验证该契约；实际首页正文对象及页面集成属于 Phase 4。
+`PortalHomeContent.updatedAt` 保持为根级内容生命周期字段，并映射为 `ResolvedPageSEO.updatedAt`；不得在 `seo` 下重复存储，也不得在缺失时使用当前构建时间或其他虚构时间。Phase 3 可以定义并验证该契约；实际首页正文对象及页面集成属于 Phase 4。
 
 ### 6.2 Publication terminology
 
@@ -271,7 +280,7 @@ Phase 3 的 URL、metadata、indexability 与 sitemap 工作可独立进行，�
 | SC-03 | Play 默认行为 | R1 使用经许可的 iframe + 外链回退 | 未核实默认新标签外链；许可后允许 iframe | **Compatible with condition** | 许可和 CSP 是上线门 | 保留条件，不降级实例需求 |
 | SC-04 | 首页卡语义 | 一张 `<a>`，其余 `<button>` 换源 | 导航与 Launcher action 分离 | **Compatible** | 内链图正确 | 保留 |
 | SC-05 | Canonical | origin 与 path 均无尾斜杠 | `urlPathStyle` 由实例决定 | **Compatible** | 实现仍冲突 | 保留实例覆盖 |
-| SC-06 | Sitemap | R1 恰好 2 条 | SitemapCandidate 规则 | **Compatible but incomplete** | PortalHome 发布态未定义 | 补齐首页发布资格 |
+| SC-06 | Sitemap | R1 恰好 2 条 | SitemapCandidate 规则 | **Compatible but incomplete** | PortalHome 发布契约已提出但未批准或实现 | 批准并实现首页发布资格 |
 | SC-07 | `/car-soccer` | R3 Category System 中的分类页 | 页面策略表定义为 `game_detail` | **Conflict** | R3 路由与 schema 无法确定 | 以实例为准，建议 Kit 后续修正为 category_hub |
 | SC-08 | 发布态字段 | 硬约束使用 `status`，模型使用 `publicationStatus` | Kit 使用 `publicationStatus` | **Conflict / terminology** | 校验器可能读错字段 | 统一为 `publicationStatus`；本轮不改 Spec |
 | SC-09 | 详情发布态 | 合并 Game 记录只有一个 publicationStatus | Kit 文本暗示页面/content 包也有发布态 | **Gap** | Catalog 已发布但 Detail 未就绪时语义不明 | 决定独立 Detail 状态或明确继承规则 |
@@ -321,7 +330,7 @@ Phase 3 的 URL、metadata、indexability 与 sitemap 工作可独立进行，�
 | GAP-01 | SiteInstance 契约不完整且未实现 | Contract + Code | P0 | 错域名/串配置会阻止 R1 上线 | Phase 3 |
 | GAP-02 | URL helper、canonical、内链、sitemap、JSON-LD 不同源 | Code | P0 | 直接违反 R1 §2-11–13 | Phase 3 |
 | GAP-03 | 无页面级 indexable 与 SitemapCandidate | Code | P0 | R1 sitemap 无法限制为 2 URL | Phase 3 |
-| GAP-04 | PortalHome 发布态未定义 | Contract | P0 | 首页无法严格通过通用 sitemap 谓词 | Review approval / Phase 3 |
+| GAP-04 | PortalHome proposed contract 未批准且未实现 | Contract + Code | P0 | 首页无法严格通过通用 sitemap 谓词 | Review approval / Phase 3 |
 | GAP-05 | `trailingSlash: true` 与无尾斜杠 canonical | Config | P0 | 可能产生重复 URL | Phase 3 |
 | GAP-06 | 无 portal metadata / JSON-LD 生成器 | Code | P0 | R1 DoD 必需；Phase 3 先建 contract，Phase 4 接页面内容 | Phase 3 mechanism / Phase 4 integration |
 | GAP-07 | EmbedPermission 未录入且 CSP/部署未知 | Manual + Architecture | P0 | 未授权 iframe 不能上线 | Before Phase 4 release |
