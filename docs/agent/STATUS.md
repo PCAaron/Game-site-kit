@@ -56,7 +56,8 @@
 | `yarn build` | PASS | 2026-10-30；**本任务未运行** |
 | ADR 0003 文档落地验证 | 见 WORKLOG 2026-11-02 DEC-003 条目 | Previous task：部分历史命令不可独立复核 |
 | Phase 3 Spec 决策状态 remediation | 见 WORKLOG 2026-11-02 决策状态修正条目 | commit `4e80893`；含 STATUS Last verified 更新 |
-| WORKLOG validation evidence consistency remediation | 见 WORKLOG [2026-11-02 WORKLOG Validation Evidence Consistency Remediation](WORKLOG.md#2026-11-02--worklog-validation-evidence-consistency-remediation) | 编辑前 `git diff --check` PASS；**最新** Prettier 3.8.1 只读 check：**六目标文档均 FAIL**（逐文件表见 WORKLOG）；Final Pass **历史**记录为 5 FAIL + ADR 0003 PASS，与本次新结果对 ADR 0003 不一致，原因未证实 |
+| WORKLOG validation evidence consistency remediation | 见 WORKLOG [2026-11-02 WORKLOG Validation Evidence Consistency Remediation](WORKLOG.md#2026-11-02--worklog-validation-evidence-consistency-remediation) | @ HEAD `9c24d53` / commit `47e4127` 前 fresh check；Final Pass **历史** 5 FAIL + ADR 0003 PASS；与 @ `47e4127` 起 fresh 六 FAIL 对 ADR 0003 不一致，原因未证实 |
+| Documentation final post-edit verification | 见 WORKLOG [2026-11-02 Documentation Final Post-Edit Verification](WORKLOG.md#2026-11-02--documentation-final-post-edit-verification) | @ HEAD `47e4127` 编辑前工作区干净；**最终**（本任务 STATUS/WORKLOG 更新后）Prettier 3.8.1 只读 check：**六目标文档均 FAIL**（exit 1；逐文件表见 WORKLOG）；`git diff --check` **PASS**（exit 0）；变更范围仅 STATUS + WORKLOG |
 
 ## Human decisions still required
 
