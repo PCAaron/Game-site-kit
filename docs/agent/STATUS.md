@@ -55,7 +55,8 @@
 | `yarn typecheck` | PASS | 2026-10-30 |
 | `yarn build` | PASS | 2026-10-30；**本任务未运行** |
 | ADR 0003 文档落地验证 | 见 WORKLOG 2026-11-02 DEC-003 条目 | Previous task：部分历史命令不可独立复核 |
-| Phase 3 Spec 决策状态 remediation | 见 WORKLOG 2026-11-02 决策状态修正条目 | 本任务执行 `git diff --check`、decision phrase check、prettier check（FAIL 六文件） |
+| Phase 3 Spec 决策状态 remediation | 见 WORKLOG 2026-11-02 决策状态修正条目 | commit `4e80893`；含 STATUS Last verified 更新 |
+| WORKLOG validation evidence remediation | 见 WORKLOG 2026-11-02 WORKLOG 验证证据条目 | `git diff --check` PASS；Prettier 3.8.1 逐文件 check 六文档均 FAIL（见 WORKLOG 表） |
 
 ## Human decisions still required
 

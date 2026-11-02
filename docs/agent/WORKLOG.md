@@ -286,8 +286,11 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 ### Files changed
 
-- `specs/phases/03-minimum-seo-foundation.md`
+（与 commit `4e808930f83936eab9ce2687c01a972fe51d9a0b` 一致；原条目曾遗漏 STATUS，见 [WORKLOG 验证证据 remediation](#2026-11-02--worklog-validation-evidence--change-scope-consistency-remediation文档) 追溯修正。）
+
+- `docs/agent/STATUS.md`
 - `docs/agent/WORKLOG.md`
+- `specs/phases/03-minimum-seo-foundation.md`
 
 ### Validation — Current remediation validation
 
@@ -295,9 +298,9 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 |---|---|---|---|
 | Git status | `git status --short` | PASS（仅授权文档变更） | 编辑后复核 |
 | Git whitespace check | `git diff --check` | PASS | 编辑前基线干净 exit 0；编辑后无 whitespace error |
-| Diff scope | `git diff --stat` | PASS | 仅 Phase 3 Spec + WORKLOG |
+| Diff scope | `git diff 916314c..4e80893 --stat` | PASS（**retroactive 记录修正**） | **3 文件**：STATUS、WORKLOG、Phase 3 Spec；**无**应用代码、配置、依赖、ballgames 产品 Spec、部署 workflow。原表「仅 Phase 3 Spec + WORKLOG」与实际上一轮 commit 不符 |
 | Decision status phrases | `rg` 待批准类关键词于 Phase 3 Spec | PASS | §6.2/§8.2/§10 已修正；§7.4 trailing-slash **实施方案**单独批准表述保留 |
-| Prettier check | `yarn prettier --check`（六文档） | FAIL | 六文件均有格式 warn（含 ADR 0003）；未运行 `--write` |
+| Prettier check | `yarn prettier --check`（六文档） | **记录不一致 — 见 reconciliation** | **Previous task（本条目原写）：**「六文件均有格式 warn（含 ADR 0003）」。**Final Pass 历史可核对清单：** Architecture Review、Conflict Matrix、Phase 3 Spec、STATUS、WORKLOG 为 FAIL；ADR 0003 为 PASS（见上文 Final Pass Validation 表）。**本条目 commit 未单独留存 prettier 终端输出**；不得将 ADR 0003 在历史 PASS 与 FAIL 之间无证据改写。逐文件 **2026-11-02 新执行** 见 [WORKLOG 验证证据 remediation](#2026-11-02--worklog-validation-evidence--change-scope-consistency-remediation文档)。未运行 `--write` |
 | Markdown lint | 无仓库脚本 | **NOT RUN** | |
 | Internal links | 人工 spot-check 相对路径 | PASS | ADR/Matrix/Review/Phase 3 交叉引用未改路径 |
 | Build / lint / typecheck | — | **NOT RUN** | documentation-only |
@@ -307,5 +310,75 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 - ADR 0003：DEC-003-A–E 均为 Accepted / E-1 调查已记录；未重开决策。
 - Conflict Matrix：未改；Decision resolved 项未标 Implemented。
 - Architecture Review：§20 仍为只读调查；URL 实施方案待单独批准。
-- STATUS：Phase 3 **specified / implementation gated / not started**；Phase 4 **not started** — 未改。
+- STATUS：**已更新** Last verified checks 与 WORKLOG 验证引用（ADR 0003 落地说明、Phase 3 Spec 决策状态 remediation 行）；Phase 3 仍为 **specified / implementation gated / not started**；Phase 4 仍为 **not started**；ADR 0003 决策状态与实施门禁**未改变**。（原写「未改」不准确，已 retroactive 修正。）
 - ballgames-specs-v1.md：**未修改**。
+
+---
+
+## 2026-11-02 — WORKLOG Validation Evidence & Change Scope Consistency Remediation（文档）
+
+**Baseline：** branch `spec`；HEAD `4e808930f83936eab9ce2687c01a972fe51d9a0b`（parent `916314c73fd55421caf162bf391021a4f43ec308`）；编辑前工作区干净；`HEAD` 与 `origin/spec` 一致。
+
+**范围：** 修正上一 WORKLOG 条目（Phase 3 Spec 决策状态修正）中 Files changed、Diff scope、STATUS 描述与 Prettier 记录不一致；补全本任务验证证据。**未**修改应用代码、`package.json`、lockfile、Next/Contentlayer 配置、部署 workflow、权威 `specs/ballgames/ballgames-specs-v1.md`、ADR 0003 已批准决策、Phase 3 技术方案；**未**运行 prettier `--write`；**未** commit/push。
+
+### Changes made
+
+1. **Files changed（retroactive）：** 与 `git diff 916314c..4e80893 --name-only` 对齐，补上 `docs/agent/STATUS.md`。
+2. **Diff scope / STATUS 描述：** 如实记录上一轮 commit 含 STATUS 的 Last verified checks 更新；移除错误的「STATUS — 未改」。
+3. **Prettier reconciliation：** 保留 Final Pass 与 ADR 落地条目的历史记录；区分 previous task 原写、Final Pass 可核对清单、本任务新执行的逐文件 check。
+
+### Files changed（本任务）
+
+- `docs/agent/WORKLOG.md` — 上述 retroactive 修正 + 本条目
+- `docs/agent/STATUS.md` — Last verified checks 增加本 remediation 引用（最小必要）
+
+### Validation
+
+| Validation | Command | Result | Evidence / Notes |
+|---|---|---|---|
+| Git baseline | `git branch --show-current`; `git rev-parse HEAD`; `git rev-parse origin/spec` | PASS | `spec` / `4e80893` / 与 origin 一致 |
+| Previous commit scope | `git diff HEAD^ HEAD --name-status` | PASS | M STATUS、WORKLOG、Phase 3 Spec（3 文件） |
+| Current diff scope | `git diff --stat`; `git diff --name-only` | PASS（编辑后复核） | 仅 WORKLOG + STATUS |
+| Git whitespace | `git diff --check` | PASS | 无 trailing whitespace 类 error |
+| Prettier 3.8.1 | `yarn prettier --check <file>`（逐文件，见下表） | FAIL（6/6） | 只读 check；未 `--write` |
+| Decision consistency | `rg` 于 Phase 3 Spec / ADR 0003 当前正文 | PASS | 无「待用户批准」等过期 Phase 3 措辞；ADR Status Accepted |
+| Build / lint / typecheck | — | **NOT RUN** | documentation-only；`yarn lint` 含 `--fix` |
+
+#### Prettier — This task newly executed（Prettier **3.8.1**；`prettier.config.js`；无 `.prettierignore`）
+
+| File | Command | Result |
+|---|---|---|
+| `docs/architecture/architecture-consistency-review.md` | `yarn prettier --check docs/architecture/architecture-consistency-review.md` | FAIL |
+| `docs/architecture/architecture-conflict-matrix.md` | `yarn prettier --check docs/architecture/architecture-conflict-matrix.md` | FAIL |
+| `docs/agent/decisions/0003-site-instance-url-and-seo-source.md` | `yarn prettier --check docs/agent/decisions/0003-site-instance-url-and-seo-source.md` | FAIL |
+| `specs/phases/03-minimum-seo-foundation.md` | `yarn prettier --check specs/phases/03-minimum-seo-foundation.md` | FAIL |
+| `docs/agent/STATUS.md` | `yarn prettier --check docs/agent/STATUS.md` | FAIL |
+| `docs/agent/WORKLOG.md` | `yarn prettier --check docs/agent/WORKLOG.md` | FAIL |
+
+**Historical result preservation：**
+
+| Source | Prettier summary | Verifiability |
+|---|---|---|
+| Final Pass 条目 | 5 FAIL + ADR 0003 **PASS** | 条目内命令与清单可核对 |
+| Phase 3 Spec 决策状态修正条目（原写） | 「六文件均有 warn（含 ADR 0003）」 | 与 Final Pass 冲突；**无**独立终端输出 |
+| ADR 0003 落地条目 Prettier 行 | **Historical execution result not independently verifiable** | 未改 |
+| **This task** | 六文件均 FAIL | 上表命令 exit 1 + `[warn]` |
+
+本任务新结果与 Final Pass 对 ADR 0003 的 PASS **不一致**；在无 blob/版本 diff 证据前**不得**归因于配置或 Prettier 版本变化。
+
+### Cross-document consistency
+
+| Item | Status |
+|---|---|
+| DEC-003-A–D | Accepted / A-1–D-1 |
+| DEC-003-E | E-1 investigation recorded；实施方案未批准 |
+| Phase 3 | Specified / Implementation Gated / **Not Started** |
+| Phase 4 | **Not Started** |
+| Shared Core | Not an approved phase / Deferred |
+| Trailing-slash implementation | Requires separate approval |
+| ballgames-specs-v1.md | 未修改 |
+
+### Remaining findings
+
+- 六文档 Prettier 仍为 FAIL；整篇格式化属单独 formatting-only 任务，本任务未授权。
+- Final Pass 与本次 check 对 ADR 0003 结果差异原因未证实。
