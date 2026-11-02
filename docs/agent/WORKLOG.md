@@ -131,3 +131,43 @@
 - ADR 0003 DEC-003-A–E：最小 SiteInstance、PortalHome source、Blog isolation、Phase 3/4 integration split、trailing-slash 实施调查授权。
 - ADR 0002 的 Content/Catalog 物理存储与 archived lifecycle（Phase 4 前）。
 - iframe 与商业许可、生产 CSP/headers、广告槽语义（Phase 4/R1 release）。
+
+---
+
+## 2026-11-02 — Phase 3 Readiness Remediation（文档）
+
+**Remediation baseline：** `spec` / `aa8e1db5c1fd670b9ad0db7d5a4990f754891a51`；编辑前工作区干净。
+
+**范围：** 修正独立 Phase Spec 状态、Conflict Matrix 结构/优先级、PortalHomeContent/PageSEO 责任边界与 DEC-003-E entry gate。未开始 Phase 3/4，未修改应用代码、依赖、Next 配置、部署 workflow 或 ballgames 产品 Spec。
+
+### Findings remediated
+
+1. Architecture Review 已改为 Phase 3 独立 Spec 存在，并明确 Phase 4 尚无独立 Spec；历史 `c6cc024` / `aca82e6` baseline 均保留。
+2. ACM-019 已补齐 12 列并保持 P0；ACM-031 依据“phase decision blocker，而非独立 release risk”调整为 P1。汇总为 P0 11 项、P1 16 项、P2 4 项。
+3. ADR 0003 与 Phase 3 Spec 统一：SiteInstance 提供站点默认 metadata；PortalHomeContent 提供首页 publication 与 PageSEO；canonical 只由 URL helper 生成。`status` → `publicationStatus` 仅为 Proposed mapping。
+4. DEC-003-E 已单列为 Phase 3 Pending entry gate；只请求调查授权，最终技术方案仍需证据和独立授权。
+
+### Files changed
+
+- `docs/architecture/architecture-consistency-review.md`
+- `docs/architecture/architecture-conflict-matrix.md`
+- `docs/agent/decisions/0003-site-instance-url-and-seo-source.md`
+- `specs/phases/03-minimum-seo-foundation.md`
+- `docs/agent/STATUS.md`
+- `docs/agent/WORKLOG.md`
+
+### Validation
+
+| Check | Result |
+|---|---|
+| `git diff --check` | PASS（编辑中与最终复核） |
+| Matrix row/priority targeted checks | PASS：31 rows；P0 11、P1 16、P2 4；ACM-019 P0；ACM-031 P1 |
+| ADR / Phase 3 contract targeted checks | PASS：PortalHome fields、URL helper ownership、mapping 与 DEC-003-E gate 均存在 |
+| `yarn prettier --check`（六个目标文档） | FAIL：5 个既有 Markdown 文件有格式差异；未运行 `--write`，避免无关整篇重排 |
+| Build / lint / typecheck / deployment | **Not Run**（文档 remediation；`yarn lint` 含 `--fix`） |
+
+### Pending decisions
+
+- DEC-003-A–D 仍为 Proposed / Pending user decision。
+- DEC-003-E 调查授权仍为 Pending；未授权修改 `trailingSlash`、static export、部署或 redirect。
+- ADR 0003 仍为 Proposed；Phase 3 为 specified / implementation gated / not started。

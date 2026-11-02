@@ -39,15 +39,16 @@
 |---|---|---|
 | Site URL source of truth | **Pending user decision** | 批准 ADR 0003 的最小 SiteInstance 与 `siteUrl/gameUrl` 职责 |
 | Canonical URL policy | **Satisfied with conditions** | 产品规则已冻结为根与非根均无尾斜杠；Next/export 实现策略仍需验证 |
+| Trailing-slash investigation authorization | **Pending user decision** | 批准 DEC-003-E 仅调查 Next 配置、static export、生成路径与 canonical 影响；不授权改配置、部署、redirect 或无关 URL 重构 |
 | PortalHome publication eligibility | **Pending user decision** | 批准独立 PortalHomeContent，或明确等价且可测试的单一来源 |
-| Publication state terminology | **Satisfied with conditions** | 实现统一用 `publicationStatus`；不在本阶段修改权威 ballgames Spec |
+| Publication state terminology | **Pending user decision** | 建议将 ballgames §2 的 `status` 解释为 §3.1 `publicationStatus` 的产品简写；须随 DEC-003-B 确认，不修改权威 Spec |
 | Blog isolation | **Pending user decision** | 批准保留 Blog/Authors 能力但从 ballgames R1 sitemap/SEO surface 隔离 |
 | Sitemap eligibility | **Satisfied with conditions** | predicate 维度已定义；production exact-two 依赖 Phase 4 route existence |
 | Phase 3 scope | **Satisfied** | 本 Spec 明确排除 Phase 4 页面、Catalog、Launcher 与 iframe |
 | Production exact-two integration | **Blocked by missing evidence** | `/hockey-bros` 页面尚不存在；不得将 404 URL 放入生产 sitemap |
 | Page JSON-LD integration | **Blocked by missing evidence** | PortalHome/Detail 可见 FAQ、breadcrumbs 和核实数据尚属 Phase 4 |
 
-**Implementation gate：** 前五项中的待决项须有明确用户决定后，才可开始 Phase 3 应用代码修改。后两项不阻止机制开发，但阻止宣称 R1 SEO 已完成。
+**Implementation gate：** DEC-003-A–E 必须分别获得明确用户决定后，才可开始 Phase 3 应用代码修改。DEC-003-E 只授权调查，不批准最终技术变更；调查完成后必须单独报告证据与最小方案。production integration 两项不阻止机制开发，但阻止宣称 R1 SEO 已完成。
 
 ## 4. In scope
 
@@ -122,11 +123,24 @@ type PublicationStatus = 'draft' | 'published' | 'archived'
 interface PortalHomeContent {
   publicationStatus: PublicationStatus
   seo: {
+    title: string
+    description: string
     indexable: boolean
+    ogImage?: string
   }
   updatedAt?: string
 }
 ```
+
+职责与合并规则：
+
+- SiteInstance `metadata` 提供站点级默认 title/description、language/locale 与可选默认 social image。
+- PortalHomeContent 提供首页 publicationStatus、page title、page description、indexable 和可选 page-specific OG image。
+- 页面 title/description 来自 PortalHomeContent；SiteInstance 只作为明确 fallback。`ogImage` 缺失时可回退 `socialBanner`。
+- canonical 不写入 PortalHomeContent，由 `siteUrl()` 生成；不得建立第二个 canonical 事实源。
+- `updatedAt` 属于页面内容生命周期，不属于 SiteInstance。
+
+ballgames §2 规则 1 的 `status === "published"` 当前建议映射为 §3.1 的 `publicationStatus === "published"`，不是第二个实现字段。该语义解释仍待 DEC-003-B 批准。
 
 Phase 3 可用 fixture 验证该接口；不得在本阶段实现首页正文或将其混入 SiteInstance。
 
@@ -175,13 +189,13 @@ Phase 3 可用 fixture 验证该接口；不得在本阶段实现首页正文或
 
 ### 7.4 `trailingSlash` investigation
 
-实现者必须先验证 Next.js 15.5.12 + static export 下：
+本节只有在 DEC-003-E 获得“调查授权”后才能执行。调查可只读检查 Next.js 15.5.12 + static export 下：
 
 - `trailingSlash: true` 对输出文件、链接和 redirect 的影响；
 - 移除该配置是否破坏 GitHub Pages export；
 - 当前托管是否能把带斜杠请求 301 到无斜杠 canonical。
 
-证据不足时不得声称 canonical 一致性已完成。最终公开 URL 必须符合 ballgames 无尾斜杠硬约束。
+调查授权不允许修改 `next.config.js`、`trailingSlash`、static export、部署 workflow、redirect 层或无关 URL 代码。证据不足时不得声称 canonical 一致性已完成。调查结果须给出最小技术建议；最终实现选择需要单独授权，且公开 URL 必须符合 ballgames 无尾斜杠硬约束。
 
 ## 8. R1 sitemap contract
 
@@ -263,11 +277,11 @@ Rich Results Test 只能辅助语法/类型检查，不证明 Google 必然展�
 
 ## 12. Ordered implementation plan
 
-### Step 1 — Approve contracts
+### Step 1 — Close entry decisions
 
-- **Objective：** 关闭 ADR 0003、PortalHome、Blog isolation 与 Phase split 的用户决策。
+- **Objective：** 分别关闭 DEC-003-A–D，并取得 DEC-003-E 的只读调查授权。
 - **Inspect：** ADR 0003、本 Spec、Architecture Review/Matrix。
-- **Expected behavior：** 决策逐项记录，不做笼统“全部批准”推断。
+- **Expected behavior：** 决策逐项记录；DEC-003-E 不被误写为最终技术方案批准。
 - **Dependencies：** 用户明确确认。
 - **Risk：** 未批准就编码会固化错误边界。
 - **Validation：** ADR status 与用户决策记录一致；本 Spec 无冲突。
@@ -288,7 +302,7 @@ Rich Results Test 只能辅助语法/类型检查，不证明 Google 必然展�
 - **Inspect/likely modify：** `contentlayer.config.ts`、`scripts/rss.mjs`、现有 URL 拼接 consumer。
 - **Potential create：** `lib/urls.ts`。
 - **Expected behavior：** root 与 game URL 符合无尾斜杠契约；非法输入 fail closed。
-- **Dependencies：** SiteInstance。
+- **Dependencies：** SiteInstance；DEC-003-E 调查完成且最终技术选择另获授权。
 - **Risks：** static export、base path 与 absolute canonical 混淆。
 - **Validation：** deterministic URL assertions；hardcoded path scan。
 
@@ -343,6 +357,8 @@ Rich Results Test 只能辅助语法/类型检查，不证明 Google 必然展�
 ## 13. Acceptance criteria
 
 - [ ] 用户已逐项批准 ADR 0003 所需决定；ADR 状态与证据一致。
+- [ ] DEC-003-E 的调查授权有明确记录；调查本身没有修改配置、部署或 URL 实现。
+- [ ] trailing-slash/export 调查证据与最小技术建议已单独报告；最终实现选择具有独立授权。
 - [ ] Site URL 不再继承 starter 域名或 starter brand。
 - [ ] `siteUrl()` 与 `gameUrl()` 是 canonical URL 唯一入口。
 - [ ] `siteUrl()` 与 `gameUrl('hockey-bros')` 精确输出两个权威 R1 URL。

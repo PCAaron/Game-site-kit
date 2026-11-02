@@ -90,13 +90,26 @@ Phase 3 不把 navigation、全量 assets、部署平台、Organization 法定�
 interface PortalHomeContent {
   publicationStatus: PublicationStatus
   seo: {
+    title: string
+    description: string
     indexable: boolean
+    ogImage?: string
   }
   updatedAt?: string
 }
 ```
 
+职责分配：
+
+- SiteInstance `metadata` 提供站点级默认 title/description、language/locale 与可选默认 social image。
+- PortalHomeContent 提供首页发布态及 page-level title/description/indexable；可选 `ogImage` 覆盖站点默认 social image。
+- 首页 title/description 以 PortalHomeContent 为页面事实源；SiteInstance 只提供明确的 fallback，不得在两个对象中维护两个互不相关的首页值。
+- `canonical` 不存入 PortalHomeContent，由 `siteUrl()` 生成；共享 PageSEO 的可选 canonical 在此页面类型上采用 helper 默认值。
+- `updatedAt` 是页面内容生命周期字段；它不属于 SiteInstance。
+
 理由：站点身份配置相对稳定，而首页正文、审核、SEO 放行与更新时间有独立生命周期。Phase 3 只冻结接口和 eligibility；实际首页内容集成属于 Phase 4。
+
+ballgames §2 规则 1 的 `status === "published"` 当前建议映射为 §3.1 数据模型中的 `publicationStatus === "published"`，不是第二个数据字段。该映射仍为 Proposed，须在 DEC-003-B 中明确确认；本 ADR 不修改权威产品 Spec。
 
 ### 3. URL responsibilities
 
@@ -164,13 +177,13 @@ Phase 4 创建并发布实际页面后，生产输出才验收 exact-two sitemap
 1. 先定义类型和 ballgames 实例值，再实现 helper 单元/脚本级断言。
 2. 迁移 layout metadata、Open Graph、sitemap 和 JSON-LD 到同源 URL。
 3. 为 sitemap 建立显式 page descriptor 输入，禁止隐式遍历 `allBlogs`。
-4. 调查 `trailingSlash: true` 在当前 Next 15 static export 下的实际输出；修改前确定 redirect/hosting 策略。
+4. 只有 DEC-003-E 的调查授权获批后，才检查 `trailingSlash: true` 在当前 Next 15 static export 下的实际输出；调查不修改配置、部署或 redirect。证据与最小技术建议须另行报告，最终变更仍需实现任务授权。
 5. `siteMetadata.js` 可临时成为由 SiteInstance 派生的兼容层；不得形成第二套 origin。
 6. Phase 4 再接入 PortalHome、GameDetail 实体和实际 JSON-LD 内容。
 
 ## Open Questions
 
-- `trailingSlash` 是在 Phase 3 移除，还是保留文件输出行为并由部署 redirect 保证无尾斜杠公开 URL？
+- DEC-003-E 当前只请求调查授权；`trailingSlash` 是移除、保留文件输出并加 redirect，还是采用其他方案，必须等调查证据后单独决定。
 - legacy blog routes 在 ballgames 产物中是继续部署但 noindex，还是从实例构建/路由中移除？
 - Organization 的真实名称、logo、sameAs 等字段尚无核验证据；不纳入最小 SiteInstance。
 - Archived Catalog + Published Detail 的退役策略属于 ADR 0002 / Phase 4。
@@ -189,19 +202,26 @@ Phase 4 创建并发布实际页面后，生产输出才验收 exact-two sitemap
 ## User Decision Required
 
 1. **DEC-003-A — SiteInstance 边界**
+   - 状态：**Proposed / Pending user decision**。
    - 推荐：批准本 ADR 的 Phase 3 最小 shape。
    - 替代：继续扩展 `siteMetadata.js`，或先设计完整配置框架。
 2. **DEC-003-B — PortalHome 来源**
-   - 推荐：独立 PortalHomeContent 作为 publication 与 PageSEO 单一来源。
+   - 状态：**Proposed / Pending user decision**。
+   - 推荐：独立 PortalHomeContent 作为 publication 与首页 PageSEO 单一来源；确认产品 §2 的 `status` 是 `publicationStatus` 的简写。
    - 替代：SiteInstance 内嵌，或定义受控特例。
 3. **DEC-003-C — Blog isolation**
+   - 状态：**Proposed / Pending user decision**。
    - 推荐：保留 Blog/Authors 能力，但从 ballgames enabled page types、导航和 R1 sitemap 排除；legacy route 的 noindex/移除另行决定。
    - 替代：Phase 3 直接删除 Blog，或允许 Blog 进入 R1 SEO surface（后者与产品 Spec 冲突）。
 4. **DEC-003-D — Phase integration split**
+   - 状态：**Proposed / Pending user decision**。
    - 推荐：Phase 3 做 contract-level sitemap/JSON-LD 验证；Phase 4 页面存在后验收生产 exact-two 和 page JSON-LD。
    - 替代：扩大 Phase 3 实现页面（违反当前任务边界），或输出指向不存在页面的生产 sitemap（不可接受）。
-5. **DEC-003-E — Trailing-slash implementation**
-   - 推荐：授权 Phase 3 先验证 Next/export 行为，再以无尾斜杠公开 URL 为硬验收选择最小方案。
-   - 替代：预先强制移除 `trailingSlash`，或依赖尚未验证的托管 redirect。
+5. **DEC-003-E — Trailing-slash investigation authorization**
+   - 状态：**Proposed / Pending user decision；Phase 3 entry gate**。
+   - 推荐：只授权 Phase 3 检查现有 Next 配置、static export 行为、生成路径和 canonical 影响，并报告最小可行方案。
+   - 授权不包括：立即修改 `trailingSlash`、改变 static export/部署、引入 redirect 层或进行无关 URL 重构。
+   - 后续决定：调查完成后，最终技术实现选择必须基于证据单独报告并取得相应授权。
+   - 替代：不授权调查；其影响是 Phase 3 无法证明无尾斜杠 canonical 与当前导出行为兼容。
 
 在上述具体项获得明确批准前，本 ADR 保持 **Proposed**，Phase 3 implementation 保持 gated。
