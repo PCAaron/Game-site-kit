@@ -3,7 +3,8 @@
 - **Current phase:** Phase 3 — 最小 SEO Foundation（**not started**；Phase 2 + **Phase 2.2** 文档已完成）
 - **Baseline commit:** `723499bf9e590b398ed888cffc834a9c54274d00`（`v2.4.0-9-g723499b`）
 - **Last updated:** 2026-11-02
-- **Current branch:** `main`
+- **Current reviewed branch:** `spec`（HEAD `aca82e6b0c8c8467295fba274777ac6b043948e1` at review start）
+- **Pages deployment branch:** `main`（依据 `.github/workflows/pages.yml`；不等同于当前检出分支）
 
 ## Phase summary
 
@@ -13,7 +14,7 @@
 | 1 | Agent 文档与工作流基础 | **completed** / **validated** | [`specs/phases/01-agent-workflow-foundation.md`](../../specs/phases/01-agent-workflow-foundation.md) |
 | 2 | SEO 页面模型与内容契约 | **completed** / **validated**（文档） | [`specs/phases/02-seo-page-model-and-content-contract.md`](../../specs/phases/02-seo-page-model-and-content-contract.md) |
 | 2.2 | Instance-to-Kit 契约对齐 | **completed**（文档） | 同上 §Phase 2.2；Catalog/Detail 分层、Launcher、canonical 无尾斜杠 |
-| 3 | 最小 SEO Foundation | **not started** | SEO 指南 §20 |
+| 3 | 最小 SEO Foundation | **specified / implementation gated / not started** | [`specs/phases/03-minimum-seo-foundation.md`](../../specs/phases/03-minimum-seo-foundation.md)；ADR 0003 仍 Proposed |
 
 ## Phase 2 交付物（ballgames · game-portal）
 
@@ -34,13 +35,15 @@
 
 ## Current blockers
 
-- 无自动化阻塞 Phase 3 文档/实现准备。
+- Phase 3 Spec 已准备；应用实现等待 ADR 0003 的 SiteInstance、PortalHome source、Blog isolation、Phase 3/4 integration split 与 trailing-slash 策略获得具体用户决定。
+- 生产 exact-two sitemap 与页面 JSON-LD 依赖 Phase 4 的真实 `/hockey-bros` 页面和可见内容；不得在 Phase 3 伪造。
 - **MANUAL REVIEW（阻塞上线）：** 正式域名 HTTPS、embed 许可、品牌/OG 素材、`launchUrl` 事实核验。
 
-## Next approved action
+## Recommended next action
 
-1. **Phase 3：** 统一 `siteUrl`、canonical/metadata 生成、indexable 与 sitemap 过滤（见 [`specs/seo/02-url-canonical-indexing.md`](../../specs/seo/02-url-canonical-indexing.md)、[`specs/seo/04-internal-linking-sitemap.md`](../../specs/seo/04-internal-linking-sitemap.md)）。
-2. **Phase 4：** Catalog + 首页/游戏详情模板（见 [`specs/ballgames/ballgames-specs-v1.md`](../../specs/ballgames/ballgames-specs-v1.md)）。
+1. 用户逐项确认 [`ADR 0003`](decisions/0003-site-instance-url-and-seo-source.md) 的 `User Decision Required`。
+2. 获批后，按 [`Phase 3 Spec`](../../specs/phases/03-minimum-seo-foundation.md) 执行最小 SEO Foundation。
+3. Phase 4 仍只作为后续建议：Catalog + 首页/游戏详情模板；未开始、未批准。
 
 ## Last verified checks
 
@@ -54,6 +57,11 @@
 
 ## Human decisions required
 
+- ADR 0003：最小 SiteInstance 契约。
+- PortalHome：独立 PortalHomeContent，或批准等价单一来源。
+- Blog isolation：保留 Blog/Authors 能力但排除出 ballgames R1 SEO surface。
+- Phase 3/4 split：Phase 3 做 contract/fixture 验证，Phase 4 页面存在后验收 production exact-two 与页面 JSON-LD。
+- Trailing slash：允许 Phase 3 先验证当前 Next/export 行为，再选满足无尾斜杠公开 URL 的最小方案。
 - ballgames.io 生产 **canonical** 与 HTTPS。
 - Hockey Bros / 第三方 **iframe 或外链** 许可记录（[`Provider` 模型](../../specs/04-config-and-content-models.md)）。
 - P0 上线前 `indexable` 人工放行策略。

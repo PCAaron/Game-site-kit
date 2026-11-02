@@ -84,3 +84,50 @@
 
 - **技术风险：** `next.config.js` `trailingSlash: true` vs ballgames 无尾斜杠 canonical → Phase 3。
 - ballgames §7.1 事实与 embed 许可 → **MANUAL REVIEW** 阻塞上线。
+
+---
+
+## 2026-11-02 — Architecture Review Remediation & Phase 3 Planning（文档）
+
+**范围：** 修正 Architecture Consistency Review 与 Conflict Matrix；细化 Proposed ADR 0003；创建 Phase 3 — Minimum SEO Foundation Spec。**未**实现 Phase 3/4，未修改应用代码、依赖、业务 Spec 或部署配置。
+
+### Reviewed
+
+- 治理：`AGENTS.md`、Charter、STATUS、WORKLOG。
+- 架构：system overview、config/content models、Architecture Review/Matrix、ADR 0002–0005。
+- 实例与 SEO：ballgames authoritative Spec、instance README、SEO 01–05、Phase 2 Spec。
+- 实现事实：当前 routes、metadata/sitemap/robots/JSON-LD、Contentlayer、Next config、package scripts 与 Pages workflow。
+
+### Changed
+
+- 修正 `docs/architecture/architecture-consistency-review.md`：
+  - ACM-006 类治理问题不再按 P0；
+  - 分离 Phase 3、Phase 4 与 Shared Core readiness；
+  - 明确 PortalHome、publication terminology、Catalog/Detail lifecycle 和 iframe/deployment 证据边界。
+- 重构 `docs/architecture/architecture-conflict-matrix.md` 的分类、owner、blocking phase 和状态；保留 ACM-001–030，并增加 ACM-031 phase boundary。
+- 细化 `docs/agent/decisions/0003-site-instance-url-and-seo-source.md`；状态仍为 **Proposed**。
+- 新建 `specs/phases/03-minimum-seo-foundation.md`；状态为 **planned / implementation gated / not started**。
+- 更新 `docs/agent/STATUS.md`：区分当前 review branch `spec` 与 Pages deployment branch `main`；将下一动作改为 Recommended。
+
+### Key outcomes
+
+- 推荐 Phase 3 最小 SiteInstance；PortalHome publication/PageSEO 推荐使用独立内容对象。
+- `publicationStatus` 为推荐标准术语，但未修改权威 ballgames Spec。
+- Phase 3 只验证 sitemap/JSON-LD 机制与 fixture；Phase 4 页面存在后才验收 production exact-two 与 page JSON-LD。此拆分仍待用户批准。
+- Static export PASS 不等于 host headers、production CSP、embed/commercial permission 或 iframe runtime PASS。
+- Shared Core 不是已批准阶段；现有 Phase 1 编号和名称保持不变。
+
+### Validation
+
+| Check | Result |
+|---|---|
+| `git diff --check` | PASS（编辑中与最终范围复核均执行） |
+| 分支 / HEAD | `spec` / `aca82e6b0c8c8467295fba274777ac6b043948e1` |
+| 应用代码、package、lockfile、业务 Spec diff | 无 |
+| Build / lint / typecheck | **Not Run**（文档规划任务） |
+
+### Outstanding user decisions
+
+- ADR 0003 DEC-003-A–E：最小 SiteInstance、PortalHome source、Blog isolation、Phase 3/4 integration split、trailing-slash 实施调查授权。
+- ADR 0002 的 Content/Catalog 物理存储与 archived lifecycle（Phase 4 前）。
+- iframe 与商业许可、生产 CSP/headers、广告槽语义（Phase 4/R1 release）。

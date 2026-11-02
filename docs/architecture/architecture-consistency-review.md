@@ -1,8 +1,9 @@
 # Architecture Consistency Review
 
 > **评审日期：** 2026-11-02
-> **评审状态：** Completed（分析与文档）；所有新决策均为 **Proposed**
-> **评审基线：** `main` / `c6cc024d9493d4c60d8fb785346d4cb369c6538b`
+> **评审状态：** Completed（2026-11-02 remediation）；所有新决策均为 **Proposed**
+> **原始评审基线：** `main` / `c6cc024d9493d4c60d8fb785346d4cb369c6538b`
+> **本次复核分支：** `spec` / `aca82e6b0c8c8467295fba274777ac6b043948e1`
 > **业务权威：** `specs/ballgames/ballgames-specs-v1.md`
 > **实施状态：** 未修改应用代码、依赖、业务 Spec 或部署配置；未开始后续 Phase
 
@@ -16,8 +17,10 @@
    Next.js App Router、SSG、contentlayer2、Metadata API、sitemap/robots 路由与静态导出机制可复用；博客 IA、Blog/Authors schema 和分散 URL 拼接不能直接充当 portal 业务模型。
 3. **是否存在阻止进入后续实现的架构问题：存在条件性阻塞。**
    当前仓库的正式下一阶段是 **Phase 3 — 最小 SEO Foundation**，不是“Phase 1 — Shared Core”。进入 Phase 3 前应确认实例配置/URL 单一事实源和无尾斜杠策略；进入 Phase 4 前还应确认内容存储边界与 iframe/部署安全边界。
-4. **Phase 1 Readiness：Ready with Conditions（仅指当前路线的 Phase 3 准备）。**
-   若“Phase 1 — Shared Core”指一个新阶段，则为 **Not Ready**：仓库现有 Phase 1 已完成且名称为“Agent 文档与工作流基础”，仓库没有 Shared Core 阶段 Spec。
+4. **Phase 3 Readiness：Specification Ready / Implementation Gated。**
+   Phase 3 Spec 已可准备；实现仍等待 ADR 0003 与入口条件中的具体用户决策。
+5. **Shared Core Readiness：Not Ready / Not an approved phase。**
+   仓库现有 Phase 1 已完成且名称为“Agent 文档与工作流基础”；不得重命名或借用该编号。共享模块提取须等待至少两个差异实例验证。
 
 ### 1.2 关键阻塞
 
@@ -121,9 +124,10 @@
 
 **Verified Fact**
 
-- 当前分支：`main`，HEAD `c6cc024d9493d4c60d8fb785346d4cb369c6538b`。
-- HEAD 是 Phase 0 基线 `723499bf9e590b398ed888cffc834a9c54274d00` 的后代。
-- 评审开始时已有未跟踪文件 `docs/agent/reports/current-architecture-template-baseline-audit.md`；本评审将其作为输入并保持不变。
+- 原始 Architecture Consistency Review 基于 `main` / `c6cc024d9493d4c60d8fb785346d4cb369c6538b`。
+- 本次 remediation 实际检出分支为 `spec`，HEAD 为 `aca82e6b0c8c8467295fba274777ac6b043948e1`，工作区在编辑前干净。
+- `spec` HEAD 是 Phase 0 基线 `723499bf9e590b398ed888cffc834a9c54274d00` 的后代。
+- `.github/workflows/pages.yml` 仍以 `main` 作为 Pages 部署触发分支；这说明 `main` 是当前部署约定，不等于本次实际检出的 review branch。
 - 技术栈：Next.js 15.5.12、React 19.2.4、Tailwind 4.1.18、contentlayer2 0.5.8、Yarn 3.6.1。
 
 ### 5.2 当前可执行产品
@@ -171,6 +175,84 @@
 | `LaunchConfig` | iframe、外链或 hosted 的运行配置 | 不等于 EmbedPermission |
 | `EmbedPermission` | 可追溯的授权状态与证据 | `unknown` 不等于 `granted` |
 | `Phase` | Kit 工程阶段 | 不等于 ballgames R1/R2/R3 Release |
+
+### 6.1 PortalHome publication eligibility
+
+**Missing Specification**
+
+通用 `SitemapCandidate` 要求页面类型启用、`publicationStatus === "published"`、`seo.indexable === true` 且 canonical 有效，但 `specs/04-config-and-content-models.md` 的 PortalHome 只有 PageSEO、区块顺序、FAQ 与 ItemList 成员，没有发布态。
+
+评估的来源方案：
+
+1. **SiteInstance 内嵌 PortalHome 状态**：字段少，但会把站点身份配置、editorial 生命周期和页面更新时间耦合。
+2. **独立 PortalHomeContent（推荐）**：页面发布、SEO、正文和更新时间同属一个页面内容对象，可独立 draft/publish/archive。
+3. **由 Catalog 推导首页**：无法表达首页独立正文、FAQ、PageSEO 与发布审核，不适合 ballgames。
+
+推荐但尚未批准的最小逻辑契约：
+
+```typescript
+interface PortalHomeContent {
+  publicationStatus: 'draft' | 'published' | 'archived'
+  seo: {
+    indexable: boolean
+  }
+  updatedAt?: string
+}
+```
+
+`PortalHomeContent` 应是 sitemap 首页候选的单一发布来源；SiteInstance 只声明 `portal_home` 是否启用和 URL 规则。首页只有同时满足以下条件才可进入 R1 sitemap：
+
+```text
+portal_home 已启用
+AND PortalHomeContent.publicationStatus 为 published
+AND PortalHomeContent.seo.indexable 为 true
+AND siteUrl() 等于首页 canonical
+```
+
+Phase 3 可以定义并验证该契约；实际首页正文对象及页面集成属于 Phase 4。
+
+### 6.2 Publication terminology
+
+**Recommendation**
+
+统一使用 `publicationStatus`，因为 Kit 模型、Catalog Item 与 ballgames §3.1 的 `Game` 示例均已采用该名称。`status` 仍可表示页面策略表的工作流状态或 EmbedPermission 状态，不能作为内容发布态的模糊别名。
+
+待授权对齐位置：
+
+- `specs/ballgames/ballgames-specs-v1.md` §2 规则 1：`status === "published"`。
+- 同文件 §4.1 Sitemap 描述：`published && indexable`。
+- 同文件 §3.1 与 `Game` 示例：已经使用 `publicationStatus`，无需改变语义。
+- `specs/04-config-and-content-models.md` Game Detail 注释仍写“由 ... `status` 推导”。
+- `specs/seo/05-content-quality-and-validation.md` Phase 3–4 建议仍写 `indexable` 与 `status` 一致。
+
+本次不修改权威 ballgames Spec；Phase 3 实现不得同时引入 `status` 与 `publicationStatus` 两套发布字段。
+
+### 6.3 Catalog and Detail lifecycle
+
+发布生命周期与 SEO 资格必须分离。推荐 Detail 拥有自己的 `publicationStatus`；物理存储即使合并为一个 Game 文档，逻辑校验仍分别读取 Catalog 与 Detail 状态。
+
+| Catalog state | Detail state | SEO indexable | Expected behavior |
+|---|---|---|---|
+| Published | Missing | N/A | Catalog 可用于 launcher/grid；不创建 Detail URL，不进 sitemap |
+| Published | Draft | 任意输入 | Detail 不得公开索引；实现应强制有效 indexable 为 false |
+| Published | Published | False | Detail 可按实例策略访问，但 robots 为 noindex 且不进 sitemap |
+| Published | Published | True | 通过内容、canonical、page type 等全部检查后，才成为 SitemapCandidate |
+| Archived | Published | True | **Pending decision**；推荐 Catalog 隐藏，但已发布 Detail 不应被 Catalog 状态自动删除，须由 Detail 自身状态和实例退役策略决定 |
+
+`seo.indexable` 不替代发布态；`availability` 也不替代 Catalog 或 Detail 发布态。Archived Catalog + Published Detail 的最终规则属于 ADR 0002 / Phase 4 决策，不阻塞 Phase 3 URL/SEO 基础机制。
+
+### 6.4 Deployment and iframe evidence boundaries
+
+| Evidence | 能证明 | 不能证明 |
+|---|---|---|
+| Static export build PASS | 页面可在构建期生成 | 托管平台会发送自定义 headers |
+| Hosting headers 检查 | 实际响应包含 CSP/HSTS 等 | 第三方允许商业 iframe |
+| Production CSP | 浏览器被允许加载指定 frame source | 对方响应没有 X-Frame-Options/CSP 阻止 |
+| EmbedPermission 记录 | 许可依据与适用域已审查 | iframe 在目标网络与浏览器实际可加载 |
+| Commercial-use 许可 | 允许的商业使用范围 | 技术加载一定成功 |
+| Runtime iframe test | 当前环境可以加载与交互 | 法律许可、长期可用性或所有网络均可用 |
+
+Phase 3 的 URL、metadata、indexability 与 sitemap 工作可独立进行，不依赖 iframe 许可。Phase 4 可以开发 Launcher，但生产 iframe 集成与发布仍由 ADR 0004/0005、许可记录、生产 CSP 和运行测试共同把关。
 
 ## 7. Specification Consistency Matrix
 
@@ -233,17 +315,17 @@
 | GAP-03 | 无页面级 indexable 与 SitemapCandidate | Code | P0 | R1 sitemap 无法限制为 2 URL | Phase 3 |
 | GAP-04 | PortalHome 发布态未定义 | Contract | P0 | 首页无法严格通过通用 sitemap 谓词 | Review approval / Phase 3 |
 | GAP-05 | `trailingSlash: true` 与无尾斜杠 canonical | Config | P0 | 可能产生重复 URL | Phase 3 |
-| GAP-06 | 无 portal metadata / JSON-LD 生成器 | Code | P0 | R1 DoD 必需 | Phase 4 |
+| GAP-06 | 无 portal metadata / JSON-LD 生成器 | Code | P0 | R1 DoD 必需；Phase 3 先建 contract，Phase 4 接页面内容 | Phase 3 mechanism / Phase 4 integration |
 | GAP-07 | EmbedPermission 未录入且 CSP/部署未知 | Manual + Architecture | P0 | 未授权 iframe 不能上线 | Before Phase 4 release |
 | GAP-08 | Catalog 读取接口与存储映射未决定 | Architecture | P1 | Phase 4 页面会绑定存储实现 | Before Phase 4 |
 | GAP-09 | Game Detail 独立发布态不清晰 | Contract | P1 | launcher-only / draft detail 组合不闭合 | Before Phase 4 |
 | GAP-10 | `/car-soccer` page_type 冲突 | Spec | P1 | 不影响 R1，但阻塞 R3 | Before R3 |
 | GAP-11 | Organization / VideoGame 字段来源不完整 | Contract | P1 | 容易虚构 publisher/date | Before Phase 4 |
-| GAP-12 | Feature flags 无统一 shape | Contract + Code | P1 | 搜索、广告、分析等无法 per-site 隔离 | Phase 3–4 |
+| GAP-12 | Feature flags 无统一 shape | Contract + Code | P1 | 搜索、广告、分析等无法 per-site 隔离；不应塞入 Phase 3 最小 SiteInstance | Phase 4+ |
 | GAP-13 | 博客路由保留/隐藏/noindex 策略未决定 | Architecture | P1 | 可能扩大 R1 index surface | Phase 3 |
-| GAP-14 | 静态部署 headers、redirects、POST 边界未决 | Deployment | P1 | 安全策略和未来迁移依赖平台 | Before production |
+| GAP-14 | 静态部署 headers、redirects、POST 边界未决 | Deployment | P0 | iframe 发布安全依赖真实平台证据；不阻塞 Phase 3 SEO 机制 | Before Phase 4 release |
 | GAP-15 | WikiEntry 仅纲要 | Deferred | P2 | ballgames 不需要，提前实现会过度抽象 | Phase 5 |
-| GAP-16 | Phase 3 独立 Spec 缺失 | Governance | P2 | 可由现有指南执行，但边界不够集中 | Before Phase 3 implementation preferred |
+| GAP-16 | Phase 3 独立 Spec | Governance | P2 / Closed | 已创建实施就绪 Spec；implementation 仍受 ADR 0003 入口条件限制 | Completed by this review |
 | GAP-17 | Legacy 文档无 superseded 标识 | Governance | P1 | 可能错误执行 Car Soccer 路线 | Before onboarding next agent |
 | GAP-18 | 自动测试/校验、CI lint/typecheck 不完整 | QA | P2 | 降低回归保障，不是架构可行性阻塞 | Phase 3+ |
 
@@ -260,10 +342,10 @@
 | Decision ID | Topic | Status | Recommendation | User Confirmation |
 |---|---|---|---|---|
 | DEC-002 | Portal 内容架构 | Proposed | 保留 Blog/Authors；ballgames 不启用其导航和索引。新增 Game content type + Catalog adapter，Catalog/Detail 逻辑分层，业务代码不直接依赖 contentlayer 生成类型 | Required |
-| DEC-003 | SiteInstance / URL / SEO | Proposed | 用类型化实例配置作为 brand、origin、path style、page types、feature flags 的唯一入口；`siteUrl/gameUrl` 为 URL 单一事实源 | Required |
+| DEC-003 | SiteInstance / URL / SEO | Proposed | Phase 3 只纳入 identity、origin、path style、最小 metadata、enabled page types 与 defaultIndexable；`siteUrl/gameUrl` 为 URL 单一事实源 | Required |
 | DEC-004 | Game Runtime | Proposed | ballgames 保留 Spec 要求的 iframe 模式，但只有匹配的 EmbedPermission 为 granted 且部署 CSP 已验证时才放行；始终保留新窗口回退 | Required |
 | DEC-005 | Static Export / Deployment | Proposed | R1 继续以静态导出为首选，但生产平台必须提供可验证的 CSP/security headers；否则改用支持 headers 的部署模式，平台选择保持 Open Question | Required |
-| DEC-006 | Blog 能力 | Proposed（包含在 DEC-002） | 不立即删除 Blog/Authors；ballgames R1 从导航、sitemap 和 indexable page types 排除 | Required |
+| DEC-006 | Blog 能力 | Proposed（纳入 DEC-003 isolation） | 不立即删除 Blog/Authors；ballgames R1 从导航、sitemap 和 enabled/indexable page types 排除 | Required |
 | DEC-007 | URL path style | Already Defined by Spec | ballgames canonical 无尾斜杠；实现不得用模板默认覆盖 | No product decision；implementation approval required |
 | DEC-008 | Play fallback | Already Defined by Spec | iframe 失败仍保留 200 正文与新窗口打开 | No |
 | DEC-009 | Feature defaults | Already Defined, shape Proposed | ads/analytics 默认关闭；实例显式启用。R1 广告槽是否加载真实广告仍待确认 | Required |
@@ -301,7 +383,8 @@
 
 推荐把以下内容分层：
 
-- 全站实例：siteId、archetype、brand、locale、canonicalOrigin、urlPathStyle、enabledPageTypes、navigation、assets、organization、featureFlags。
+- Phase 3 全站实例最小契约：siteId、archetype、canonicalOrigin、urlPathStyle、defaultIndexable、enabledPageTypes 和 site metadata。
+- 后续按真实消费者扩展：navigation、assets、organization、featureFlags；不提前进入 Phase 3 配置。
 - 游戏记录：slug、providerId、launch、availability、Catalog 展示字段。
 - 页面内容：PortalHome / GameDetail 的 PageSEO、正文、FAQ、更新时间。
 - 环境/秘密：分析 ID、服务密钥，不进入公开实例配置。
@@ -340,12 +423,13 @@
 | 批准 DEC-003：实例配置与 URL 单一事实源 | P0 | Architecture Review exit | 用户确认 | Accepted/Superseded ADR | ballgames path style、配置边界明确 |
 | 定义 PortalHome 发布资格 | P0 | Architecture Review exit / Phase 3 Spec | DEC-003 | 契约修订建议 | 首页可通过确定谓词进入 sitemap |
 | SiteInstance + URL helper + no-trailing-slash | P0 | Phase 3 — 最小 SEO Foundation | DEC-003 | 配置、helper、迁移规则 | metadata/canonical/OG 同源 |
-| PageSEO + indexable + SitemapCandidate | P0 | Phase 3 | URL helper | 统一生成与过滤 | R1 sitemap 恰好 2 URL |
+| PageSEO + indexable + SitemapCandidate | P0 | Phase 3 | URL helper | 统一生成与过滤 + exact-two fixture | 不合格与 missing route 被排除 |
 | 博客 IA 隔离策略 | P1 | Phase 3 | enabledPageTypes | 导航/sitemap/noindex 决策 | ballgames 不暴露模板 SEO 面 |
 | 批准 DEC-002：内容与 Catalog 边界 | P1 | Before Phase 4 | Phase 3 URL contract | Accepted ADR | 存储与 adapter 接口确定 |
 | Game / PortalHome 内容层与 Catalog adapter | P0 | Phase 4 — 首个站点类型 | DEC-002、DEC-003 | schema + data access | 15–20 Catalog、仅一条 Detail |
 | portal_home / hockey-bros 页面 | P0 | Phase 4 | Catalog + PageSEO | 两个静态页面 | 实例 §5–§8 DoD |
-| Structured Data 生成器 | P0 | Phase 4 | 可验证 organization/game 数据 | per-page JSON-LD | URL/FAQ 与可见内容一致 |
+| Structured Data 生成机制 | P0 | Phase 3 | DEC-003、URL helper | page-type registry + contract tests | URL/type/禁止字段 fixture 通过 |
+| Production sitemap 与 Structured Data 集成 | P0 | Phase 4 | 两个真实页面、可见 FAQ、核验数据 | exact-two sitemap + per-page JSON-LD | URL/FAQ 与实际页面一致 |
 | 批准 DEC-004/005：embed 与部署 | P0 | Before Phase 4 release | 许可、平台证据 | ADR + deployment check | granted permission、CSP 生效证据 |
 | R2 搜索与更多详情页 | P1 | ballgames R2 / 后续 Phase task | R1 通过 | `/games`、`/search`、详情 | noindex/search 规则满足 |
 | 修正 `/car-soccer` page_type | P1 | Before ballgames R3 | 用户批准 Spec 变更 | Spec 修订 | 单一 category_hub 定义 |
@@ -383,11 +467,14 @@
 ### 14.1 Requires User Confirmation
 
 1. 是否接受 DEC-002 的 contentlayer `Game` + Catalog adapter 最小方案？
-2. 是否接受 DEC-003 的类型化 SiteInstance 作为 URL/SEO/feature flag 单一事实源？
+2. 是否接受 DEC-003 的 Phase 3 最小 SiteInstance（不含尚无消费者的全量 feature/deployment 字段）？
 3. ballgames R1 的两个广告尺寸是仅保留布局槽，还是必须接入真实广告网络？
 4. 是否继续使用 GitHub Pages 静态导出；若是，哪个层负责 CSP、安全响应头和未来 redirects？
 5. Legacy Car Soccer 文档是否授权标记为 superseded/archived？
-6. Blog/Authors 是作为 Kit 可选能力保留，还是在 ballgames 分支最终移除？
+6. PortalHome 是否采用独立 PortalHomeContent 作为发布态与 PageSEO 单一来源？
+7. Blog/Authors 是否保留但从 ballgames R1 SEO surface 隔离？
+8. 是否批准 Phase 3 做 contract/fixture 验证、Phase 4 页面存在后再验收 production exact-two sitemap 与页面 JSON-LD？
+9. 是否允许 Phase 3 先验证 Next/export 的 trailing-slash 行为，再确定满足无尾斜杠公开 URL 的最小实现？
 
 ### 14.2 Manual Review / External Evidence
 
@@ -398,44 +485,66 @@
 - 部署后的 CSP、security headers、redirect 和 LCP。
 - FAQ 控件描述与实际 playtest。
 
-## 15. Phase 1 Readiness Assessment
+## 15. Phase 3 Readiness Assessment
 
-### 15.1 对当前仓库路线
+**Specification Ready / Implementation Gated。**
 
-**Ready with Conditions — 可以准备 Phase 3，不代表已经开始。**
+| Entry condition | Status | Evidence / condition |
+|---|---|---|
+| Site URL source of truth | **Pending user decision** | ADR 0003 推荐类型化最小 SiteInstance + `siteUrl/gameUrl`，仍为 Proposed |
+| Canonical URL policy | **Satisfied with conditions** | ballgames 无尾斜杠已冻结；`next.config.js` 实现策略仍需 Phase 3 调查与批准 |
+| PortalHome publication eligibility | **Pending user decision** | 本报告 §6.1 推荐独立 PortalHomeContent，尚未进入权威模型 |
+| Publication terminology | **Satisfied with conditions** | 推荐统一 `publicationStatus`；权威 ballgames §2 尚未获授权修订 |
+| Blog isolation | **Pending user decision** | 推荐保留 Blog/Authors 代码，但从 ballgames sitemap 与 R1 SEO surface 排除 |
+| Sitemap eligibility | **Satisfied with conditions** | 通用谓词明确；首页发布来源与 Phase 4 路由集成仍待完成 |
+| Phase 3 scope | **Satisfied** | `specs/phases/03-minimum-seo-foundation.md` 明确排除 Catalog、页面、Launcher、iframe 与 Shared Core |
+| Exact-two-URL production sitemap | **Blocked by missing Phase 4 page** | `/hockey-bros` 页面尚不存在；Phase 3 只能完成 eligibility/generator contract，不能发布指向 404 的 sitemap |
+| R1 page JSON-LD output | **Blocked by missing Phase 4 visible content** | FAQPage、VideoGame、BreadcrumbList 必须与实际页面内容一致，不得在 Phase 3 伪造 |
 
-进入 Phase 3 前的必要条件：
+Phase 3 implementation 只有在用户确认 ADR 0003 的具体选项、PortalHome 来源和 Blog isolation 后才可开始。第三方 iframe 许可不是 Phase 3 入口条件。
 
-1. 批准或修订 DEC-003。
-2. 明确 PortalHome 的发布资格。
-3. 明确无尾斜杠实现策略和博客 IA 的索引隔离范围。
-4. 为 Phase 3 建立明确任务 Spec 或在任务中逐条引用现有 SEO 契约。
+### 15.1 Phase 3 scope
 
-### 15.2 对“Phase 1 — Shared Core”
+- 类型化 SiteInstance 的最小 SEO 字段。
+- `siteUrl()` / `gameUrl()` 的单一 URL 规则。
+- canonical / metadata / OG 同源机制。
+- 页面发布态、page type、indexable、canonical 与 SitemapCandidate 的独立判定。
+- ballgames 无尾斜杠策略与 Blog sitemap 隔离。
+- Structured Data 的集中生成接口与 contract validation；不注入尚不存在的页面内容。
+- 可重复的 URL、sitemap 和 JSON-LD 机制校验。
 
-**Not Ready / Not Defined。**
+### 15.2 Phase 3 out of scope
 
-- 现有 Phase 1 已完成，名称是“Agent 文档与工作流基础”。
+- Game Catalog、Game Detail 页面、PortalHome 正文页面。
+- GameGrid、Launcher、iframe、fallback UI、广告槽。
+- R2 搜索、R3 分类、Wiki、第二站、Monorepo、Shared Core/Skill Extraction。
+- 把 `/hockey-bros` 提前加入生产 sitemap，而该页面仍返回 404。
+- 生成与不可见 FAQ 或未核实游戏事实不一致的 JSON-LD。
+
+## 16. Phase 4 Readiness Assessment
+
+**Not Ready。**
+
+Phase 4 仍需：
+
+1. ADR 0002 的 content storage、Detail 发布态与 archived 行为获得批准。
+2. Phase 3 URL、PageSEO 与 SitemapCandidate 机制实现并验证。
+3. PortalHome 与 GameDetail 的实际内容来源确定。
+4. Organization / VideoGame 的可验证数据字段确定。
+5. iframe 生产发布需 ADR 0004/0005、embed/commercial permission、部署 CSP 与运行测试；这些不阻止 Phase 3。
+
+Phase 4 完成页面集成后，才验收生产 sitemap 恰好包含 `https://ballgames.io` 与 `https://ballgames.io/hockey-bros`，且两者均为可访问、自指 canonical 的正式页面。
+
+## 17. Shared Core Readiness Assessment
+
+**Not Ready / Not an approved implementation phase。**
+
+- Phase 1 继续表示已完成的 Agent Workflow Foundation。
 - 章程要求至少两个差异实例后再提取稳定共享模块。
-- 当前可以实现首实例需要的最小共享机制（URL、PageSEO、SitemapCandidate），但不能宣布建立了完整 Shared Core。
+- Phase 3 只建立首实例所需的最小 SEO Foundation，不代表 Shared Core 已开始。
+- 如未来需要 Shared Core 阶段，必须在第二原型验证后单独立项，不得复用或改名 Phase 1。
 
-### 15.3 Phase 3 建议范围
-
-- 类型化实例配置的最小 SEO 子集。
-- `siteUrl` / `gameUrl`。
-- canonical / metadata / OG 同源生成。
-- 页面级 `indexable` 与 SitemapCandidate。
-- ballgames 无尾斜杠与博客迁移策略。
-- 可重复的 URL/索引验收。
-
-### 15.4 明确不属于 Phase 3
-
-- GameGrid、Launcher、iframe、广告槽。
-- 15–20 款 Catalog 实际录入。
-- `/hockey-bros` 正文页面和 portal JSON-LD 内容。
-- R2 搜索、R3 分类、Wiki、第二站、Monorepo、Skill Extraction。
-
-## 16. Final Assessment
+## 18. Final Assessment
 
 当前架构方向是可行的，且 Phase 2.2 已正确解决大部分“Kit 默认 vs ballgames 实例行为”的层级问题。主要风险不是模板无法扩展，而是：
 
@@ -446,13 +555,15 @@
 
 因此，本评审不建议更换模板、替换 contentlayer 或提前建设 Monorepo。建议先批准最小架构决策，再按当前 Phase 3 → Phase 4 顺序实施。
 
-## 17. Approval Checklist
+## 19. Approval Checklist
 
 - [ ] 批准或修订 DEC-002：Portal content / Catalog boundary
 - [ ] 批准或修订 DEC-003：SiteInstance / URL / SEO source
+- [ ] 确认 PortalHomeContent 为首页发布态与 PageSEO 的单一来源
+- [ ] 确认 Phase 3 采用 contract-level sitemap/JSON-LD 验证，生产两 URL 输出留到 Phase 4 页面集成
+- [ ] 确认 Blog/Authors 保留但排除出 ballgames R1 sitemap/SEO surface
 - [ ] 批准或修订 DEC-004：ballgames launcher / embed policy
 - [ ] 批准或修订 DEC-005：static export / deployment boundary
-- [ ] 确认 PortalHome 发布态规则
 - [ ] 确认 R1 广告槽含义
 - [ ] 授权后修正 `/car-soccer` page_type 与 `status` 术语
 - [ ] 授权后标记 Legacy Car Soccer 文档 superseded
