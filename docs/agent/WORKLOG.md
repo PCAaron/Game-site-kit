@@ -55,5 +55,32 @@
 
 ### 遗留
 
-- Phase 3：代码层 SEO Foundation。
-- Phase 4：P0 两页实现与 DoD。
+- Phase 3：代码层 SEO Foundation（含 `trailingSlash` 与 ballgames canonical 统一）。
+- Phase 4：R1 两页实现与 DoD。
+
+---
+
+## 2026-11-02 — Phase 2.2：Instance-to-Kit Contract Alignment（文档）
+
+**范围：** Catalog/Detail/Indexable 分层；Launcher 与导航语义；PageSEO/SitemapCandidate；ballgames v1.1 优先级与 canonical（首页 `https://ballgames.io` 无尾斜杠）；§7.1 VERIFICATION REQUIRED。**未**改应用代码。
+
+### 修改文件
+
+- `specs/01-site-archetypes.md`、`specs/04-config-and-content-models.md`
+- `specs/seo/01`–`05`
+- `specs/phases/02-seo-page-model-and-content-contract.md`
+- `specs/instances/ballgames/README.md`、`specs/ballgames/ballgames-specs-v1.md`
+- `docs/agent/STATUS.md`
+
+### 验证
+
+| Check | Result |
+|---|---|
+| `git diff` 无 package.json / app 源码 | PASS |
+| 术语交叉检索（Rich Results 承诺、首页无 iframe 等） | PASS（已修正 SEO 05） |
+| 自动化 md lint | 无仓库脚本；人工一致性审查 |
+
+### 遗留
+
+- **技术风险：** `next.config.js` `trailingSlash: true` vs ballgames 无尾斜杠 canonical → Phase 3。
+- ballgames §7.1 事实与 embed 许可 → **MANUAL REVIEW** 阻塞上线。

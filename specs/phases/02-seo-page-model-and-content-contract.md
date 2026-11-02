@@ -1,7 +1,7 @@
 # Phase 2 — SEO 页面模型与内容契约
 
 - **阶段编号：** 2（对应 SEO 指南 §19）
-- **状态：** **completed** / **validated**（文档；2026-10-31）
+- **状态：** **completed** / **validated**（文档；Phase 2 2026-10-31；**Phase 2.2** 2026-11-02）
 - **Archetype：** `game-portal`
 - **首实例：** ballgames.io（见 [`specs/instances/ballgames/README.md`](../instances/ballgames/README.md)）
 
@@ -26,7 +26,7 @@
 ## 验收标准
 
 - [x] `game-portal` 页面类型清单与 SEO 指南 §2.1、§6 字段对齐
-- [x] ballgames.io 首批 URL（`/`、`/hockey-bros`）有明确 `index_policy` 与内容契约引用
+- [x] ballgames.io R1 indexable canonical（`https://ballgames.io`、`/hockey-bros`）有明确 `index_policy` 与内容契约引用
 - [x] Sitemap / 搜索 / 标签 / 分类的索引规则与实例 Spec 一致且无矛盾
 - [x] 内容模型区分 Kit 逻辑字段与实例正文配额；未描述为已实现代码
 - [x] `AGENTS.md` 与 `docs/agent/STATUS.md` 指向 Phase 2 交付物
@@ -38,10 +38,30 @@
 - Phase 4：页面模板、Launcher、Catalog 录入、contentlayer `Game` 类型
 - 依赖升级、博客路由删除、广告 SDK 接入
 
+## Phase 2.2 — Instance-to-Kit Contract Alignment（2026-11-02）
+
+**目标：** 通用 Kit 契约支持 ballgames v1.1，且不将 BallGames 假设写死进 Kit。
+
+**权威层级：**
+
+1. **ballgames-specs-v1** — 该实例 product 行为、R1/R2/R3、Launcher、URL/canonical（含首页 `https://ballgames.io` 无尾斜杠）、DoD。
+2. **Kit**（本阶段交付物 + `04-config-and-content-models` + `seo/*`）— 可复用能力、Catalog/Detail 分层、PageSEO、SitemapCandidate、校验 vs editorial 分离。
+3. **实现** — 约束证据；冲突记技术风险（如 `trailingSlash: true` 与 ballgames canonical）。
+
+**主要契约变更摘要：**
+
+- Catalog Item / Game Detail Content / Indexable Page 独立。
+- game-portal Launcher 可配置（含首页 iframe + button 换源）。
+- 导航 `<a>` vs launcher `<button>`；sitemap 仅 indexable 页面。
+- `EmbedPermission` 粒度；`publicationStatus` vs `availability`。
+- 结构化数据校验 **不** 承诺 Rich Results。
+
+**不在范围：** 应用代码、BallGames 页面实现（仍属 Phase 4）。
+
 ## 与章程的边界
 
-- **Kit** 定义 portal 通用页面类型与 SEO 机制；**ballgames-specs-v1** 承载英文正文配额、TDK 定稿与 P0 组件清单。
-- ballgames 游戏详情页采用 **iframe 嵌入**（`LaunchConfig`）属于实例产品决策，须在 `Provider.embedPermission` 有记录；与 AGENTS「默认新标签页」不冲突——默认适用于未核实嵌入许可的新游戏。
+- **Kit** 定义 portal **可选**页面类型、Launcher 能力与 SEO 机制；**ballgames-specs-v1** 为实例 **product 权威**（正文配额、TDK、组件 DoD）。
+- ballgames **iframe 嵌入**须在 `EmbedPermission` 有记录；与 AGENTS「默认新标签页」不冲突——默认适用于未核实 embed 的新游戏。
 
 ## 下一阶段
 

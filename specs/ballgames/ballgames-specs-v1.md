@@ -1,8 +1,8 @@
 # ballgames.io 开发 Spec v1
 
-> **Kit 契约：** 跨实例 SEO 与逻辑内容模型见 [`specs/phases/02-seo-page-model-and-content-contract.md`](../phases/02-seo-page-model-and-content-contract.md)、[`specs/instances/ballgames/README.md`](../instances/ballgames/README.md)。本文档为 **R1 实例层**（TDK 定稿、正文、DoD）；与 Kit 冲突时以 Kit 索引/sitemap/诚实 structured data 规则为准。
+> **Kit 契约：** 跨实例**可复用**能力与数据模型见 [`specs/phases/02-seo-page-model-and-content-contract.md`](../phases/02-seo-page-model-and-content-contract.md)、[`specs/04-config-and-content-models.md`](../04-config-and-content-models.md)、[`specs/seo/`](../seo/)。**本文档为 ballgames.io R1 产品权威**（TDK、正文、Launcher 行为、DoD、R2/R3 范围）。与 Kit 默认冲突时，**以本文档 product 要求为准**；安全、许可诚实性、禁止虚构 structured data、未知 embed 不得视为批准等约束仍适用。
 
-> **R1 范围冻结：** 仅实现两个 **indexable** 页面（`/`、`/hockey-bros`）与最小支撑系统；sitemap **只含 2 条 URL**。Catalog 可录入 **15–20** 款游戏的 launch 数据，但 **仅 hockey-bros 具备完整 SEO 正文字段**。R2/R3 见 [§9 Release 路线图](#9-release-路线图r1-不实现)——文档留存，代码随后续 Release 迭代。
+> **R1 范围冻结：** 仅两个 **indexable** 页面——**站点根**（canonical **`https://ballgames.io`**，路由 `/`）与 **`/hockey-bros`**；sitemap **只含上述 2 条 canonical URL**。Catalog 可录入 **15–20** 款 launch 数据；**仅 `hockey-bros` 具备完整详情正文**；其余为 launcher-only，**无** indexable 详情页。R2/R3 见 [§9 Release 路线图](#9-release-路线图r1-不实现)。
 
 ---
 
@@ -10,10 +10,10 @@
 
 ### 1.1 R1（本期实现 + 索引）
 
-| URL          | 主词        | 美国月搜索量                        | 正文配额（wc -w）             | 结构化数据                           |
-| ------------ | ----------- | ----------------------------------- | ----------------------------- | ------------------------------------ |
-| /            | ball games  | 27,100（-45%）                      | ≈950（导语 + 5×H2，不含 FAQ） | WebSite + ItemList + Organization + FAQPage |
-| /hockey-bros | hockey bros | 基线 8,100 / 9 月峰 40,500，KD 36.2 | ≈980（5×H2 正文）             | VideoGame + FAQPage + BreadcrumbList |
+| URL / canonical | 主词        | 美国月搜索量（**参考，非验收数据**） | 正文配额（wc -w）             | 结构化数据                           |
+| --------------- | ----------- | ------------------------------------ | ----------------------------- | ------------------------------------ |
+| `/` → **`https://ballgames.io`** | ball games  | 27,100（-45%）                      | 导语 55 + 五 H2 ≈950；**FAQ 另计**（§5.4–5.6） | WebSite + ItemList + Organization + FAQPage |
+| `/hockey-bros` | hockey bros | 基线 8,100 / 9 月峰 40,500，KD 36.2 | ≈980（5×H2 正文）             | VideoGame + FAQPage + BreadcrumbList |
 
 「词」为英文单词数（`wc -w`），不含导航/页脚/卡片/iframe 区/H1 副标题 `<p>`/FAQ 块（FAQ 单独计数）。
 
@@ -40,7 +40,7 @@
 8. 游戏源失效不得 404：URL 与正文保留，游戏区降级为「新窗口打开」+ 说明。
 9. JSON-LD **禁止**编造 aggregateRating / review。
 10. **首页可玩区：** 全页 **唯一** `<iframe>`；默认 `https://www.hockeybros.io/`；屏宽 70%；桌面 `min-height:480px`；窄屏 16:9 自适应（375px 宽约 147px）；8s onload 兜底。
-11. **数据只存 `slug`**，不存完整 path；**全站 URL 经 `gameUrl(slug)`**（及 `siteUrl()`）生成：内链、canonical、sitemap、JSON-LD、OG。
+11. **数据只存 `slug`**，不存完整 path；**全站 URL 经 `gameUrl(slug)`** 与 **`siteUrl()`** 生成：内链、canonical、sitemap、JSON-LD、OG。首页 canonical = **`siteUrl()`** → `https://ballgames.io`（无尾斜杠）。
 12. **禁止硬编码**路径字面量（如 `"/hockey-bros"`）；CI grep 拦截（排除 redirect 表、测试 fixture、`specs/`）。
 13. **将来 URL 加前缀：** 只改 `gameUrl` → 批量 301 → sitemap/内链/结构化数据重生成 → GSC 重提 sitemap；模板与正文字段不改。
 14. **首页卡位：** 15–20 张；**Hockey Bros** → `<a href={gameUrl('hockey-bros')}>`；其余 → `<button type="button">` **仅替换**上述 iframe 的 `src`（及 iframe 上游戏名）；**不** pushState、**不** `#hash`、**不**第二个 iframe、**不** `<a>` 到未建详情页或官方站。
@@ -49,48 +49,56 @@
 
 ## 3. 数据模型
 
-### 3.1 Game
+### 3.1 Catalog 与详情（逻辑分层）
 
-```json
+Kit 术语见 [`specs/04-config-and-content-models.md`](../04-config-and-content-models.md)。存储可合并为一条 `Game` 记录，但校验分层：
+
+**Catalog Item（R1 全部 15–20 行至少）：** `slug`, `title`, `providerId`, `launch`, `publicationStatus`, `showOnHome`, `homeSort`；可选 `thumbnail`, `availability`。
+
+**Game Detail Content（R1 仅 `hockey-bros`）：** `seo`, `intro`, `howToPlay`, `sections`, `faq`, `controls`, `categories`, `tags`, `publishedAt`, `updatedAt`。
+
+**Indexable：** 页面级 `seo.indexable`；R1 仅 PortalHome + `hockey-bros` 详情页为 true。Catalog 在首页展示 **不** 隐含 indexable 或详情路由。
+
+```typescript
+// 合并存储示例（实现 Phase 4）
 interface Game {
-  id: string;
-  slug: string;
-  title: string;
-  seo: { title: string; description: string; canonical?: string; indexable: boolean };
-
-  intro: string;
-  howToPlay: string;
-  sections: { heading: string; body: string }[];
-  tips?: string[];
-  faq: { q: string; a: string }[];
-  controls: { label: string; keys: string }[];
-
-  categories: string[];
-  tags: string[];
-  thumbnail: { src: string; alt: string; width: number; height: number; priority?: boolean };
-
-  provider: string;
-  launch: LaunchConfig;
-  status: "draft" | "published" | "archived";
-  publishedAt: string;
-  updatedAt: string;
-
-  showOnHome?: boolean;
-  homeSort?: number;
+  id: string
+  slug: string
+  title: string
+  providerId: string
+  launch: LaunchConfig
+  publicationStatus: 'draft' | 'published' | 'archived'
+  availability?: 'available' | 'temporarily-unavailable' | 'discontinued' | 'unknown'
+  showOnHome?: boolean
+  homeSort?: number
+  // --- 以下仅详情 / indexable 行必填 ---
+  seo?: { title: string; description: string; canonical?: string; indexable: boolean }
+  intro?: string
+  howToPlay?: string
+  sections?: { heading: string; body: string }[]
+  faq?: { q: string; a: string }[]
+  controls?: { label: string; keys: string }[]
+  categories?: string[]
+  tags?: string[]
+  thumbnail?: { src: string; alt: string; width: number; height: number; priority?: boolean }
+  publishedAt?: string
+  updatedAt?: string
 }
 ```
 
-R1：仅 `hockey-bros` 必填完整正文字段；其余 Catalog 行至少 `slug`、`title`、`launch`、`showOnHome`、`homeSort`。
-
 ### 3.2 LaunchConfig
 
-```json
+```typescript
 interface LaunchConfig {
-  mode: "iframe-official" | "iframe-provider" | "external-link" | "hosted";
-  primaryUrl: string;
-  fallbackUrls?: string[];
-  embedHeight?: number;
-  timeoutMs?: number;
+  mode: 'iframe-official' | 'iframe-provider' | 'external-link' | 'hosted'
+  primaryUrl: string
+  fallbackUrls?: string[]
+  timeoutMs?: number // 默认 8000；onload/超时仅为 UX，非可玩性验证
+  embedLayout?: {
+    aspectRatio?: string // R1：16/9
+    desktopMinHeightPx?: number // R1：480
+    width?: string // R1 首页 iframe 区：70%
+  }
 }
 ```
 
@@ -158,7 +166,7 @@ interface LaunchConfig {
 
 | 能力              | R1                      | R2                       | R3                      |
 | ----------------- | ----------------------- | ------------------------ | ----------------------- |
-| indexable 页面    | `/`、`/hockey-bros`     | +5–6 游戏详情            | +3 分类页，再小批量扩页 |
+| indexable 页面    | origin + `/hockey-bros` | +5–6 游戏详情            | +3 分类页，再小批量扩页 |
 | GameGrid 卡 `<a>` | 仅 `hockey-bros`        | 已上线详情页逐张改 `<a>` | 分类页内链进详情        |
 | ItemList JSON-LD  | 仅已 indexable 详情 URL | 随新页增加 ListItem      | 分类页另类型            |
 
@@ -174,10 +182,10 @@ interface LaunchConfig {
   name="description"
   content="Play free ball games right in your browser - hockey, soccer, football, basketball and more. No download, no account, one click to start."
 />
-<link rel="canonical" href="https://ballgames.io/" />
+<link rel="canonical" href="https://ballgames.io" />
 ```
 
-实现时 canonical 须走 `siteUrl('/')`；上例仅为说明。
+实现时 canonical 须走 `siteUrl()`（**无**尾斜杠）；上例仅为说明。路由仍为 `/`。
 
 ### 5.2 H1 与副标题（定稿）
 
@@ -375,7 +383,7 @@ R1 **WebSite**（无 `potentialAction` / SearchAction；R2 `/search` 上线后�
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "BallGames.io",
-  "url": "https://ballgames.io/"
+  "url": "https://ballgames.io"
 }
 ```
 
@@ -440,7 +448,7 @@ R1 **不含：** iframe 下 Controls/Note 两行独立提示（操作说明只�
 </div>
 ```
 
-8s 未 onload → 展示「去官方站玩」按钮（`target="_blank"` `rel="noopener"`）。`.game-wrap` 16:9；无 sandbox、无 lazy。
+8s 未 onload → 展示「去官方站玩」按钮（`target="_blank"` `rel="noopener"`）。**说明：** `load` 事件与 8s 计时仅为 UX 兜底，**不能**证明跨域 iframe 内游戏可玩；须始终保留新窗口回退。`.game-wrap` 16:9；无 sandbox、无 lazy。
 
 ### 6.5 正文配额（≈980 词）
 
@@ -520,7 +528,7 @@ If you like the controls here, the others are built on the same control idea, so
 Several of these are playable from the grid on the <a href="/">home page</a>, so you can switch without leaving the site.
 ```
 
-R1：**H2⑤ 内唯一允许的内链**为 `<a href="/">`（实现须 `siteUrl('/')`）；五个游戏名保持纯文本。
+R1：**H2⑤ 内唯一允许的内链**为指向首页的 `<a>`（实现须 `siteUrl()` → `https://ballgames.io`）；五个游戏名保持纯文本。
 
 ### 6.6 FAQ 7 条（定稿，实测 __ 词，配 FAQPage schema）
 
@@ -575,7 +583,7 @@ R1：**H2⑤ 内唯一允许的内链**为 `<a href="/">`（实现须 `siteUrl('
 </details>
 ```
 
-（第 7 条为 R1 新增；第 1、2 条 Answer 已按 v1.1 去掉键位名，不再与 v1 定稿一致。）
+（第 7 条为 R1 新增。FAQ「What are the controls?」含 **WASD/方向键移动** 与 **单键** pass/shoot/check；与 H2② 并存时 **上线前须 playtest** 并统一 FAQ / 正文 / 控件表。）
 
 ### 6.7 相关游戏区（R1）
 
@@ -594,7 +602,7 @@ R1：**H2⑤ 内唯一允许的内链**为 `<a href="/">`（实现须 `siteUrl('
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://ballgames.io/" },
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://ballgames.io" },
     {
       "@type": "ListItem",
       "position": 2,
@@ -604,6 +612,20 @@ R1：**H2⑤ 内唯一允许的内链**为 `<a href="/">`（实现须 `siteUrl('
   ]
 }
 ```
+
+---
+
+## 7.1 待核实事实（VERIFICATION REQUIRED）
+
+上线前须人工核验或改为 cautious 措辞；**禁止** Agent 编造依据或 JSON-LD 断言：
+
+| 声明 | 位置 |
+|---|---|
+| 网格按游玩量排序、「最新 arrival」、加拿大 studio、2026-08-01 上线 | §5.5、§6.5 |
+| 「remembers nothing about you」/ 隐私 | §5.5 H2① |
+| Ad blocker / 校网 causality、Chromebook 全系 | §5.5、FAQ |
+| 首页/FAQ 两玩家 vs 非全系支持 | §5.5–5.6 |
+| 各 Catalog `primaryUrl` 与 **embed 许可** | §3.5、`Provider` / `EmbedPermission` |
 
 ---
 
@@ -629,7 +651,7 @@ title 1 · h1 1 · 副标题 0 · 面包屑 1 · H2④ 正文 3~4 · H2⑤ 1 · 
 - [ ] Title ≤60、description ≤155；无 keywords
 - [ ] 正文词数：首页实测 __ 词、内页实测 __ 词（上线前 `wc -w` 回填，勿按 950 / 980 凑数）
 - [ ] 词频第一短语 = 页主词；首页 SEO 正文块内 hockey bros = 0
-- [ ] sitemap **仅 2 URL**；ItemList **仅 hockey-bros**
+- [ ] sitemap **仅 2 条 canonical**（`https://ballgames.io`、`https://ballgames.io/hockey-bros`）；ItemList **仅 hockey-bros**
 - [ ] 首页 FAQ **8** 条（8 个独立 `<details>`）；内页 FAQ **7** 条
 - [ ] 卡片锚文本仅游戏名，不含 "Play … Free Online" 式长句
 - [ ] `/search`、顶栏 Sports / 2 Player / .IO、分类页：**R1 不实现**；`/search` 与 robots Disallow 验收项 **标 R2**（§2-2、§9 R2）
@@ -640,7 +662,7 @@ title 1 · h1 1 · 副标题 0 · 面包屑 1 · H2④ 正文 3~4 · H2⑤ 1 · 
 - [ ] 内页相关游戏 **12–16**；相关区 **全部 `<button>` + scrollIntoView**（§6.7）；面包屑 **两级**
 - [ ] `gameUrl` 统一 URL；CI 无硬编码 path
 - [ ] 8s 兜底；源失效时 `/hockey-bros` 200 + 完整正文
-- [ ] JSON-LD Rich Results 通过；无 aggregateRating；R1 WebSite **无** SearchAction
+- [ ] JSON-LD：语法正确、@type 与页面一致、URL 与 canonical 一致、FAQ 与可见内容逐字一致；**不**验收 Rich Results 必现；无 aggregateRating；R1 WebSite **无** SearchAction
 - [ ] LCP：首页含 iframe 时 **MANUAL REVIEW**（PageSpeed 截图）或团队自定阈值
 
 ---
@@ -668,4 +690,4 @@ title 1 · h1 1 · 副标题 0 · 面包屑 1 · H2④ 正文 3~4 · H2⑤ 1 · 
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
 | 2026-11-01 | R1 冻结：双页 indexable、首页 15–20 卡 + 单 iframe 换 src、URL 四条工程约束、H1 `<p>` 副标题表、内页广告、FAQ 7 定稿全文、相关 12–16、R2/R3 路线图 | 已冻结             |
 | 2026-11-01 | 走查：§4 恢复完整组件表并标注 R1/R2/R3；§6.6 恢复 7 条 FAQ Answer 定稿                                                                             | 已冻结             |
-| 2026-11-02 | v1.1：三步替换（编造比例等 9 处、结构 5 处、建议 9 处）+ §8 验收项修正                                                                             | 待开发逐项核销     |
+| 2026-11-02 | Phase 2.2：Kit 契约对齐；首页 canonical 无尾斜杠；Catalog/Detail 分层；优先级与 Rich Results DoD | 文档已对齐 |

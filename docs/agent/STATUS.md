@@ -1,8 +1,8 @@
 # Agent Project Status
 
-- **Current phase:** Phase 3 — 最小 SEO Foundation（**not started**；Phase 2 文档已完成）
+- **Current phase:** Phase 3 — 最小 SEO Foundation（**not started**；Phase 2 + **Phase 2.2** 文档已完成）
 - **Baseline commit:** `723499bf9e590b398ed888cffc834a9c54274d00`（`v2.4.0-9-g723499b`）
-- **Last updated:** 2026-10-31
+- **Last updated:** 2026-11-02
 - **Current branch:** `main`
 
 ## Phase summary
@@ -12,6 +12,7 @@
 | 0 | 模板基线审计 | **completed** / **validated** | [`docs/agent/reports/template-audit.md`](reports/template-audit.md)、ADR 0001 |
 | 1 | Agent 文档与工作流基础 | **completed** / **validated** | [`specs/phases/01-agent-workflow-foundation.md`](../../specs/phases/01-agent-workflow-foundation.md) |
 | 2 | SEO 页面模型与内容契约 | **completed** / **validated**（文档） | [`specs/phases/02-seo-page-model-and-content-contract.md`](../../specs/phases/02-seo-page-model-and-content-contract.md) |
+| 2.2 | Instance-to-Kit 契约对齐 | **completed**（文档） | 同上 §Phase 2.2；Catalog/Detail 分层、Launcher、canonical 无尾斜杠 |
 | 3 | 最小 SEO Foundation | **not started** | SEO 指南 §20 |
 
 ## Phase 2 交付物（ballgames · game-portal）
@@ -48,7 +49,8 @@
 | `yarn lint` | PASS | 2026-10-30 |
 | `yarn typecheck` | PASS | 2026-10-30 |
 | `yarn build` | PASS | 2026-10-30，60 SSG 页 |
-| Phase 2 文档路径校验 | PASS | 2026-10-31 本任务 |
+| Phase 2 文档路径校验 | PASS | 2026-10-31 |
+| Phase 2.2 契约对齐 | PASS | 2026-11-02 文档-only；`git diff` 无应用代码 |
 
 ## Human decisions required
 
