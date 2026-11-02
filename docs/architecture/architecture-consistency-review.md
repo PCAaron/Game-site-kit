@@ -1,11 +1,11 @@
 # Architecture Consistency Review
 
 > **评审日期：** 2026-11-02
-> **评审状态：** Completed（2026-11-02 remediation）；所有新决策均为 **Proposed**
+> **评审状态：** Completed（2026-11-02）；ADR 0003 DEC-003-A–E **Accepted**（2026-11-02）；应用实现 **未开始**
 > **原始评审基线：** `main` / `c6cc024d9493d4c60d8fb785346d4cb369c6538b`
 > **首次 remediation 基线：** `spec` / `aca82e6b0c8c8467295fba274777ac6b043948e1`
 > **Phase 3 readiness remediation 基线：** `spec` / `aa8e1db5c1fd670b9ad0db7d5a4990f754891a51`
-> **Final consistency pass reviewed HEAD：** `spec` / `534db2c7bf55b1c43b727bd50949fff594ba8e79`
+> **ADR 0003 决策落地审查 HEAD：** `spec` / `04a61a5bab09bdb7977dc67c56b581f90cb59c3d`（2026-11-02；DEC-003-A–E 用户已批准）
 > **业务权威：** `specs/ballgames/ballgames-specs-v1.md`
 > **实施状态：** 未修改应用代码、依赖、业务 Spec 或部署配置；未开始后续 Phase
 
@@ -17,10 +17,10 @@
    Kit 已覆盖 `game-portal`、Catalog / Detail / Indexable 分层、Launcher、页面级 SEO、统一 URL、SitemapCandidate、Structured Data 和实例配置等核心概念；这些均是 **Spec Requirement / proposed contract**，不是当前代码能力。
 2. **当前模板能否承载目标架构：可以增量承载，不需要替换 Starter。**
    Next.js App Router、SSG、contentlayer2、Metadata API、sitemap/robots 路由与静态导出机制可复用；博客 IA、Blog/Authors schema 和分散 URL 拼接不能直接充当 portal 业务模型。
-3. **是否存在阻止进入后续实现的架构问题：存在条件性阻塞。**
-   当前仓库的正式下一阶段是 **Phase 3 — 最小 SEO Foundation**，不是“Phase 1 — Shared Core”。进入 Phase 3 前应确认实例配置/URL 单一事实源，并明确授权 DEC-003-E 的无尾斜杠调查；最终技术方案须在调查后单独报告。进入 Phase 4 前还应确认内容存储边界与 iframe/部署安全边界。
-4. **Phase 3 Readiness：Specification Ready / Implementation Gated。**
-   独立 Phase 3 Spec 已存在；实现仍等待 ADR 0003 与入口条件中的具体用户决策。
+3. **是否存在阻止进入后续实现的架构问题：存在条件性阻塞（决策层已关闭 DEC-003，代码层未实现）。**
+   当前仓库的正式下一阶段是 **Phase 3 — 最小 SEO Foundation**，不是“Phase 1 — Shared Core”。DEC-003-A–D 已批准，DEC-003-E 只读调查已完成；**无尾斜杠公开 URL 的最终配置/部署方案仍未批准**。进入 Phase 4 前还应确认内容存储边界与 iframe/部署安全边界。
+4. **Phase 3 Readiness：Specified / Implementation Gated / Not Started。**
+   独立 Phase 3 Spec 已存在；ADR 0003 已 **Accepted**；架构入口决策（DEC-003-A–E）已记录，**Phase 3 应用代码尚未开始**。
 5. **Shared Core Readiness：Not Ready / Not an approved phase。**
    仓库现有 Phase 1 已完成且名称为“Agent 文档与工作流基础”；不得重命名或借用该编号。共享模块提取须等待至少两个差异实例验证。
 
@@ -30,15 +30,15 @@
 
 - 当前 `siteUrl` 仍是模板演示域名，且 `next.config.js` 使用 `trailingSlash: true`，与 ballgames 无尾斜杠 canonical 冲突。
 - sitemap 仍输出博客、项目、标签和文章，缺少 `publicationStatus + seo.indexable + canonical` 过滤，无法满足 R1 恰好 2 条 URL。
-- ADR 0003 与 Phase 3 Spec 已提出 PortalHomeContent 发布与 SEO 契约，但仍待用户批准，且尚未集成到通用内容模型或应用实现；首页资格因此尚未形成获批、可执行的闭环。
+- ADR 0003 DEC-003-B 已批准 `publicationStatus` 标准术语；PortalHomeContent 契约已 **Accepted**，尚未集成到通用内容模型或应用实现。
 - R1 iframe 依赖仍未核实的 embed 许可，当前 `frame-src` 只允许 `giscus.app`，静态导出路径也没有仓库内可验证的响应头落点。
 - Portal 页面、Catalog、Game Detail、Launcher 和 portal Structured Data 尚未实现。
 
 **P1 — 进入对应开发阶段前必须解决**
 
 - `/car-soccer` 在实例 Spec 中属于 R3 Category，而 Kit 页面策略表把它定义为 `game_detail`。
-- ballgames 使用 `status`，Kit 与数据模型使用 `publicationStatus`；合并 Game 模型也未明确 Catalog 发布态与 Detail 发布态是否需要独立。
-- Phase 3 最小 SiteInstance 尚待批准；本阶段只需要 identity、origin、path style、站点默认 metadata、enabled page types 与 defaultIndexable。
+- ballgames §2 使用 `status` 简写；Kit 与 DEC-003-B 统一 **`publicationStatus`**（产品 Spec 未改；见 §6.2）。Catalog 与 Detail 发布态分离仍待 ADR 0002。
+- DEC-003-A 已批准 Phase 3 最小 SiteInstance；**代码未实现**。
 - Contentlayer `Game`、结构化 Catalog 或混合存储尚未选定，Catalog 读取接口也未定义。
 - `Organization` / `VideoGame` 所需的可验证字段来源未进入逻辑模型。
 - Legacy Car Soccer 文档未标记 superseded，可能把 Agent 引向与当前章程相反的首站和阶段路线。
@@ -182,17 +182,17 @@
 
 ### 6.1 PortalHome publication eligibility
 
-**Proposed Contract / Pending Approval**
+**Accepted Contract / Implementation Not Started**
 
-通用 `SitemapCandidate` 要求页面类型启用、`publicationStatus === "published"`、`seo.indexable === true` 且 canonical 有效。PortalHome 契约并非完全缺失：ADR 0003 与 Phase 3 Spec 已提出独立 `PortalHomeContent` 接口及 eligibility 行为；但 `specs/04-config-and-content-models.md` 尚未集成该 publication contract，用户批准仍待定，应用也未实现。
+通用 `SitemapCandidate` 要求页面类型启用、`publicationStatus === "published"`、`seo.indexable === true` 且 canonical 有效。ADR 0003 DEC-003-B（Option B-1）已批准独立 `PortalHomeContent`；`specs/04-config-and-content-models.md` 尚未集成该 publication contract；**应用未实现**。
 
 | Layer | Actual state |
 |---|---|
 | `specs/04-config-and-content-models.md` | PortalHome publication contract 尚未集成 |
-| ADR 0003 | Proposed `PortalHomeContent` contract 已存在 |
+| ADR 0003 | **Accepted** — `PortalHomeContent` contract（DEC-003-B / B-1） |
 | Phase 3 Spec | 接口、PageSEO 映射与 eligibility 行为已指定 |
-| User approval | Pending |
-| Application implementation | Not implemented |
+| User approval | **Approved** 2026-11-02 |
+| Application | **Not implemented** |
 
 评估的来源方案：
 
@@ -200,7 +200,7 @@
 2. **独立 PortalHomeContent（推荐）**：页面发布、SEO、正文和更新时间同属一个页面内容对象，可独立 draft/publish/archive。
 3. **由 Catalog 推导首页**：无法表达首页独立正文、FAQ、PageSEO 与发布审核，不适合 ballgames。
 
-推荐但尚未批准的最小逻辑契约：
+**Accepted 最小逻辑契约（DEC-003-B / B-1）：**
 
 ```typescript
 interface PortalHomeContent {
@@ -230,7 +230,7 @@ AND siteUrl() 等于首页 canonical
 
 ### 6.2 Publication terminology
 
-**Recommendation**
+**Accepted mapping（DEC-003-B / Option B-1，2026-11-02）**
 
 统一使用 `publicationStatus`，因为 Kit 模型、Catalog Item 与 ballgames §3.1 的 `Game` 示例均已采用该名称。`status` 仍可表示页面策略表的工作流状态或 EmbedPermission 状态，不能作为内容发布态的模糊别名。
 
@@ -242,7 +242,7 @@ AND siteUrl() 等于首页 canonical
 - `specs/04-config-and-content-models.md` Game Detail 注释仍写“由 ... `status` 推导”。
 - `specs/seo/05-content-quality-and-validation.md` Phase 3–4 建议仍写 `indexable` 与 `status` 一致。
 
-本次不修改权威 ballgames Spec。当前架构建议将 §2 规则 1 的 `status` 解释为 §3.1 数据模型 `publicationStatus` 的产品简写，而不是第二个字段；该解释仍属于 **Proposed mapping**，须随 DEC-003-B 获用户确认。获批前不得声称产品术语冲突已正式解决，Phase 3 实现也不得同时引入两套发布字段。
+本次不修改权威 ballgames Spec。§2 规则 1 的 `status` 是 §3.1 `publicationStatus` 的**产品简写**（DEC-003-B 已批准）。Phase 3 实现**只使用** `publicationStatus`，不得同时引入两套发布字段。Kit/SEO 文档中与 `status` 混用的表述应在后续文档任务中逐步对齐，不属于本 ADR 落地任务范围。
 
 ### 6.3 Catalog and Detail lifecycle
 
@@ -330,7 +330,7 @@ Phase 3 的 URL、metadata、indexability 与 sitemap 工作可独立进行，�
 | GAP-01 | SiteInstance 契约不完整且未实现 | Contract + Code | P0 | 错域名/串配置会阻止 R1 上线 | Phase 3 |
 | GAP-02 | URL helper、canonical、内链、sitemap、JSON-LD 不同源 | Code | P0 | 直接违反 R1 §2-11–13 | Phase 3 |
 | GAP-03 | 无页面级 indexable 与 SitemapCandidate | Code | P0 | R1 sitemap 无法限制为 2 URL | Phase 3 |
-| GAP-04 | PortalHome proposed contract 未批准且未实现 | Contract + Code | P0 | 首页无法严格通过通用 sitemap 谓词 | Review approval / Phase 3 |
+| GAP-04 | PortalHome 契约已批准、未实现 | Contract + Code | P0 | 首页无法通过 sitemap 谓词（代码） | Phase 3 implementation |
 | GAP-05 | `trailingSlash: true` 与无尾斜杠 canonical | Config | P0 | 可能产生重复 URL | Phase 3 |
 | GAP-06 | 无 portal metadata / JSON-LD 生成器 | Code | P0 | R1 DoD 必需；Phase 3 先建 contract，Phase 4 接页面内容 | Phase 3 mechanism / Phase 4 integration |
 | GAP-07 | EmbedPermission 未录入且 CSP/部署未知 | Manual + Architecture | P0 | 未授权 iframe 不能上线 | Before Phase 4 release |
@@ -354,15 +354,15 @@ Phase 3 的 URL、metadata、indexability 与 sitemap 工作可独立进行，�
 
 ## 10. Technical Decision Recommendations
 
-所有 Recommendation 均未获用户批准。
+所有 Recommendation 均已记录；DEC-003 子项 **Accepted**（2026-11-02）。其余 ADR 仍为 Proposed / 待批。
 
 | Decision ID | Topic | Status | Recommendation | User Confirmation |
 |---|---|---|---|---|
 | DEC-002 | Portal 内容架构 | Proposed | 保留 Blog/Authors；ballgames 不启用其导航和索引。新增 Game content type + Catalog adapter，Catalog/Detail 逻辑分层，业务代码不直接依赖 contentlayer 生成类型 | Required |
-| DEC-003 | SiteInstance / URL / SEO | Proposed | Phase 3 只纳入 identity、origin、path style、最小 metadata、enabled page types 与 defaultIndexable；`siteUrl/gameUrl` 为 URL 单一事实源 | Required |
+| DEC-003 | SiteInstance / URL / SEO | **Accepted**（DEC-003-A–D / A-1–D-1） | Phase 3 最小 SiteInstance + `siteUrl/gameUrl`；Phase 3/4 边界见 DEC-003-D | **Approved** — implementation not started |
 | DEC-004 | Game Runtime | Proposed | ballgames 保留 Spec 要求的 iframe 模式，但只有匹配的 EmbedPermission 为 granted 且部署 CSP 已验证时才放行；始终保留新窗口回退 | Required |
 | DEC-005 | Static Export / Deployment | Proposed | R1 继续以静态导出为首选，但生产平台必须提供可验证的 CSP/security headers；否则改用支持 headers 的部署模式，平台选择保持 Open Question | Required |
-| DEC-006 | Blog 能力 | Proposed（纳入 DEC-003 isolation） | 不立即删除 Blog/Authors；ballgames R1 从导航、sitemap 和 enabled/indexable page types 排除 | Required |
+| DEC-006 | Blog 能力 | **Accepted**（DEC-003-C / C-1） | 不删除 Blog/Authors；ballgames R1 从导航、sitemap 和 enabled/indexable page types 排除 | **Approved** — legacy route 公开/noindex 仍待独立决策 |
 | DEC-007 | URL path style | Already Defined by Spec | ballgames canonical 无尾斜杠；实现不得用模板默认覆盖 | No product decision；implementation approval required |
 | DEC-008 | Play fallback | Already Defined by Spec | iframe 失败仍保留 200 正文与新窗口打开 | No |
 | DEC-009 | Feature defaults | Already Defined, shape Proposed | ads/analytics 默认关闭；实例显式启用。R1 广告槽是否加载真实广告仍待确认 | Required |
@@ -484,14 +484,14 @@ Phase 3 的 URL、metadata、indexability 与 sitemap 工作可独立进行，�
 ### 14.1 Requires User Confirmation
 
 1. 是否接受 DEC-002 的 contentlayer `Game` + Catalog adapter 最小方案？
-2. 是否接受 DEC-003 的 Phase 3 最小 SiteInstance（不含尚无消费者的全量 feature/deployment 字段）？
+2. ~~是否接受 DEC-003 最小 SiteInstance？~~ **已批准 DEC-003-A（2026-11-02）。**
 3. ballgames R1 的两个广告尺寸是仅保留布局槽，还是必须接入真实广告网络？
-4. 是否继续使用 GitHub Pages 静态导出；若是，哪个层负责 CSP、安全响应头和未来 redirects？
+4. 是否继续使用 GitHub Pages 静态导出；哪个层负责 CSP、redirect？（DEC-003-E §20 已调查；**trailing-slash 实施方案未批准**）
 5. Legacy Car Soccer 文档是否授权标记为 superseded/archived？
-6. PortalHome 是否采用独立 PortalHomeContent 作为发布态与 PageSEO 单一来源？
-7. Blog/Authors 是否保留但从 ballgames R1 SEO surface 隔离？
-8. 是否批准 Phase 3 做 contract/fixture 验证、Phase 4 页面存在后再验收 production exact-two sitemap 与页面 JSON-LD？
-9. 是否允许 Phase 3 先验证 Next/export 的 trailing-slash 行为，再确定满足无尾斜杠公开 URL 的最小实现？
+6. ~~PortalHome 独立 PortalHomeContent？~~ **已批准 DEC-003-B（2026-11-02）。**
+7. ~~Blog/Authors R1 隔离？~~ **已批准 DEC-003-C（2026-11-02）。**
+8. ~~Phase 3/4 SEO 边界？~~ **已批准 DEC-003-D（2026-11-02）。**
+9. ~~DEC-003-E 只读调查？~~ **已完成（2026-11-02，§20）；配置变更未批准。**
 
 ### 14.2 Manual Review / External Evidence
 
@@ -504,22 +504,22 @@ Phase 3 的 URL、metadata、indexability 与 sitemap 工作可独立进行，�
 
 ## 15. Phase 3 Readiness Assessment
 
-**Specification Ready / Implementation Gated。**
+**Specified / Implementation Gated / Not Started。**
 
 | Entry condition | Status | Evidence / condition |
 |---|---|---|
-| Site URL source of truth | **Pending user decision** | ADR 0003 推荐类型化最小 SiteInstance + `siteUrl/gameUrl`，仍为 Proposed |
-| Canonical URL policy | **Satisfied with conditions** | ballgames 无尾斜杠已冻结；`next.config.js` 实现策略仍需 Phase 3 调查与批准 |
-| Trailing-slash investigation authorization | **Pending user decision** | DEC-003-E 只请求授权调查 Next 配置、static export、生成路径与 canonical 影响；不授权改配置、部署、redirect 或 URL 重构 |
-| PortalHome publication eligibility | **Pending user decision** | 本报告 §6.1 推荐独立 PortalHomeContent 作为 publication 与首页 PageSEO 来源，尚未获批准 |
-| Publication terminology | **Pending user decision** | 建议将 ballgames §2 的 `status` 映射为 §3.1 `publicationStatus` 的产品简写；须随 DEC-003-B 确认 |
-| Blog isolation | **Pending user decision** | 推荐保留 Blog/Authors 代码，但从 ballgames sitemap 与 R1 SEO surface 排除 |
-| Sitemap eligibility | **Satisfied with conditions** | 通用谓词明确；首页发布来源与 Phase 4 路由集成仍待完成 |
-| Phase 3 scope | **Satisfied** | `specs/phases/03-minimum-seo-foundation.md` 明确排除 Catalog、页面、Launcher、iframe 与 Shared Core |
-| Exact-two-URL production sitemap | **Blocked by missing Phase 4 page** | `/hockey-bros` 页面尚不存在；Phase 3 只能完成 eligibility/generator contract，不能发布指向 404 的 sitemap |
-| R1 page JSON-LD output | **Blocked by missing Phase 4 visible content** | FAQPage、VideoGame、BreadcrumbList 必须与实际页面内容一致，不得在 Phase 3 伪造 |
+| Site URL source of truth | **Decision resolved** | DEC-003-A / A-1 已批准；ADR 0003 Accepted；**代码未实现** |
+| Canonical URL policy | **Satisfied with conditions** | ballgames 无尾斜杠已冻结；`next.config.js` 仍为 `trailingSlash: true` — 见 §20 |
+| Trailing-slash investigation | **Investigation complete** | DEC-003-E / E-1 只读调查已记录于 §20；**配置/部署实施方案未批准** |
+| PortalHome publication eligibility | **Decision resolved** | DEC-003-B / B-1；PortalHomeContent 契约 Accepted；**代码未实现** |
+| Publication terminology | **Decision resolved** | DEC-003-B：`status` → `publicationStatus` 映射；产品 Spec 未改 |
+| Blog isolation | **Decision resolved** | DEC-003-C / C-1；保留 Blog/Authors，R1 sitemap 不读 `allBlogs`；**代码未实现** |
+| Sitemap eligibility | **Satisfied with conditions** | 通用谓词明确；production exact-two 依赖 Phase 4 route existence |
+| Phase 3 scope | **Decision resolved** | DEC-003-D / D-1；Phase 3 Spec 排除 PortalHome/Detail/Catalog/`/hockey-bros` 实现 |
+| Exact-two-URL production sitemap | **Blocked by missing Phase 4 page** | `/hockey-bros` 尚不存在 |
+| R1 page JSON-LD output | **Blocked by missing Phase 4 visible content** | FAQ/可见内容属 Phase 4 |
 
-Phase 3 implementation 只有在用户分别确认 DEC-003-A–E 后才可开始，其中 DEC-003-E 当前仅是调查授权；调查后的最终技术实现选择必须以证据单独报告并获得相应授权。第三方 iframe 许可不是 Phase 3 入口条件。
+Phase 3 **应用实现尚未开始**。DEC-003-A–D 批准不等于 Phase 3 已开工。DEC-003-E 调查**不等于**批准修改 `trailingSlash` 或部署 redirect。
 
 ### 15.1 Phase 3 scope
 
@@ -571,23 +571,96 @@ Phase 4 完成页面集成后，才验收生产 sitemap 恰好包含 `https://ba
 3. 少量 Spec 术语和 R3 page_type 仍不一致；
 4. Legacy Car Soccer 路线没有显式退役。
 
-因此，本评审不建议更换模板、替换 contentlayer 或提前建设 Monorepo。建议先批准最小架构决策，再按当前 Phase 3 → Phase 4 顺序实施。
+因此，本评审不建议更换模板、替换 contentlayer 或提前建设 Monorepo。**ADR 0003（DEC-003-A–E）已批准**；下一步是按 Phase 3 Spec **立项实施**（尚未开始），并在 §20 证据基础上**单独批准**无尾斜杠 URL 的配置/部署方案。
 
 ## 19. Approval Checklist
 
 - [ ] 批准或修订 DEC-002：Portal content / Catalog boundary
-- [ ] 批准或修订 DEC-003：SiteInstance / URL / SEO source
-- [ ] 确认 PortalHomeContent 为首页发布态与 PageSEO 的单一来源
-- [ ] 确认 Phase 3 采用 contract-level sitemap/JSON-LD 验证，生产两 URL 输出留到 Phase 4 页面集成
-- [ ] 确认 Blog/Authors 保留但排除出 ballgames R1 sitemap/SEO surface
-- [ ] 授权 DEC-003-E 的 trailing-slash / static export 调查；该授权不等于批准任何配置或部署变更
+- [x] 批准 DEC-003：SiteInstance / URL / SEO source（DEC-003-A–E，2026-11-02）
+- [x] 确认 PortalHomeContent 为首页发布态与 PageSEO 的单一来源（DEC-003-B）
+- [x] 确认 Phase 3 contract-level sitemap/JSON-LD；生产两 URL 留 Phase 4（DEC-003-D）
+- [x] 确认 Blog/Authors 保留但排除 ballgames R1 sitemap/SEO surface（DEC-003-C）
+- [x] DEC-003-E 只读调查已完成（§20）；**trailing-slash 实施方案未批准**
 - [ ] 批准或修订 DEC-004：ballgames launcher / embed policy
 - [ ] 批准或修订 DEC-005：static export / deployment boundary
 - [ ] 确认 R1 广告槽含义
 - [ ] 授权后修正 `/car-soccer` page_type 与 `status` 术语
 - [ ] 授权后标记 Legacy Car Soccer 文档 superseded
-- [x] Phase 3 独立任务 Spec 已创建；implementation 仍由 DEC-003-A–E gates 阻塞
-- [ ] 不自动开始 Phase 3 / Phase 4
+- [x] Phase 3 独立任务 Spec 已创建；DEC-003 架构决策已 Accepted；**implementation not started**
+- [ ] 不自动开始 Phase 3 / Phase 4（须单独立项；当前 **not started**）
+
+## 20. DEC-003-E — Trailing Slash / Static Export 只读调查
+
+- **授权：** DEC-003-E / Option E-1（用户已批准）
+- **调查日期：** 2026-11-02
+- **审查 HEAD：** `04a61a5bab09bdb7977dc67c56b581f90cb59c3d`
+- **范围：** 只读；**未**修改 `next.config.js`、workflow、redirect 或应用 URL 代码；**未**运行 `yarn build`（避免覆盖/生成 `out/`）
+
+### 20.1 已核实配置事实
+
+| 项 | 事实 |
+|---|---|
+| Next.js 版本 | `15.5.12`（`package.json`） |
+| `trailingSlash` | `true`（`next.config.js` L70） |
+| Static export | `output: 'export'` 当环境变量 `EXPORT=1`（`next.config.js` L57–67） |
+| GitHub Pages CI | `.github/workflows/pages.yml`：`EXPORT=1`、`UNOPTIMIZED=1`、`BASE_PATH=${{ configure-pages.outputs.base_path }}`，产物目录 `./out` |
+| 本地构建产物 | `/out/` 在 `.gitignore`；工作区**无**可用 `out/` 目录 — **未实测**导出目录结构 |
+| `headers()` | `next.config.js` 定义 CSP 等 — 静态文件托管到 GitHub Pages 时**不会**由 Next 注入这些响应头（与 ADR 0005 一致） |
+| Canonical / URL  today | `data/siteMetadata.js` 演示域名；`app/layout.tsx` `metadataBase`；`app/sitemap.ts` 手工拼接 `${siteUrl}/${route}`（无统一 `siteUrl()` helper） |
+| Sitemap URL 形状 | 当前 sitemap 条目形如 `${siteUrl}/blog`（**无**尾斜杠后缀），与 `trailingSlash: true` 下 Next 默认链接/导出习惯**可能不一致** — 需 build 后核对 HTML/`Link` href |
+
+### 20.2 Next.js 文档行为（非本仓库 build 实测）
+
+依据 Next.js 15 文档与 export worker 说明（Context7 / `/vercel/next.js`）：
+
+- **`trailingSlash: false`（默认）+ `output: 'export'`：** 路由 `/about` 倾向于输出 `out/about.html`；根路径为 `out/index.html`。
+- **`trailingSlash: true` + `output: 'export'`：** 路由 `/about` 输出 `out/about/index.html`（目录 + `index.html`），文档明确与默认 `about.html` 不同。
+- **运行时（Node）** `trailingSlash: true` 时，Next 倾向将无尾斜杠 URL **重定向**到有尾斜杠；**纯静态托管无 Next 运行时**，该重定向**不自动存在**于 GitHub Pages 静态文件本身。
+
+### 20.3 GitHub Pages 行为分析（部分为平台常识，host 细节 **尚未实测**）
+
+- Pages 从 `out/` 上传 artifact；`BASE_PATH` 非空时站点可能位于 `https://<user>.github.io/<repo>/` — ballgames 生产目标为 apex `https://ballgames.io`，**DNS/自定义域配置不在本仓库验证范围内**。
+- 对 `path/index.html` 结构，用户访问 `.../path/` 通常可得到 200；访问 `.../path`（无尾斜杠）是否 301/200/404 **依赖 Pages 与文件布局**，**须在真实域名或 Pages 预览 URL 上实测**。
+- GitHub Pages **不提供** Next.js `redirects`/`headers` 配置；无 Cloudflare/Workers 时，**不能**依赖 Next config 的 redirect 规则在静态托管上生效。
+- `next.config.js` 中的 `securityHeaders` 在 export 部署到 Pages 后**不可**当作已生效 CSP（iframe/第三方域策略仍属 Phase 4/部署证据项）。
+
+### 20.4 ballgames 目标 URL vs 当前配置
+
+| URL | 产品 canonical | 当前 `trailingSlash: true` 导出预期（页面存在时） | 一致性 |
+|---|---|---|---|
+| `/` | `https://ballgames.io`（无 path 尾斜杠） | `index.html` → `/` 与 `/index.html` 行为 **待 host 实测** | 需 metadata + host 双验证 |
+| `/hockey-bros` | `https://ballgames.io/hockey-bros`（无尾斜杠） | 预期 `out/hockey-bros/index.html` → 公开 URL 常为 `/hockey-bros/` | **与无尾斜杠 canonical 存在漂移风险** |
+| `/hockey-bros/` | 非权威 canonical | 可能与目录索引 URL 一致 | 不应作为 canonical |
+
+**结论（架构层，非实施批准）：** 仅把 canonical/OG 写成无尾斜杠 **不能**保证浏览器地址栏与内链一定无尾斜杠；在 `trailingSlash: true` + 目录式 export 下，公开 URL 更常表现为带尾斜杠路径，除非托管层或 Next 配置对齐。
+
+### 20.5 可行方案比较（待实测后选型；**均未在本任务批准**）
+
+| 方案 | 思路 | 优点 | 代价 / 风险 | 依赖 |
+|---|---|---|---|---|
+| **F1** | `trailingSlash: false` + 保持 `output: 'export'` | 与 ballgames canonical 方向一致；导出 `*.html` | 需验证 GHPages 对 `hockey-bros.html` vs `/hockey-bros` 的解析；可能影响现有 blog 路径习惯 | Next export + **build 实测** + host 实测 |
+| **F2** | 保持 `trailingSlash: true` | 与当前模板一致；改动小 | 公开 URL 倾向 `/path/`；与产品 canonical 冲突；duplicate URL SEO 风险 | 强依赖 canonical tag + 可能仍需 redirect |
+| **F3** | 静态托管前/旁路 redirect（Cloudflare、`_redirects` 兼容层、apex 非 Pages） | 可强制 301 到无尾斜杠 | 超出当前 GHPages workflow；运维与成本 | **部署决策** + ADR 0005 |
+| **F4** | 仅 SEO 层无尾斜杠，文件系统保留尾斜杠 | Phase 3 helper 可先统一 metadata | 地址栏/sitemap/内链若不一致仍损害 SEO 与 UX | **不推荐作为最终态** |
+
+### 20.6 推荐方向（调查建议，**非已批准决策**）
+
+1. Phase 3 实施任务中，在**授权的环境**运行 CI 等价 `EXPORT=1` build，列出 `out/` 中 `/`、代表 blog 路径、以及未来 `/hockey-bros` 的预期文件（可用占位 route 或 export 探针，是否添加探针 route 本身需任务授权）。
+2. 在 GitHub Pages 预览或 staging 域名上，对 `/`、`/hockey-bros`、`/hockey-bros/` 记录 HTTP 状态与最终 URL（**当前未做**）。
+3. 在 build 证据基础上，**优先评估 F1**（`trailingSlash: false` + 验证 GHPages clean URL）；若 F1 在 Pages 上不可行，再立项 **F3** 而非长期依赖 F2+F4。
+
+### 20.7 尚未验证（必须标记）
+
+- [ ] 本仓库 HEAD 下 `EXPORT=1` build 的 `out/` 实际树（**未运行 build**）
+- [ ] `Link`/metadata 中 href 是否带尾斜杠（**未运行 build**）
+- [ ] GitHub Pages 对无尾斜杠 path 与 `.html` / `index.html` 的响应（**未 host 实测**）
+- [ ] 自定义域 `ballgames.io` 与 apex 配置（**外部**）
+
+### 20.8 须单独用户批准的实施项
+
+- 修改 `trailingSlash` 或 `skipTrailingSlashRedirect`
+- 任何 redirect 层或离开 GitHub Pages 的部署变更
+- 为调查而新增临时 export 路由（若会进入生产 sitemap，须遵守 Phase 3/4 边界）
 
 ---
 

@@ -217,3 +217,53 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 - DEC-003-E 仍仅等待调查授权；未批准任何 trailing-slash、export、部署或 redirect 变更。
 - `status` → `publicationStatus` 仍为 Proposed mapping，未修改权威产品 Spec。
 - Phase 3 仍为 **specified / implementation gated / not started**；Phase 4 仍为 **not started**；Shared Core 仍非获批阶段。
+
+---
+
+## 2026-11-02 — ADR 0003 决策落地与 DEC-003-E 只读调查（文档）
+
+**编辑基线：** `spec` / `04a61a5bab09bdb7977dc67c56b581f90cb59c3d`；编辑前工作区干净。
+
+**范围：** 用户已批准 DEC-003-A–E（A-1–E-1）。更新 ADR 0003、Architecture Review/Matrix、Phase 3 Spec、STATUS；执行 DEC-003-E 只读调查并写入 Architecture Review §20。**未**修改应用代码、依赖、`next.config.js`、workflow、ballgames 产品 Spec；**未**运行 `yarn build`；**未** commit/push。
+
+### Decisions recorded
+
+| ID | Option | Documentation |
+|---|---|---|
+| DEC-003-A | A-1 | ADR Accepted；ACM-008/011 Decision resolved |
+| DEC-003-B | B-1 | PortalHomeContent；`status` → `publicationStatus` 映射 |
+| DEC-003-C | C-1 | Blog 保留；R1 不读 allBlogs |
+| DEC-003-D | D-1 | Phase 3/4 边界 |
+| DEC-003-E | E-1 | §20 调查；**实施方案未批准** |
+
+### Files changed
+
+- `docs/agent/decisions/0003-site-instance-url-and-seo-source.md` — Status **Accepted**；Approved Decisions 表
+- `docs/architecture/architecture-consistency-review.md` — DEC-003 结论；新增 §20 调查
+- `docs/architecture/architecture-conflict-matrix.md` — ACM-002/003/008–012/025/026/031 Decision resolved；ACM-010 Open + 调查完成
+- `specs/phases/03-minimum-seo-foundation.md` — 入口条件与 §7.4 同步
+- `docs/agent/STATUS.md` — ADR 状态、HEAD 区分、blockers
+- `docs/agent/WORKLOG.md` — 本条目
+
+### DEC-003-E investigation summary
+
+- **Facts read:** Next 15.5.12；`trailingSlash: true`；`EXPORT=1` → `output: 'export'`；Pages workflow → `./out`；无本地 `out/`。
+- **Docs-based:** `trailingSlash: true` + export → `path/index.html`（Next.js 文档）；GHPages 无 Next redirect/headers。
+- **Not verified:** export 目录树、Link href 尾斜杠、Pages HTTP 行为、ballgames.io 自定义域。
+- **Preliminary recommendation (not approved):** build 实测后优先评估 `trailingSlash: false`（F1）；否则部署层 redirect（F3）。
+
+### Validation
+
+| Check | Result |
+|---|---|
+| `git diff --check` | 见任务 Final Report |
+| `git diff specs/ballgames/ballgames-specs-v1.md` | 无变更（预期） |
+| `git diff package.json next.config.js .github/` | 无变更（预期） |
+| `yarn prettier --check`（六文档） | 见 Final Report |
+| `yarn build` / lint / typecheck | **Not run**（文档 + 只读调查） |
+
+### Outstanding
+
+- Phase 3 应用实现 **not started**。
+- Trailing-slash **implementation** 须单独用户批准。
+- ACM-010 仍为 **Open**（配置与产品冲突未消除）。

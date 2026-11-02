@@ -1,9 +1,9 @@
 # ADR 0003：SiteInstance、URL 与 SEO 单一事实源
 
-- **Status：** Proposed
+- **Status：** Accepted
 - **Date：** 2026-11-02
 - **Decision owner：** Game Site Kit 维护者
-- **Approval：** Pending explicit user decision
+- **Approval：** User approved DEC-003-A–E on 2026-11-02（方案 A-1、B-1、C-1、D-1、E-1）
 
 ## Context
 
@@ -39,7 +39,7 @@ ballgames 产品契约要求：
 
 - 优点：只包含当前 SEO 必需字段；可验证且不要求 Monorepo。
 - 缺点：需要逐步迁移模板消费者；后续功能仍需增量扩展。
-- 结论：**推荐，等待用户批准。**
+- 结论：**已批准（DEC-003-A / Option A-1）。**
 
 ### Option C — 完整通用配置框架
 
@@ -127,7 +127,7 @@ ResolvedPageSEO.updatedAt = PortalHomeContent.updatedAt
 
 理由：站点身份配置相对稳定，而首页正文、审核、SEO 放行与更新时间有独立生命周期。Phase 3 只冻结接口和 eligibility；实际首页内容集成属于 Phase 4。
 
-ballgames §2 规则 1 的 `status === "published"` 当前建议映射为 §3.1 数据模型中的 `publicationStatus === "published"`，不是第二个数据字段。该映射仍为 Proposed，须在 DEC-003-B 中明确确认；本 ADR 不修改权威产品 Spec。
+ballgames §2 规则 1 的 `status === "published"` 是 §3.1 数据模型 `publicationStatus === "published"` 的**产品简写**（DEC-003-B / Option B-1 已批准）。实现与架构契约统一使用 `publicationStatus`；不得同时维护 `status` 与 `publicationStatus` 两个发布字段。本 ADR **不修改**权威产品 Spec `specs/ballgames/ballgames-specs-v1.md`；语义映射见 [`architecture-consistency-review.md`](../../architecture/architecture-consistency-review.md) §6.2。
 
 ### 3. URL responsibilities
 
@@ -195,13 +195,13 @@ Phase 4 创建并发布实际页面后，生产输出才验收 exact-two sitemap
 1. 先定义类型和 ballgames 实例值，再实现 helper 单元/脚本级断言。
 2. 迁移 layout metadata、Open Graph、sitemap 和 JSON-LD 到同源 URL。
 3. 为 sitemap 建立显式 page descriptor 输入，禁止隐式遍历 `allBlogs`。
-4. 只有 DEC-003-E 的调查授权获批后，才检查 `trailingSlash: true` 在当前 Next 15 static export 下的实际输出；调查不修改配置、部署或 redirect。证据与最小技术建议须另行报告，最终变更仍需实现任务授权。
+4. DEC-003-E（Option E-1）已授权并完成**只读调查**（2026-11-02；审查 HEAD `04a61a5bab09bdb7977dc67c56b581f90cb59c3d`）。调查未修改配置、部署或 redirect。结论与可行方案见 [`architecture-consistency-review.md`](../../architecture/architecture-consistency-review.md) §20。**调查结论不等于批准**修改 `trailingSlash`、static export 或部署层；最终实现选择须单独授权。
 5. `siteMetadata.js` 可临时成为由 SiteInstance 派生的兼容层；不得形成第二套 origin。
 6. Phase 4 再接入 PortalHome、GameDetail 实体和实际 JSON-LD 内容。
 
 ## Open Questions
 
-- DEC-003-E 当前只请求调查授权；`trailingSlash` 是移除、保留文件输出并加 redirect，还是采用其他方案，必须等调查证据后单独决定。
+- DEC-003-E 只读调查已完成；`trailingSlash` 是改为 `false`、保留目录输出并加部署层 redirect，还是迁移到支持 redirect 的托管，**尚未批准**任何实施方案（见 Architecture Review §20）。
 - legacy blog routes 在 ballgames 产物中是继续部署但 noindex，还是从实例构建/路由中移除？
 - Organization 的真实名称、logo、sameAs 等字段尚无核验证据；不纳入最小 SiteInstance。
 - Archived Catalog + Published Detail 的退役策略属于 ADR 0002 / Phase 4。
@@ -217,29 +217,14 @@ Phase 4 创建并发布实际页面后，生产输出才验收 exact-two sitemap
 - `docs/architecture/architecture-consistency-review.md`
 - `docs/architecture/architecture-conflict-matrix.md` ACM-002、003、008–013、025、031
 
-## User Decision Required
+## Approved Decisions（2026-11-02）
 
-1. **DEC-003-A — SiteInstance 边界**
-   - 状态：**Proposed / Pending user decision**。
-   - 推荐：批准本 ADR 的 Phase 3 最小 shape。
-   - 替代：继续扩展 `siteMetadata.js`，或先设计完整配置框架。
-2. **DEC-003-B — PortalHome 来源**
-   - 状态：**Proposed / Pending user decision**。
-   - 推荐：独立 PortalHomeContent 作为 publication 与首页 PageSEO 单一来源；确认产品 §2 的 `status` 是 `publicationStatus` 的简写。
-   - 替代：SiteInstance 内嵌，或定义受控特例。
-3. **DEC-003-C — Blog isolation**
-   - 状态：**Proposed / Pending user decision**。
-   - 推荐：保留 Blog/Authors 能力，但从 ballgames enabled page types、导航和 R1 sitemap 排除；legacy route 的 noindex/移除另行决定。
-   - 替代：Phase 3 直接删除 Blog，或允许 Blog 进入 R1 SEO surface（后者与产品 Spec 冲突）。
-4. **DEC-003-D — Phase integration split**
-   - 状态：**Proposed / Pending user decision**。
-   - 推荐：Phase 3 做 contract-level sitemap/JSON-LD 验证；Phase 4 页面存在后验收生产 exact-two 和 page JSON-LD。
-   - 替代：扩大 Phase 3 实现页面（违反当前任务边界），或输出指向不存在页面的生产 sitemap（不可接受）。
-5. **DEC-003-E — Trailing-slash investigation authorization**
-   - 状态：**Proposed / Pending user decision；Phase 3 entry gate**。
-   - 推荐：只授权 Phase 3 检查现有 Next 配置、static export 行为、生成路径和 canonical 影响，并报告最小可行方案。
-   - 授权不包括：立即修改 `trailingSlash`、改变 static export/部署、引入 redirect 层或进行无关 URL 重构。
-   - 后续决定：调查完成后，最终技术实现选择必须基于证据单独报告并取得相应授权。
-   - 替代：不授权调查；其影响是 Phase 3 无法证明无尾斜杠 canonical 与当前导出行为兼容。
+| ID | Approved option | Summary | Implementation status |
+|---|---|---|---|
+| DEC-003-A | **A-1** | Phase 3 最小 `SiteInstance` 契约（§ Recommended Decision §1） | **Not started** — Phase 3 代码未开始 |
+| DEC-003-B | **B-1** | 独立 `PortalHomeContent`；`status` → `publicationStatus` 语义映射 | **Not started** |
+| DEC-003-C | **C-1** | 保留 Blog/Authors；ballgames R1 从 enabled page types 与 sitemap 隔离 | **Not started** |
+| DEC-003-D | **D-1** | Phase 3 机制 + fixture；Phase 4 页面与 production exact-two / page JSON-LD | **Not started** |
+| DEC-003-E | **E-1** | 只读 trailing-slash / static export 调查已授权并完成 | **Investigation recorded** — 配置/部署变更 **未批准** |
 
-在上述具体项获得明确批准前，本 ADR 保持 **Proposed**，Phase 3 implementation 保持 gated。
+批准 DEC-003-A–D **不自动开始** Phase 3 应用实现；须按 Phase 3 Spec 单独立项执行。DEC-003-E 批准的是调查本身，**不是**调查报告中的任何技术推荐方案。
