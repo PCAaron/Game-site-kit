@@ -252,18 +252,60 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 - **Not verified:** export 目录树、Link href 尾斜杠、Pages HTTP 行为、ballgames.io 自定义域。
 - **Preliminary recommendation (not approved):** build 实测后优先评估 `trailingSlash: false`（F1）；否则部署层 redirect（F3）。
 
-### Validation
+### Validation（ADR 0003 落地任务 — Previous task validation）
 
-| Check | Result |
-|---|---|
-| `git diff --check` | 见任务 Final Report |
-| `git diff specs/ballgames/ballgames-specs-v1.md` | 无变更（预期） |
-| `git diff package.json next.config.js .github/` | 无变更（预期） |
-| `yarn prettier --check`（六文档） | 见 Final Report |
-| `yarn build` / lint / typecheck | **Not run**（文档 + 只读调查） |
+| Validation | Command | Actual Result | Notes |
+|---|---|---|---|
+| Git whitespace check | `git diff --check` | **Historical execution result not independently verifiable.** | 任务 Final Report 未保留终端输出；编辑基线 `04a61a5` 已不可在本机重放 diff |
+| Prettier check | `yarn prettier --check`（六目标文档，见 Final Pass 条目） | **Historical execution result not independently verifiable.** | 同批文档在 Final Pass 中有可核对 FAIL 清单（5 文件 FAIL、ADR PASS）；ADR 落地 commit 未单独留存 prettier 输出 |
+| ballgames Spec 保护 | `git diff specs/ballgames/ballgames-specs-v1.md` | PASS（无变更） | 2026-11-02 任务范围声明；**本次 remediation 前未重跑** |
+| 应用/配置隔离 | `git diff package.json next.config.js .github/` | PASS（无变更） | 同上 |
+| Build / lint / typecheck | `yarn build` / `yarn lint` / `yarn typecheck` | **NOT RUN** | 文档 + 只读调查范围 |
+| Internal links | 人工路径存在性 | **NOT RUN** | 未记录独立命令 |
 
 ### Outstanding
 
 - Phase 3 应用实现 **not started**。
 - Trailing-slash **implementation** 须单独用户批准。
 - ACM-010 仍为 **Open**（配置与产品冲突未消除）。
+
+---
+
+## 2026-11-02 — Phase 3 Spec 决策状态修正与 WORKLOG 验证记录补全（文档）
+
+**Remediation baseline：** `spec` / `916314c73fd55421caf162bf391021a4f43ec308`；编辑前工作区干净（与 Prior documentation review 指定 HEAD 一致）。
+
+**范围：** 修正 Phase 3 Spec §6.2 / §8.2 / §10 与已批准 ADR 0003（DEC-003-B/C/D）不一致的「待批准」措辞；补全 ADR 0003 落地条目的可追溯验证表；交叉复核 ADR/Matrix/Review/STATUS。**未**修改应用代码、配置、ballgames 产品 Spec；**未** commit/push。
+
+### Findings remediated
+
+1. §6.2：`待用户批准的推荐接口` → **已批准的 PortalHomeContent 契约（DEC-003-B / B-1）**（契约正文已与 ADR 一致，仅状态措辞过期）。
+2. §8.2：移除「拆分须由用户批准 / 未批准前 gated」；改为 DEC-003-D / D-1 已批准边界 + Phase 3 实现仍须独立授权。
+3. §10：`推荐并等待批准的规则` → **已批准的 Blog / Authors 隔离规则（DEC-003-C / C-1）**；补充不删代码、sitemap≠noindex、legacy 独立决策表述。
+4. WORKLOG ADR 0003 条目：将「见 Final Report」改为结构化验证表，历史命令输出标为 **Historical execution result not independently verifiable**。
+
+### Files changed
+
+- `specs/phases/03-minimum-seo-foundation.md`
+- `docs/agent/WORKLOG.md`
+
+### Validation — Current remediation validation
+
+| Validation | Command | Actual Result | Notes |
+|---|---|---|---|
+| Git status | `git status --short` | PASS（仅授权文档变更） | 编辑后复核 |
+| Git whitespace check | `git diff --check` | PASS | 编辑前基线干净 exit 0；编辑后无 whitespace error |
+| Diff scope | `git diff --stat` | PASS | 仅 Phase 3 Spec + WORKLOG |
+| Decision status phrases | `rg` 待批准类关键词于 Phase 3 Spec | PASS | §6.2/§8.2/§10 已修正；§7.4 trailing-slash **实施方案**单独批准表述保留 |
+| Prettier check | `yarn prettier --check`（六文档） | FAIL | 六文件均有格式 warn（含 ADR 0003）；未运行 `--write` |
+| Markdown lint | 无仓库脚本 | **NOT RUN** | |
+| Internal links | 人工 spot-check 相对路径 | PASS | ADR/Matrix/Review/Phase 3 交叉引用未改路径 |
+| Build / lint / typecheck | — | **NOT RUN** | documentation-only |
+
+### Cross-document consistency（复核结论）
+
+- ADR 0003：DEC-003-A–E 均为 Accepted / E-1 调查已记录；未重开决策。
+- Conflict Matrix：未改；Decision resolved 项未标 Implemented。
+- Architecture Review：§20 仍为只读调查；URL 实施方案待单独批准。
+- STATUS：Phase 3 **specified / implementation gated / not started**；Phase 4 **not started** — 未改。
+- ballgames-specs-v1.md：**未修改**。

@@ -115,7 +115,7 @@ interface SiteInstance {
 
 ### 6.2 PortalHomeContent
 
-待用户批准的推荐接口：
+已批准的 PortalHomeContent 契约（DEC-003-B / B-1）：
 
 ```typescript
 type PublicationStatus = 'draft' | 'published' | 'archived'
@@ -239,7 +239,9 @@ DEC-003-E（Option E-1）只读调查已于 2026-11-02 完成，结论见 [`docs
 - URL 顺序不作为语义要求，URL set 才是验收依据；
 - 每个 URL 必须与页面 canonical 完全相等。
 
-这一两阶段拆分须由用户批准；未批准前 Phase 3 implementation 保持 gated。
+Phase 3 / Phase 4 两阶段职责划分已由用户通过 DEC-003-D / D-1 批准。
+
+Phase 3 应用代码实现仍须获得独立任务授权。本决策批准的是实施边界，不代表应用代码实现已经开始。
 
 ## 9. Metadata and robots contract
 
@@ -266,13 +268,14 @@ DEC-003-E（Option E-1）只读调查已于 2026-11-02 完成，结论见 [`docs
 
 ## 10. Blog and legacy route isolation
 
-推荐并等待批准的规则：
+已批准的 Blog / Authors 隔离规则（DEC-003-C / C-1）：
 
-1. 保留 Blog/Authors schema 和 contentlayer pipeline。
-2. ballgames `enabledPageTypes` 不包含 blog/tag/projects/about。
+1. 保留 Blog/Authors schema 和 contentlayer pipeline；不删除 Blog/Authors 模板代码。
+2. ballgames `enabledPageTypes` 不包含 blog、tag、projects、about。
 3. R1 sitemap generator 不读取 `allBlogs`。
-4. portal SEO generator 不把 BlogPosting 当作 portal schema fallback。
-5. 若 legacy routes 仍出现在部署产物，必须单独决定 noindex、redirect 或构建隔离；“不在 sitemap”本身不足以阻止索引。
+4. Blog 不进入 R1 sitemap，不等于自动 noindex；页面级 robots 仍按各自契约与 legacy 决策处理。
+5. portal SEO generator 不把 BlogPosting 当作 portal schema fallback。
+6. legacy routes 的公开状态、noindex、redirect 或构建隔离仍须单独决策；“不在 sitemap”本身不足以阻止索引。
 
 Phase 3 验收至少证明 legacy route 不进入 R1 sitemap，也不继承 ballgames indexable default。
 
