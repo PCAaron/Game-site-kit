@@ -13,6 +13,7 @@ import PostBanner from '@/layouts/PostBanner'
 import { Metadata } from 'next'
 import siteMetadata from '@/data/siteMetadata'
 import { getSiteInstance } from '@/lib/site/get-site-instance'
+import { LEGACY_PAGE_ROBOTS } from '@/lib/seo/metadata'
 import { siteUrl } from '@/lib/urls/site-url'
 import { notFound } from 'next/navigation'
 
@@ -74,7 +75,7 @@ export async function generateMetadata(props: {
       description: post.summary,
       images: imageList,
     },
-    robots: { index: false, follow: true },
+    robots: LEGACY_PAGE_ROBOTS,
   }
 }
 

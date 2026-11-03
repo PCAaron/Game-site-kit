@@ -38,6 +38,16 @@ test('siteUrl rejects invalid canonical paths', () => {
   assert.throws(() => siteUrl('/blog#x'), SiteConfigError)
   assert.throws(() => siteUrl('https://evil.example/x'), SiteConfigError)
   assert.throws(() => siteUrl('/../secret'), SiteConfigError)
+  assert.throws(() => siteUrl('/blog/'), SiteConfigError)
+  assert.throws(() => siteUrl('/blog//post'), SiteConfigError)
+  assert.throws(() => siteUrl('//blog'), SiteConfigError)
+  assert.throws(() => siteUrl('/blog/./post'), SiteConfigError)
+  assert.throws(() => siteUrl('/%2e%2e/secret'), SiteConfigError)
+})
+
+test('siteUrl accepts valid canonical paths', () => {
+  assert.equal(siteUrl('/blog'), 'https://ballgames.io/blog')
+  assert.equal(siteUrl('/sitemap.xml'), 'https://ballgames.io/sitemap.xml')
 })
 
 test('gameUrl rejects invalid slugs', () => {

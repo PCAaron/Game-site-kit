@@ -3,6 +3,9 @@ import type { SiteInstance } from '../site/types'
 import { siteUrl } from '../urls/site-url'
 import type { ResolvedPageSEO } from './page-descriptors'
 
+/** ballgames R1 legacy template routes (ADR DEC-003-F): noindex, follow — independent of sitemap eligibility. */
+export const LEGACY_PAGE_ROBOTS = { index: false as const, follow: true as const }
+
 export function buildSiteRootMetadata(site: SiteInstance): Metadata {
   const metadataBase = new URL(site.canonicalOrigin)
   const socialBanner = site.metadata.socialBanner
@@ -29,10 +32,8 @@ export function buildSiteRootMetadata(site: SiteInstance): Metadata {
         'application/rss+xml': `${siteUrl(undefined, site)}/feed.xml`,
       },
     },
-    robots: {
-      index: false,
-      follow: true,
-    },
+    // DEC-003-F: layout default matches defaultIndexable until Phase 4 portal home overrides `/`.
+    robots: LEGACY_PAGE_ROBOTS,
   }
 }
 
@@ -62,8 +63,6 @@ export function resolvedSeoToMetadata(resolved: ResolvedPageSEO, site: SiteInsta
   }
 }
 
-const LEGACY_NOINDEX = { index: false as const, follow: true as const }
-
 export function buildLegacyTemplateMetadata(input: {
   title: string
   description?: string
@@ -92,6 +91,6 @@ export function buildLegacyTemplateMetadata(input: {
       type: 'website',
       ...(images.length ? { images } : {}),
     },
-    robots: LEGACY_NOINDEX,
+    robots: LEGACY_PAGE_ROBOTS,
   }
 }

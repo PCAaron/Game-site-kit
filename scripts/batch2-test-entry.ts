@@ -8,13 +8,20 @@ import {
 } from '../lib/site/index'
 import {
   buildPortalHomeJsonLdBlocks,
+  buildLegacyTemplateMetadata,
   buildProductionSitemap,
   buildR1ExactTwoContractFixtures,
   buildSitemapEntriesFromDescriptors,
   buildSiteRootMetadata,
   isSitemapCandidate,
+  LEGACY_PAGE_ROBOTS,
   resolvePortalHomePageSeo,
   serializeJsonLd,
+  parseSitemapUrlsetXml,
+  serializeSitemapUrlsetXml,
+  validateProductionSitemapXml,
+  validateSitemapXmlUrls,
+  parseExportHtmlHead,
 } from '../lib/seo/index'
 import { resolvedSeoToMetadata } from '../lib/seo/metadata'
 import { siteUrl } from '../lib/urls/site-url'
@@ -112,9 +119,59 @@ test('sitemap lastmod uses PortalHomeContent.updatedAt only when present', () =>
 test('site root metadata uses ballgames origin not starter', () => {
   const meta = buildSiteRootMetadata(ballgamesSiteInstance)
   assert.equal(String(meta.metadataBase), 'https://ballgames.io/')
-  const robots = meta.robots
-  assert.equal(
-    typeof robots === 'object' && robots !== null && 'index' in robots && robots.index,
-    false
+  assert.deepEqual(meta.robots, LEGACY_PAGE_ROBOTS)
+})
+
+test('legacy template metadata uses LEGACY_PAGE_ROBOTS (DEC-003-F)', () => {
+  const meta = buildLegacyTemplateMetadata({
+    title: 'Blog',
+    canonicalPath: '/blog',
+    site: ballgamesSiteInstance,
+  })
+  assert.deepEqual(meta.robots, LEGACY_PAGE_ROBOTS)
+  assert.equal(meta.alternates?.canonical, siteUrl('/blog'))
+})
+
+test('portal indexable metadata is independent of legacy robots', () => {
+  const { portal } = buildR1ExactTwoContractFixtures()
+  const resolved = resolvePortalHomePageSeo(portal, ballgamesSiteInstance)
+  const meta = resolvedSeoToMetadata(resolved, ballgamesSiteInstance)
+  assert.deepEqual(meta.robots, { index: true, follow: true })
+  assert.notDeepEqual(meta.robots, LEGACY_PAGE_ROBOTS)
+})
+
+test('parseSitemapUrlsetXml validates empty production-shaped document', () => {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+</urlset>`
+  const parsed = parseSitemapUrlsetXml(xml)
+  assert.deepEqual(parsed.urls, [])
+  validateProductionSitemapXml(xml, ballgamesSiteInstance)
+})
+
+test('validateSitemapXmlUrls enforces exact-two contract fixture', () => {
+  const { portal, game } = buildR1ExactTwoContractFixtures()
+  const entries = buildSitemapEntriesFromDescriptors([portal, game], ballgamesSiteInstance)
+  const xml = serializeSitemapUrlsetXml(entries)
+  validateSitemapXmlUrls(
+    xml,
+    entries.map((e) => e.url),
+    ballgamesSiteInstance
   )
+})
+
+test('parseExportHtmlHead reads metadata from HTML head', () => {
+  const html = `<!DOCTYPE html><html><head>
+<title>BallGames.io</title>
+<meta name="description" content="Play free ball games"/>
+<meta name="robots" content="noindex, follow"/>
+<link rel="canonical" href="https://ballgames.io"/>
+<meta property="og:title" content="BallGames.io"/>
+<meta property="og:url" content="https://ballgames.io"/>
+</head><body></body></html>`
+  const head = parseExportHtmlHead(html)
+  assert.equal(head.title, 'BallGames.io')
+  assert.equal(head.robots, 'noindex, follow')
+  assert.equal(head.canonical, 'https://ballgames.io')
+  assert.equal(head.openGraph.title, 'BallGames.io')
 })

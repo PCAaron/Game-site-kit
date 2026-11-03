@@ -31,3 +31,10 @@
 - **生产 R1 sitemap exact-two / 页面 JSON-LD 集成：** 仍依赖 Phase 4（当前生产 sitemap **0 URL** 为预期）。
 - **GitHub Pages live HTTP（F1 clean URL）：** 未 host 实测。
 - **文档 Prettier：** 未在本批次 `--write` 全库（WORKLOG 历史项仍 open）。
+
+## Follow-up（工作区未提交 @ 2026-11-03）
+
+- **DEC-003-F：** Legacy `noindex, follow`；ADR/STATUS/Spec §10 对齐。
+- **SEO 验证增强：** `validate-sitemap-xml.ts`、`validate-export-html-meta.ts`；`validate:seo` 结构化 sitemap + export HTML head。
+- **文档同步：** Spec §13 / §13.1、STATUS、ADR 实现状态表、WORKLOG — 无新增业务代码。
+- **验证：** `yarn test:batch2` 14 tests；`validate:seo` + `--export-dir=out` exit 0（本地 `out/`）。

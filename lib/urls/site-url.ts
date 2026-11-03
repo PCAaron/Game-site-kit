@@ -11,6 +11,56 @@ function normalizeOrigin(origin: string): string {
   return origin.replace(/\/+$/, '')
 }
 
+function invalidPath(message: string): never {
+  throw new SiteConfigError('SITE_URL_PATH_INVALID', message)
+}
+
+/**
+ * Validates canonical path input before any silent normalization (Phase 3 §7.1).
+ * Returns the path unchanged when valid (single leading slash, no trailing slash on non-root).
+ */
+function assertValidCanonicalPath(path: string): string {
+  const trimmed = path.trim()
+
+  if (!trimmed.startsWith('/')) {
+    invalidPath('canonical path must start with /')
+  }
+  if (trimmed.startsWith('//')) {
+    invalidPath('canonical path must not be protocol-relative or contain duplicate slashes')
+  }
+  if (trimmed.includes('//')) {
+    invalidPath('canonical path must not contain duplicate slashes')
+  }
+  if (trimmed.length > 1 && trimmed.endsWith('/')) {
+    invalidPath('canonical path must not have a trailing slash')
+  }
+
+  const segments = trimmed.slice(1).split('/')
+  for (const segment of segments) {
+    if (segment === '') {
+      invalidPath('canonical path must not contain empty segments')
+    }
+    if (segment === '.' || segment === '..') {
+      invalidPath('canonical path must not contain . or .. segments')
+    }
+
+    let decoded: string
+    try {
+      decoded = decodeURIComponent(segment)
+    } catch {
+      invalidPath('canonical path segment is not validly percent-encoded')
+    }
+    if (decoded === '.' || decoded === '..') {
+      invalidPath('canonical path must not contain . or .. segments')
+    }
+    if (decoded.includes('/')) {
+      invalidPath('canonical path must not contain encoded path separators')
+    }
+  }
+
+  return trimmed
+}
+
 /**
  * Canonical absolute URL for the active site instance.
  * Does not read next.config trailingSlash or BASE_PATH — canonical uses canonicalOrigin only.
@@ -27,31 +77,13 @@ export function siteUrl(path?: string, instance?: SiteInstance): string {
     throw new SiteConfigError('SITE_URL_PATH_INVALID', 'path must be a string')
   }
   if (path.includes('?') || path.includes('#')) {
-    throw new SiteConfigError(
-      'SITE_URL_PATH_INVALID',
-      'canonical path must not include query or hash'
-    )
+    invalidPath('canonical path must not include query or hash')
   }
   if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(path)) {
-    throw new SiteConfigError('SITE_URL_PATH_INVALID', 'canonical path must not be an absolute URL')
+    invalidPath('canonical path must not be an absolute URL')
   }
 
-  let normalized = path.trim()
-  if (!normalized.startsWith('/')) {
-    normalized = `/${normalized}`
-  }
-
-  const segments = normalized.split('/').filter((segment) => segment.length > 0)
-  for (const segment of segments) {
-    if (segment === '..') {
-      throw new SiteConfigError(
-        'SITE_URL_PATH_INVALID',
-        'canonical path must not contain .. segments'
-      )
-    }
-  }
-
-  const pathname = `/${segments.join('/')}`
+  const pathname = assertValidCanonicalPath(path)
   return `${origin}${pathname}`
 }
 

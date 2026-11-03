@@ -709,3 +709,51 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 - **Documentation final validation execution:** **COMPLETE** — 初始 @ `47e4127` 与最终（本条目定稿后）Prettier/Git 检查均已执行；最终 Prettier **6 FAIL**（exit 1）；最终 `git diff --check` **PASS**；未提交变更仅 STATUS + WORKLOG。
 - **Prettier compliance:** **FAIL**（不以格式化修复为本任务范围）。
 - **Validation completion ≠ Prettier PASS。**
+
+---
+
+## 2026-11-03 — DEC-003-F：Legacy 页面 indexability（方案 A）
+
+**批准：** 用户确认方案 A — legacy template routes 统一 `noindex, follow`；不进 R1 sitemap；与 sitemap eligibility 独立。
+
+**修改：** ADR 0003 §5 + DEC-003-F 表；`docs/agent/STATUS.md`；`specs/phases/03-minimum-seo-foundation.md` §10；`lib/seo/metadata.ts`（`LEGACY_PAGE_ROBOTS`）；`app/blog/[...slug]/page.tsx`；`scripts/batch2-test-entry.ts`。
+
+**验证（本条目）：** `yarn typecheck` exit 0 PASS；`yarn test:batch2` exit 0 PASS（11 tests）。
+
+---
+
+## 2026-11-03 — Phase 3：SEO 验证增强（sitemap XML + export HTML）
+
+**范围：** `lib/seo/validate-sitemap-xml.ts`、`validate-export-html-meta.ts`；`scripts/validate-seo-entry.ts`、`batch2-test-entry.ts`。**无** sitemap/metadata 业务规则变更。
+
+**验证：** `yarn typecheck` 0；`yarn test:batch2` 0（14 tests）；`yarn validate:seo` 0；`node scripts/validate-seo.mjs --export-dir=out` 0。
+
+**HEAD（已推送 Batch 0–3）：** `4514c3f7361beb59e69f95d7fdae42e377ff6a1a` — 本增强 **未提交**。
+
+---
+
+## 2026-11-03 — Phase 3：Spec / STATUS / ADR 文档同步
+
+**范围：** 仅文档 — `specs/phases/03-minimum-seo-foundation.md`（§3、§13、§13.1）、`docs/agent/STATUS.md`、ADR 0003 Approved Decisions 实现状态、`phase3-batch3-validation.md` follow-up 注记。
+
+**内容：** §13 勾选与 Phase 4 **DEFERRED** 标注；15 项能力状态表；ADR DEC-003-A–D 由 Not started 更正为 Applied/Partial；STATUS 与工作区 follow-up 验证说明。
+
+**验证：** 本任务 **未重跑** build/export；证据引用 Batch 3 报告 + 上述 WORKLOG 条目及工作区已执行的 `validate:seo` 结果。
+
+**Commit：** 无（待用户 `docs(seo): synchronize Phase 3 completion status`）。
+
+---
+
+## 2026-11-03 — Phase 3 终验（Node 22.14.0）
+
+**报告：** [`phase-3-final-validation.md`](reports/phase-3-final-validation.md)
+
+**Node：** v22.14.0（`nvm use 22.14.0` + Corepack yarn 3.6.1）
+
+**HEAD：** `4514c3f`（工作区未提交 follow-up）
+
+**矩阵：** `yarn typecheck`、`test:batch1`（10）、`test:batch2`（14）、`validate:seo`、export×2 + `validate:seo --export-dir=out`×2、normal `yarn build`、`next lint --dir lib` — 均 **exit 0**。
+
+**冻结判断：** **READY TO FREEZE WITH DOCUMENTED LIMITATIONS**（HTTP BLOCKED；CI not independently verified；Node 22 ≠ Actions Node 20）。
+
+**未执行：** commit / push / Phase 4。

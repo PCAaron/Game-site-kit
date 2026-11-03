@@ -1,12 +1,12 @@
 # Phase 3 — Minimum SEO Foundation
 
 - **阶段编号：** 3
-- **状态：** **specified / implementation gated / not started**
+- **状态：** **implemented — PASS WITH LIMITATIONS**（与 [`docs/agent/STATUS.md`](../../docs/agent/STATUS.md) 一致）
 - **Archetype：** `game-portal`
 - **首实例：** ballgames.io
 - **文档日期：** 2026-11-02
-- **实现状态：** Not started
-- **关键决策：** ADR 0003 **Accepted**（DEC-003-A–E，2026-11-02）；**Phase 3 代码未开始**
+- **实现状态：** 机制已落地（Batch 0–3 @ `4514c3f`；工作区另有 DEC-003-F / SEO 验证增强等待提交）
+- **关键决策：** ADR 0003 **Accepted**（DEC-003-A–F）；F1 `trailingSlash: false` 已落地；DEC-003-F Legacy indexability 已批准并应用
 
 ## 1. Objective
 
@@ -38,8 +38,8 @@
 | Entry condition | Status | Required outcome / evidence |
 |---|---|---|
 | Site URL source of truth | **Decision resolved** | DEC-003-A / A-1 已批准（ADR 0003 Accepted）；实现 SiteInstance + helpers |
-| Canonical URL policy | **Satisfied with conditions** | 产品无尾斜杠已冻结；`trailingSlash` 实现见 DEC-003-E §20 — **实施方案未批准** |
-| Trailing-slash investigation | **Investigation complete** | DEC-003-E / E-1 只读调查已记录（Architecture Review §20）；不授权改配置 |
+| Canonical URL policy | **Satisfied** | 产品无尾斜杠；**F1** `trailingSlash: false` 用户 2026-11-03 批准并落地（`next.config.js`） |
+| Trailing-slash investigation | **Investigation complete** | DEC-003-E / E-1 只读调查已记录（Architecture Review §20）；**F1 applied**；Pages **live HTTP** 仍 Pending |
 | PortalHome publication eligibility | **Decision resolved** | DEC-003-B / B-1 — 独立 PortalHomeContent |
 | Publication state terminology | **Decision resolved** | DEC-003-B — `status` 为 `publicationStatus` 产品简写；不修改 ballgames Spec |
 | Blog isolation | **Decision resolved** | DEC-003-C / C-1 — 保留 Blog/Authors；R1 sitemap 不读 `allBlogs` |
@@ -48,7 +48,7 @@
 | Production exact-two integration | **Blocked by missing evidence** | `/hockey-bros` 尚不存在 |
 | Page JSON-LD integration | **Blocked by missing evidence** | 可见 FAQ/内容属 Phase 4 |
 
-**Implementation gate：** 架构决策 DEC-003-A–E 已关闭（2026-11-02）。**Phase 3 应用代码仍为 not started** — 须单独立项执行本 Spec。DEC-003-E **不等于**批准修改 `trailingSlash` 或部署 redirect；该选择须依据 §20 单独授权。production integration 两项不阻止机制开发，但阻止宣称 R1 SEO 已完成。
+**Implementation gate：** 架构决策 DEC-003-A–F 已关闭（含 2026-11-03 DEC-003-F）。Phase 3 **机制已实现**（见 §13.1）；**production exact-two sitemap 与页面 JSON-LD 集成**仍属 Phase 4，不得宣称 R1 SEO 已完成。
 
 ## 4. In scope
 
@@ -268,16 +268,17 @@ Phase 3 应用代码实现仍须获得独立任务授权。本决策批准的是
 
 ## 10. Blog and legacy route isolation
 
-已批准的 Blog / Authors 隔离规则（DEC-003-C / C-1）：
+已批准的 Blog / Authors 隔离规则（DEC-003-C / C-1）与 Legacy indexability（**DEC-003-F / F-1**，用户 2026-11-03 批准方案 A）：
 
 1. 保留 Blog/Authors schema 和 contentlayer pipeline；不删除 Blog/Authors 模板代码。
 2. ballgames `enabledPageTypes` 不包含 blog、tag、projects、about。
 3. R1 sitemap generator 不读取 `allBlogs`。
-4. Blog 不进入 R1 sitemap，不等于自动 noindex；页面级 robots 仍按各自契约与 legacy 决策处理。
-5. portal SEO generator 不把 BlogPosting 当作 portal schema fallback。
-6. legacy routes 的公开状态、noindex、redirect 或构建隔离仍须单独决策；“不在 sitemap”本身不足以阻止索引。
+4. **Sitemap 与 indexability 独立：** 不进 R1 sitemap 不等于自动 noindex；两者分别实现与验收。
+5. **Legacy indexability（DEC-003-F）：** 仍部署的 legacy template routes 统一 page-level **`noindex, follow`**（`LEGACY_PAGE_ROBOTS` / `buildLegacyTemplateMetadata`）；Blog 文章页同等策略。
+6. portal SEO generator 不把 BlogPosting 当作 portal schema fallback。
+7. 从构建/路由移除 legacy 属未来可选策略，非 R1 默认。
 
-Phase 3 验收至少证明 legacy route 不进入 R1 sitemap，也不继承 ballgames indexable default。
+Phase 3 验收至少证明 legacy route 不进入 R1 sitemap、不继承 ballgames portal `indexable` 默认，且 legacy metadata 为 `noindex, follow`。
 
 ## 11. JSON-LD contract
 
@@ -372,30 +373,55 @@ Rich Results Test 只能辅助语法/类型检查，不证明 Google 必然展�
 
 ## 13. Acceptance criteria
 
+状态图例：**PASS** · **PARTIAL** · **BLOCKED** · **NOT STARTED** · **DEFERRED TO PHASE 4** — 明细见 §13.1。
+
 - [x] 用户已逐项批准 ADR 0003 DEC-003-A–E（2026-11-02）；ADR 状态与文档一致。
-- [x] DEC-003-E 只读调查已记录（§20）；**未**修改配置、部署或 URL 实现。
-- [x] trailing-slash/export **实施方案 F1** 已获用户批准并落地（2026-11-03）；Pages HTTP 复核仍 open。
-- [ ] Site URL 不再继承 starter 域名或 starter brand。
-- [ ] `siteUrl()` 与 `gameUrl()` 是 canonical URL 唯一入口。
-- [ ] `siteUrl()` 与 `gameUrl('hockey-bros')` 精确输出两个权威 R1 URL。
-- [ ] 非根 canonical 无尾斜杠；无 duplicate/slash variant。
-- [ ] canonical 与 Open Graph URL 完全一致。
-- [ ] page type、publicationStatus、indexable、canonical validity、content checks 和 route existence 分别验证。
-- [ ] PortalHome title/description 缺失时 validation failure；不得由 SiteInstance 默认值静默补齐。
-- [ ] PortalHome 可选 `ogImage` 缺失时仅回退 SiteInstance `socialBanner`。
-- [ ] `ResolvedPageSEO.updatedAt` 只映射自根级 `PortalHomeContent.updatedAt`；缺失时不伪造时间。
-- [ ] draft、archived、non-indexable、disabled 和 missing route 不进入 production sitemap。
-- [ ] Phase 3 fixture 对 R1 exact-two set 通过正反校验。
-- [ ] Phase 4 页面上线后，production sitemap 恰好包含两个权威 URL。
-- [ ] Blog、tags、projects、about 与 Blog posts 不进入 R1 sitemap。
-- [ ] robots 与 page-level indexability 一致，不用 Disallow 替代 noindex。
-- [ ] WebSite 无 SearchAction。
-- [ ] ItemList 仅包含 hockey-bros。
-- [ ] JSON-LD 可解析、类型适用、URL 与 canonical 一致。
-- [ ] FAQPage 与可见 FAQ 逐字一致；该项在 Phase 4 集成验收。
-- [ ] 无 aggregateRating、review、未核实 publisher/date/offers。
-- [ ] typecheck、non-mutating lint、normal build、CI-equivalent export 与 SEO validation 均实际 PASS。
-- [ ] 没有实现 Catalog、Detail page、Launcher、iframe、广告、Shared Core 或后续 archetype。
+- [x] DEC-003-E 只读调查已记录（§20）；**未**修改配置、部署或 URL 实现（调查本身；F1 为单独批准项）。
+- [x] trailing-slash/export **实施方案 F1** 已获用户批准并落地（2026-11-03）；Pages **live HTTP** 复核仍 **BLOCKED**（非本地 build 可证）。
+- [x] Site URL 不再继承 starter 域名或 starter brand。（`lib/site/*`、`buildSiteRootMetadata`、`validate:seo`）
+- [x] `siteUrl()` 与 `gameUrl()` 是 canonical URL 唯一入口。（`lib/urls/site-url.ts`；`yarn test:batch1`）
+- [x] `siteUrl()` 与 `gameUrl('hockey-bros')` 精确输出两个权威 R1 URL。（契约输出；非 production sitemap 已含两 URL）
+- [x] 非根 canonical 无尾斜杠；无 duplicate/slash variant。（path 严格校验；`test:batch1` / `validate:seo`）
+- [x] canonical 与 Open Graph URL 完全一致。（`resolvePortalHomePageSeo`；`validate:seo`）
+- [x] page type、publicationStatus、indexable、canonical validity、content checks 和 route existence 分别验证。（`isSitemapCandidate`；`test:batch2`）
+- [x] PortalHome title/description 缺失时 validation failure；不得由 SiteInstance 默认值静默补齐。
+- [x] PortalHome 可选 `ogImage` 缺失时仅回退 SiteInstance `socialBanner`。
+- [x] `ResolvedPageSEO.updatedAt` 只映射自根级 `PortalHomeContent.updatedAt`；缺失时不伪造时间。
+- [x] draft、archived、non-indexable、disabled 和 missing route 不进入 production sitemap。（当前 production **0 URL** = draft portal + 无 `/hockey-bros` route）
+- [x] Phase 3 fixture 对 R1 exact-two set 通过正反校验。（`buildR1ExactTwoContractFixtures`；`validate:seo`）
+- [ ] Phase 4 页面上线后，production sitemap 恰好包含两个权威 URL。**DEFERRED TO PHASE 4** — Phase 3 仅验证 predicate + fixture；不得提前写入未实现 route。
+- [x] Blog、tags、projects、about 与 Blog posts 不进入 R1 sitemap。（eligibility + `validateProductionSitemapXml`；非字符串 `includes('/blog')`  alone）
+- [x] Legacy template routes 输出 `noindex, follow`（DEC-003-F）；sitemap 排除与 robots 分别验证。（`LEGACY_PAGE_ROBOTS`；export HTML 解析）
+- [x] robots 与 page-level indexability 一致，不用 Disallow 替代 noindex。（`app/robots.ts` + metadata robots）
+- [x] WebSite 无 SearchAction。（JSON-LD fixture tests）
+- [x] ItemList 仅包含 hockey-bros。（contract fixture）
+- [x] JSON-LD 可解析、类型适用、URL 与 canonical 一致。（fixture 层；非 production 页面输出）
+- [ ] FAQPage 与可见 FAQ 逐字一致。**DEFERRED TO PHASE 4** — Phase 3 仅 generator shape / 禁止字段；集成验收在 Phase 4。
+- [x] 无 aggregateRating、review、未核实 publisher/date/offers。（`validate:seo` JSON-LD checks）
+- [x] typecheck、non-mutating lint、normal build、CI-equivalent export 与 SEO validation 均实际 PASS。（见 [`phase3-batch3-validation.md`](../../docs/agent/reports/phase3-batch3-validation.md)；export 后 `validate:seo --export-dir=out`）
+- [x] 没有实现 Catalog、Detail page、Launcher、iframe、广告、Shared Core 或后续 archetype。
+
+### 13.1 Capability status（文档同步 @ 2026-11-03）
+
+证据基线：已提交 `4514c3f`（Batch 0–3）+ 工作区未提交项（DEC-003-F、URL strict、`validate-sitemap-xml` / export HTML 校验）。下列 **PASS** 均指 Phase 3 机制/契约层，非 R1 生产集成完成。
+
+| # | 能力 | 状态 | 证据 |
+|---|---|---|---|
+| 1 | SiteInstance | **PASS** | `lib/site/instances/ballgames.ts`、`validate-site-instance.ts`；`test:batch1` |
+| 2 | PortalHomeContent | **PASS** | `PortalHomeContent` 类型 + fixture；`resolvePortalHomePageSeo` 校验 |
+| 3 | `siteUrl()` | **PASS** | `lib/urls/site-url.ts`；`test:batch1` / `validate:seo` |
+| 4 | `gameUrl()` | **PASS** | 同上 |
+| 5 | Metadata | **PASS** | `lib/seo/metadata.ts`、`app/seo.tsx`、layout |
+| 6 | Canonical | **PASS** | helpers + legacy metadata；export HTML 解析（`validate-export-html-meta`） |
+| 7 | Open Graph | **PASS** | `resolvedSeoToMetadata` / legacy builder；export 抽样 |
+| 8 | Sitemap eligibility | **PASS** | `isSitemapCandidate`；独立维度测试 |
+| 9 | Sitemap | **PARTIAL** | 机制 + 结构化 XML 校验；**production 当前 0 URL**（draft）为预期 |
+| 10 | Robots | **PASS** | `app/robots.ts` + page robots；非 Disallow 替代 noindex |
+| 11 | JSON-LD | **PARTIAL** | PortalHome **fixture** 生成与禁止字段；**页面级集成 DEFERRED TO PHASE 4** |
+| 12 | SEO 验证脚本 | **PASS** | `yarn validate:seo`；`test:batch1` / `test:batch2` |
+| 13 | Static Export 验证 | **PARTIAL** | `validate:seo --export-dir=out`（legacy 页 + 空 sitemap）；**live HTTP BLOCKED** |
+| 14 | Legacy 索引策略 | **PASS** | DEC-003-F 已批准；`LEGACY_PAGE_ROBOTS` + export robots 断言 |
+| 15 | 部署后 HTTP 验证 | **BLOCKED** | GitHub Pages clean URL **未 host 实测**；不得冒充本地 export PASS |
 
 ## 14. Validation strategy
 
@@ -443,7 +469,7 @@ node ./scripts/validate-seo.mjs
 | 为满足 exact-two 提前发布 404 URL | production predicate 必须检查 route exists；用 fixture 验证未来 contract |
 | SiteInstance 过度抽象 | 只保留 Phase 3 实际消费者字段 |
 | `trailingSlash` 改动破坏 export | 先做当前版本验证，再选择最小实现 |
-| Blog 被“排除 sitemap”误当作 noindex | 分别验证 sitemap 与 page robots；legacy route 策略单独决定 |
+| Blog 被“排除 sitemap”误当作 noindex | DEC-003-F 书面分离两维；分别验证 sitemap 与 `LEGACY_PAGE_ROBOTS` |
 | JSON-LD 虚构事实 | 缺证据属性省略；Organization 缺证据时阻塞输出 |
 | fixture 与页面实现漂移 | Phase 4 加 route-level integration checks |
 | lint/build 修改工作区 | 使用非 mutating lint；build 前后检查 Git |

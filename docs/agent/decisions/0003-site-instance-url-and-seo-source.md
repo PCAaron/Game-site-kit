@@ -3,7 +3,7 @@
 - **Status：** Accepted
 - **Date：** 2026-11-02
 - **Decision owner：** Game Site Kit 维护者
-- **Approval：** User approved DEC-003-A–E on 2026-11-02（方案 A-1、B-1、C-1、D-1、E-1）
+- **Approval：** User approved DEC-003-A–E on 2026-11-02（方案 A-1、B-1、C-1、D-1、E-1）；User approved **DEC-003-F**（Legacy indexability 方案 A）on 2026-11-03。
 
 ## Context
 
@@ -166,8 +166,9 @@ ballgames §2 规则 1 的 `status === "published"` 是 §3.1 数据模型 `publ
 - 保留 Blog/Authors schema、contentlayer pipeline 和模板能力；本 ADR 不批准删除。
 - ballgames 的 `enabledPageTypes` 不包含 blog、tag、projects 或 about。
 - ballgames R1 sitemap 不读取 `allBlogs`，只读取通过统一 predicate 的 portal descriptors。
-- “不进 sitemap”不等于 noindex。若 legacy routes 仍被部署公开，其删除、redirect 或 page-level noindex 必须在独立范围明确。
-- Phase 3 负责 sitemap 隔离与 robots 策略；不实施 Blog redesign 或迁移。
+- **Sitemap eligibility 与 indexability 独立：** “不进 sitemap”不等于 noindex；两者分别决策与实现。
+- **DEC-003-F（2026-11-03，用户批准方案 A）：** ballgames R1 仍部署的 legacy template routes（含 `/`、`/blog`、文章、tags、projects、about 等 starter 模板页）统一 **page-level `noindex, follow`**；**不**进入 R1 sitemap（DEC-003-C）。实现：`LEGACY_PAGE_ROBOTS` / `buildLegacyTemplateMetadata`；Phase 4 为 indexable PortalHome 在 `/` 提供显式 portal metadata，不得依赖 legacy 默认可索引。
+- Phase 3 负责 sitemap 隔离与上述 robots 策略；不实施 Blog redesign 或迁移。
 
 ### 6. Phase 3 / Phase 4 integration boundary
 
@@ -188,7 +189,7 @@ Phase 4 创建并发布实际页面后，生产输出才验收 exact-two sitemap
 
 - Phase 3 需要迁移或适配现有 `siteMetadata` URL 消费点。
 - route existence 使生产 exact-two 验收依赖 Phase 4 页面。
-- legacy route 是否部署公开仍需独立决策。
+- legacy route 是否部署公开：**DEC-003-F 已批准** R1 继续部署但统一 noindex；从构建/路由移除仍属未来可选策略，非 R1 默认。
 
 ## Migration / Implementation Implications
 
@@ -202,7 +203,7 @@ Phase 4 创建并发布实际页面后，生产输出才验收 exact-two sitemap
 ## Open Questions
 
 - **F1（`trailingSlash: false`）** 已于 2026-11-03 获用户批准并落地于 `next.config.js`（Batch 0 报告证据）。F2/F3/F4 未选；GitHub Pages 对 clean URL 的 **live HTTP** 仍待实测。
-- legacy blog routes 在 ballgames 产物中是继续部署但 noindex，还是从实例构建/路由中移除？
+- ~~legacy blog routes 在 ballgames 产物中是继续部署但 noindex，还是从实例构建/路由中移除？~~ **已决（DEC-003-F）：** 继续部署，统一 `noindex, follow`；不进 R1 sitemap。
 - Organization 的真实名称、logo、sameAs 等字段尚无核验证据；不纳入最小 SiteInstance。
 - Archived Catalog + Published Detail 的退役策略属于 ADR 0002 / Phase 4。
 
@@ -221,10 +222,11 @@ Phase 4 创建并发布实际页面后，生产输出才验收 exact-two sitemap
 
 | ID | Approved option | Summary | Implementation status |
 |---|---|---|---|
-| DEC-003-A | **A-1** | Phase 3 最小 `SiteInstance` 契约（§ Recommended Decision §1） | **Not started** — Phase 3 代码未开始 |
-| DEC-003-B | **B-1** | 独立 `PortalHomeContent`；`status` → `publicationStatus` 语义映射 | **Not started** |
-| DEC-003-C | **C-1** | 保留 Blog/Authors；ballgames R1 从 enabled page types 与 sitemap 隔离 | **Not started** |
-| DEC-003-D | **D-1** | Phase 3 机制 + fixture；Phase 4 页面与 production exact-two / page JSON-LD | **Not started** |
+| DEC-003-A | **A-1** | Phase 3 最小 `SiteInstance` 契约（§ Recommended Decision §1） | **Applied** — `lib/site/*`、ballgames instance；`test:batch1` |
+| DEC-003-B | **B-1** | 独立 `PortalHomeContent`；`status` → `publicationStatus` 语义映射 | **Applied** — types + fixture + `resolvePortalHomePageSeo` |
+| DEC-003-C | **C-1** | 保留 Blog/Authors；ballgames R1 从 enabled page types 与 sitemap 隔离 | **Applied** — `production-state` / eligibility；legacy 不进 sitemap |
+| DEC-003-D | **D-1** | Phase 3 机制 + fixture；Phase 4 页面与 production exact-two / page JSON-LD | **Partial** — 机制 **Applied** @ Phase 3；production exact-two / page JSON-LD **Phase 4** |
 | DEC-003-E | **E-1 + F1** | 只读调查（E-1）；**F1** `trailingSlash: false` 用户 2026-11-03 批准 | **F1 applied** — `next.config.js`；Pages HTTP 复核 **Pending** |
+| DEC-003-F | **F-1（方案 A）** | Legacy routes 统一 `noindex, follow`；不进 R1 sitemap；与 sitemap 判定独立 | **Applied** — `lib/seo/metadata.ts`（`LEGACY_PAGE_ROBOTS`）、legacy 页 metadata；用户 2026-11-03 批准 |
 
-批准 DEC-003-A–D **不自动开始** Phase 3 应用实现；须按 Phase 3 Spec 单独立项执行。DEC-003-E 批准的是调查本身，**不是**调查报告中的任何技术推荐方案。
+批准 DEC-003-A–D **不自动开始** Phase 3 应用实现；须按 Phase 3 Spec 单独立项执行。DEC-003-E 批准的是调查本身，**不是**调查报告中的任意未单独批准的技术方案（**F1** 已单独批准并落地）。

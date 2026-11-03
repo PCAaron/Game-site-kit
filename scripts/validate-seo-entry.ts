@@ -20,8 +20,12 @@ import {
   isSitemapCandidate,
   resolvePortalHomePageSeo,
   serializeJsonLd,
+  serializeSitemapUrlsetXml,
+  validateProductionSitemapXml,
+  validateSitemapXmlUrls,
+  assertExportHtmlHeadMatches,
 } from '../lib/seo/index'
-import { resolvedSeoToMetadata } from '../lib/seo/metadata'
+import { LEGACY_PAGE_ROBOTS, resolvedSeoToMetadata } from '../lib/seo/metadata'
 import { gameUrl, siteUrl } from '../lib/urls/site-url'
 
 const STARTER_DOMAIN = 'tailwind-nextjs-starter-blog.vercel.app'
@@ -58,8 +62,13 @@ check('BASE_PATH ignored for canonical', () => {
   }
 })
 
-check('canonical path output has no trailing slash', () => {
-  assert.equal(siteUrl('/blog/'), 'https://ballgames.io/blog')
+check('canonical path strict validation', () => {
+  assert.equal(siteUrl('/blog'), 'https://ballgames.io/blog')
+  assert.throws(() => siteUrl('/blog/'), SiteConfigError)
+  assert.throws(() => siteUrl('/blog//post'), SiteConfigError)
+  assert.throws(() => siteUrl('//blog'), SiteConfigError)
+  assert.throws(() => siteUrl('/blog/./post'), SiteConfigError)
+  assert.throws(() => siteUrl('/%2e%2e/secret'), SiteConfigError)
 })
 
 // --- Metadata ---
@@ -115,19 +124,27 @@ check('site root metadata origin', () => {
   assert.equal(String(meta.metadataBase), 'https://ballgames.io/')
 })
 
-// --- Sitemap ---
-check('production sitemap has no legacy blog routes', () => {
+// --- Sitemap (structured XML + eligibility) ---
+check('production sitemap XML matches eligibility (empty when draft portal)', () => {
   const entries = buildProductionSitemap(ballgamesSiteInstance)
-  for (const entry of entries) {
-    assert.ok(!entry.url.includes('/blog'))
-    assert.ok(!entry.url.includes('/tags'))
-    assert.ok(!entry.url.includes('/projects'))
-    assert.ok(!entry.url.includes('/about'))
-  }
+  const xml = serializeSitemapUrlsetXml(entries)
+  validateProductionSitemapXml(xml, ballgamesSiteInstance)
+  assert.equal(entries.length, 0)
 })
 
-check('production excludes draft portal and missing game route', () => {
-  assert.equal(buildProductionSitemap(ballgamesSiteInstance).length, 0)
+check('contract exact-two sitemap XML matches fixture eligibility', () => {
+  const { portal, game } = buildR1ExactTwoContractFixtures()
+  const entries = buildSitemapEntriesFromDescriptors([portal, game], ballgamesSiteInstance)
+  const xml = serializeSitemapUrlsetXml(entries)
+  validateSitemapXmlUrls(
+    xml,
+    entries.map((e) => e.url),
+    ballgamesSiteInstance
+  )
+  assert.deepEqual(
+    entries.map((e) => e.url).sort(),
+    ['https://ballgames.io', 'https://ballgames.io/hockey-bros'].sort()
+  )
 })
 
 check('contract exact-two fixture', () => {
@@ -188,13 +205,15 @@ const exportDir = process.argv.find((a) => a.startsWith('--export-dir='))?.split
 
 if (exportDir) {
   const abs = path.resolve(exportDir)
+  const site = ballgamesSiteInstance
+  const legacyRobots = `${LEGACY_PAGE_ROBOTS.index ? 'index' : 'noindex'}, follow`
+
   check('export dir exists', () => assert.ok(fs.existsSync(abs), `missing ${abs}`))
 
-  check('sitemap.xml present', () => {
+  check('sitemap.xml structured eligibility validation', () => {
     const xml = fs.readFileSync(path.join(abs, 'sitemap.xml'), 'utf8')
     assert.ok(!xml.includes(STARTER_DOMAIN))
-    assert.ok(!xml.includes('/blog'))
-    assert.ok(!xml.includes('hockey-bros'), 'production must not fabricate /hockey-bros')
+    validateProductionSitemapXml(xml, site)
   })
 
   check('robots.txt uses ballgames helper urls', () => {
@@ -204,10 +223,113 @@ if (exportDir) {
     assert.ok(!robots.includes(STARTER_DOMAIN))
   })
 
-  check('index.html canonical and no starter domain', () => {
-    const html = fs.readFileSync(path.join(abs, 'index.html'), 'utf8')
-    assert.ok(!html.includes(STARTER_DOMAIN))
-    assert.match(html, /rel="canonical" href="https:\/\/ballgames.io"/)
+  const exportHtmlPages: Array<{
+    file: string
+    label: string
+    expectation: Parameters<typeof assertExportHtmlHeadMatches>[1]
+    required: boolean
+  }> = [
+    {
+      file: 'index.html',
+      label: '/ (legacy shell)',
+      required: true,
+      expectation: {
+        title: site.metadata.title,
+        description: site.metadata.description,
+        robots: legacyRobots,
+        canonical: siteUrl(undefined, site),
+        openGraph: {
+          title: site.metadata.title,
+          description: site.metadata.description,
+          url: siteUrl(undefined, site),
+          site_name: site.metadata.title,
+          type: 'website',
+        },
+      },
+    },
+    {
+      file: 'blog.html',
+      label: '/blog',
+      required: true,
+      expectation: {
+        title: `Blog | ${site.metadata.title}`,
+        description: site.metadata.description,
+        robots: legacyRobots,
+        canonical: siteUrl('/blog', site),
+        openGraph: {
+          title: 'Blog',
+          url: siteUrl('/blog', site),
+          site_name: site.metadata.title,
+          type: 'website',
+        },
+      },
+    },
+    {
+      file: 'about.html',
+      label: '/about',
+      required: true,
+      expectation: {
+        title: `About | ${site.metadata.title}`,
+        robots: legacyRobots,
+        canonical: siteUrl('/about', site),
+      },
+    },
+    {
+      file: 'projects.html',
+      label: '/projects',
+      required: true,
+      expectation: {
+        title: `Projects | ${site.metadata.title}`,
+        robots: legacyRobots,
+        canonical: siteUrl('/projects', site),
+      },
+    },
+    {
+      file: 'tags.html',
+      label: '/tags',
+      required: true,
+      expectation: {
+        title: `Tags | ${site.metadata.title}`,
+        robots: legacyRobots,
+        canonical: siteUrl('/tags', site),
+      },
+    },
+  ]
+
+  for (const page of exportHtmlPages) {
+    check(`export HTML head ${page.label}`, () => {
+      const filePath = path.join(abs, page.file)
+      if (!fs.existsSync(filePath)) {
+        if (page.required) assert.fail(`missing export HTML: ${page.file}`)
+        return
+      }
+      const html = fs.readFileSync(filePath, 'utf8')
+      assert.ok(!html.includes(STARTER_DOMAIN), `${page.file} must not contain starter domain`)
+      assertExportHtmlHeadMatches(html, page.expectation, page.file)
+    })
+  }
+
+  check('export legacy blog post HTML robots/canonical (sample)', () => {
+    const sample = path.join(abs, 'blog', 'introducing-tailwind-nextjs-starter-blog.html')
+    if (!fs.existsSync(sample)) {
+      console.warn('validate-seo: N/A blog post sample HTML (file missing)')
+      return
+    }
+    const html = fs.readFileSync(sample, 'utf8')
+    assertExportHtmlHeadMatches(
+      html,
+      {
+        robots: legacyRobots,
+        canonical: siteUrl('/blog/introducing-tailwind-nextjs-starter-blog', site),
+      },
+      'blog/introducing-tailwind-nextjs-starter-blog.html'
+    )
+  })
+
+  check('export BLOCKED: hockey-bros (Phase 4 route not implemented)', () => {
+    const blocked = path.join(abs, 'hockey-bros.html')
+    assert.ok(!fs.existsSync(blocked), 'must not export /hockey-bros before Phase 4')
+    assert.ok(!fs.existsSync(path.join(abs, 'hockey-bros', 'index.html')))
   })
 
   check('flat export blog.html when trailingSlash false', () => {
