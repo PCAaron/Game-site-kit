@@ -12,6 +12,8 @@ import PostLayout from '@/layouts/PostLayout'
 import PostBanner from '@/layouts/PostBanner'
 import { Metadata } from 'next'
 import siteMetadata from '@/data/siteMetadata'
+import { getSiteInstance } from '@/lib/site/get-site-instance'
+import { siteUrl } from '@/lib/urls/site-url'
 import { notFound } from 'next/navigation'
 
 const defaultLayout = 'PostLayout'
@@ -45,13 +47,15 @@ export async function generateMetadata(props: {
   }
   const ogImages = imageList.map((img) => {
     return {
-      url: img && img.includes('http') ? img : siteMetadata.siteUrl + img,
+      url: img && img.includes('http') ? img : siteUrl(undefined, getSiteInstance()) + img,
     }
   })
+  const canonical = siteUrl(`/blog/${post.slug}`, getSiteInstance())
 
   return {
     title: post.title,
     description: post.summary,
+    alternates: { canonical },
     openGraph: {
       title: post.title,
       description: post.summary,
@@ -60,7 +64,7 @@ export async function generateMetadata(props: {
       type: 'article',
       publishedTime: publishedAt,
       modifiedTime: modifiedAt,
-      url: './',
+      url: canonical,
       images: ogImages,
       authors: authors.length > 0 ? authors : [siteMetadata.author],
     },
@@ -70,6 +74,7 @@ export async function generateMetadata(props: {
       description: post.summary,
       images: imageList,
     },
+    robots: { index: false, follow: true },
   }
 }
 

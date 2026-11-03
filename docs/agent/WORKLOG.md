@@ -4,6 +4,151 @@
 
 ---
 
+## 2026-11-03 — Phase 3 Batch 0：Static Export 与 URL 技术探针
+
+**范围：** DEC-003-E 实测探针；**未**修改正式 `next.config.js`、部署 workflow、Phase 3 业务实现、ADR 状态。
+
+**HEAD：** `main` / `7bdc5f7ba13a2b17575826d47b9ae4ba25d1469e`
+
+### 交付
+
+- [`docs/agent/reports/batch0-static-export-url-probe.md`](reports/batch0-static-export-url-probe.md)
+- [`scripts/probe/batch0-export-url-probe.mjs`](../../scripts/probe/batch0-export-url-probe.mjs)
+- [`docs/agent/reports/batch0-evidence/`](reports/batch0-evidence/)（三场景 `summary.json` + `manifest.json`）
+
+### 探针命令
+
+```powershell
+nvm use 18.20.0
+node scripts/probe/batch0-export-url-probe.mjs
+```
+
+### 验证
+
+| Check | Exit | Result |
+|---|---|---|
+| 场景 A build（`trailingSlash: true`, 无 BASE_PATH） | 0 | PASS |
+| 场景 B build（`trailingSlash: false`, 无 BASE_PATH） | 0 | PASS |
+| 场景 C build（`trailingSlash: true`, `BASE_PATH=/Game-site-kit`） | 0 | PASS |
+| `next.config.js` 恢复（SHA256 前后一致） | — | PASS（manifest `configRestored: true`） |
+| `app/tag-data.json` | — | build 副作用已 `git checkout` 恢复 |
+| GitHub Pages live HTTP | — | **NOT RUN** |
+| ADR DEC-003-E 实施方案批准 | — | **Pending User Approval**（报告建议 F1） |
+
+### 结论摘要
+
+- **F1**（`trailingSlash: false`）+ Phase 3 `siteUrl()` 为推荐方向；**未**改正式配置。
+- Batch 1 **未启动**。
+
+---
+
+## 2026-11-03 — DEC-003-E F1 批准与落地
+
+**用户决策：** 批准 Batch 0 推荐 **F1**（`trailingSlash: false`）。
+
+### 变更
+
+- `next.config.js`：`trailingSlash: true` → **`false`**
+- ADR 0003、Conflict Matrix（ACM-009/010）、STATUS、Phase 3 Spec §13 同步 F1 状态
+
+### 验证（Node 18.20.0）
+
+| Command | Exit | Result |
+|---|---|---|
+| `yarn typecheck` | 0 | PASS |
+| `$env:EXPORT='1'; $env:UNOPTIMIZED='1'; yarn build` | 0 | PASS；`out/blog.html` 存在（F1 扁平 export）；无 `out/blog/index.html` |
+| `git checkout -- app/tag-data.json` | 0 | build 副作用已恢复 |
+| GitHub Pages live HTTP | — | **NOT RUN** |
+
+**未启动 Batch 1。** F3 **未**批准。
+
+---
+
+## 2026-11-03 — Phase 3 Batch 1：SiteInstance 与 URL 基础能力
+
+**前置：** Batch 0 PASS；F1 已批准（2026-11-03）。
+
+**范围：** SiteInstance、PortalHomeContent 契约与校验、`siteUrl()` / `gameUrl()`（canonical 门户 URL，非第三方 launchUrl）；**未**接 layout/sitemap/metadata/JSON-LD。
+
+### 新增
+
+- `lib/site/*` — 类型、ballgames 实例、校验、`getSiteInstance()`
+- `lib/urls/*` — `siteUrl()`、`gameUrl()`
+- `scripts/batch1-test-entry.ts`、`scripts/batch1-url-tests.mjs`；`package.json` → `test:batch1`
+- `tsconfig.json` → `@/lib/*`
+
+### 验证
+
+| Command | Exit | Result |
+|---|---|---|
+| `yarn typecheck` | 0 | PASS |
+| `yarn test:batch1` | 0 | PASS（9 tests） |
+| `yarn next lint --dir lib` | 0 | PASS |
+
+**Batch 2 未启动**（metadata/sitemap 等仍待授权）。
+
+---
+
+## 2026-11-03 — Phase 3 Batch 2：SEO 核心能力
+
+**前置：** Batch 1 PASS；F1 已批准。
+
+**范围：** Metadata/canonical/OG（SiteInstance + PortalHome 契约）、R1 sitemap 机制、robots、JSON-LD 生成器；**未**实现 Catalog/Detail/Launcher/iframe。
+
+### 要点
+
+- `lib/seo/*` — eligibility、sitemap、metadata、JSON-LD、production vs contract fixtures
+- `app/layout.tsx`、`app/sitemap.ts`、`app/robots.ts`、`app/seo.tsx` — 统一 `siteUrl()` / ballgames origin
+- Legacy blog/tags/projects/about — **noindex**、**不进** R1 sitemap；路由保留
+- 生产 sitemap **空**（portal draft + `/hockey-bros` 不存在）；contract fixture 验证 exact-two
+
+### 验证
+
+| Command | Exit | Result |
+|---|---|---|
+| `yarn typecheck` | 0 | PASS |
+| `yarn test:batch1` | 0 | PASS |
+| `yarn test:batch2` | 0 | PASS（9 tests） |
+| `EXPORT=1 UNOPTIMIZED=1 yarn build` | 0 | PASS；`out/sitemap.xml` 空 urlset |
+| `yarn next lint --dir lib --dir app/seo.tsx ...` | 0 | PASS |
+
+**Batch 3 未启动**（`validate-seo.mjs`、CI export 验收）。
+
+---
+
+## 2026-11-03 — Phase 3 Batch 3：自动化验证与构建验收
+
+**范围：** `scripts/validate-seo.mjs` + `validate:seo`；全量 typecheck / batch tests / normal + CI export build；**未**启动 Phase 4。
+
+### 新增
+
+- `scripts/validate-seo.mjs`、`scripts/validate-seo-entry.ts`
+- `package.json` → `validate:seo`
+- [`docs/agent/reports/phase3-batch3-validation.md`](reports/phase3-batch3-validation.md)
+
+### 验证（Node 18.20.0）
+
+| Command | Exit | Result |
+|---|---|---|
+| `yarn typecheck` | 0 | PASS |
+| `yarn test:batch1` / `test:batch2` | 0 | PASS |
+| `yarn validate:seo` | 0 | PASS |
+| `yarn build`（清除 EXPORT） | 0 | PASS（无 static export 阶段） |
+| `EXPORT=1 UNOPTIMIZED=1 yarn build` | 0 | PASS |
+| `EXPORT=1 UNOPTIMIZED=1 BASE_PATH=/Game-site-kit yarn build` | 0 | PASS |
+| `node scripts/validate-seo.mjs --export-dir=out`（根与子路径各一次） | 0 | PASS |
+| `yarn next lint --dir lib` | 0 | PASS |
+
+构建后已恢复 `app/tag-data.json`（若被 contentlayer 改动）。
+
+### Phase 3 结论
+
+**PASS WITH LIMITATIONS** — 机制与确定性验证完成；生产 R1 exact-two / 页面 JSON-LD **集成**仍属 Phase 4。
+
+**Phase 4 未启动。**
+
+---
+
 ## 2026-10-30 — Phase 1 收尾（Task A）
 
 **范围：** 修复 Windows 下 `yarn dev` / `yarn build`；补充 `typecheck`；建立 Agent 状态文件。

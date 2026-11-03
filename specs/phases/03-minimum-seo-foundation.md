@@ -374,7 +374,7 @@ Rich Results Test 只能辅助语法/类型检查，不证明 Google 必然展�
 
 - [x] 用户已逐项批准 ADR 0003 DEC-003-A–E（2026-11-02）；ADR 状态与文档一致。
 - [x] DEC-003-E 只读调查已记录（§20）；**未**修改配置、部署或 URL 实现。
-- [ ] trailing-slash/export **实施方案**已单独批准（调查建议 **未** 自动生效）。
+- [x] trailing-slash/export **实施方案 F1** 已获用户批准并落地（2026-11-03）；Pages HTTP 复核仍 open。
 - [ ] Site URL 不再继承 starter 域名或 starter brand。
 - [ ] `siteUrl()` 与 `gameUrl()` 是 canonical URL 唯一入口。
 - [ ] `siteUrl()` 与 `gameUrl('hockey-bros')` 精确输出两个权威 R1 URL。

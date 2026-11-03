@@ -1,15 +1,17 @@
 import { MetadataRoute } from 'next'
-import siteMetadata from '@/data/siteMetadata'
+import { getSiteInstance } from '@/lib/site/get-site-instance'
+import { siteUrl } from '@/lib/urls/site-url'
 
 export const dynamic = 'force-static'
 
 export default function robots(): MetadataRoute.Robots {
+  const site = getSiteInstance()
   return {
     rules: {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: `${siteMetadata.siteUrl}/sitemap.xml`,
-    host: siteMetadata.siteUrl,
+    sitemap: siteUrl('/sitemap.xml', site),
+    host: siteUrl(undefined, site),
   }
 }

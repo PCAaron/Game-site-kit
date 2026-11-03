@@ -7,7 +7,7 @@
 
 ## Context
 
-当前运行时站点配置只有非类型化 `data/siteMetadata.js`。正式 URL 分别在 `app/layout.tsx`、`app/sitemap.ts`、`contentlayer.config.ts` 和 `scripts/rss.mjs` 中拼接；`next.config.js` 还设置 `trailingSlash: true`。模板 origin 仍为 starter 域名。
+当前运行时站点配置只有非类型化 `data/siteMetadata.js`。正式 URL 分别在 `app/layout.tsx`、`app/sitemap.ts`、`contentlayer.config.ts` 和 `scripts/rss.mjs` 中拼接；`next.config.js` 设置 `trailingSlash: false`（**F1**，用户 2026-11-03 批准并落地）。模板 origin 仍为 starter 域名。
 
 ballgames 产品契约要求：
 
@@ -195,13 +195,13 @@ Phase 4 创建并发布实际页面后，生产输出才验收 exact-two sitemap
 1. 先定义类型和 ballgames 实例值，再实现 helper 单元/脚本级断言。
 2. 迁移 layout metadata、Open Graph、sitemap 和 JSON-LD 到同源 URL。
 3. 为 sitemap 建立显式 page descriptor 输入，禁止隐式遍历 `allBlogs`。
-4. DEC-003-E（Option E-1）已授权并完成**只读调查**（2026-11-02；审查 HEAD `04a61a5bab09bdb7977dc67c56b581f90cb59c3d`）。调查未修改配置、部署或 redirect。结论与可行方案见 [`architecture-consistency-review.md`](../../architecture/architecture-consistency-review.md) §20。**调查结论不等于批准**修改 `trailingSlash`、static export 或部署层；最终实现选择须单独授权。
+4. DEC-003-E（Option E-1）已授权并完成**只读调查**（2026-11-02；审查 HEAD `04a61a5bab09bdb7977dc67c56b581f90cb59c3d`）。调查未修改配置、部署或 redirect。结论与可行方案见 [`architecture-consistency-review.md`](../../architecture/architecture-consistency-review.md) §20。**2026-11-03：** 用户批准 **F1**（`trailingSlash: false`）；已更新 `next.config.js`（见 Batch 0 报告 [`batch0-static-export-url-probe.md`](../reports/batch0-static-export-url-probe.md)）。F3 部署 redirect 未批准；GitHub Pages live HTTP clean URL 仍待实测。
 5. `siteMetadata.js` 可临时成为由 SiteInstance 派生的兼容层；不得形成第二套 origin。
 6. Phase 4 再接入 PortalHome、GameDetail 实体和实际 JSON-LD 内容。
 
 ## Open Questions
 
-- DEC-003-E 只读调查已完成；`trailingSlash` 是改为 `false`、保留目录输出并加部署层 redirect，还是迁移到支持 redirect 的托管，**尚未批准**任何实施方案（见 Architecture Review §20）。
+- **F1（`trailingSlash: false`）** 已于 2026-11-03 获用户批准并落地于 `next.config.js`（Batch 0 报告证据）。F2/F3/F4 未选；GitHub Pages 对 clean URL 的 **live HTTP** 仍待实测。
 - legacy blog routes 在 ballgames 产物中是继续部署但 noindex，还是从实例构建/路由中移除？
 - Organization 的真实名称、logo、sameAs 等字段尚无核验证据；不纳入最小 SiteInstance。
 - Archived Catalog + Published Detail 的退役策略属于 ADR 0002 / Phase 4。
@@ -225,6 +225,6 @@ Phase 4 创建并发布实际页面后，生产输出才验收 exact-two sitemap
 | DEC-003-B | **B-1** | 独立 `PortalHomeContent`；`status` → `publicationStatus` 语义映射 | **Not started** |
 | DEC-003-C | **C-1** | 保留 Blog/Authors；ballgames R1 从 enabled page types 与 sitemap 隔离 | **Not started** |
 | DEC-003-D | **D-1** | Phase 3 机制 + fixture；Phase 4 页面与 production exact-two / page JSON-LD | **Not started** |
-| DEC-003-E | **E-1** | 只读 trailing-slash / static export 调查已授权并完成 | **Investigation recorded** — 配置/部署变更 **未批准** |
+| DEC-003-E | **E-1 + F1** | 只读调查（E-1）；**F1** `trailingSlash: false` 用户 2026-11-03 批准 | **F1 applied** — `next.config.js`；Pages HTTP 复核 **Pending** |
 
 批准 DEC-003-A–D **不自动开始** Phase 3 应用实现；须按 Phase 3 Spec 单独立项执行。DEC-003-E 批准的是调查本身，**不是**调查报告中的任何技术推荐方案。
