@@ -5,6 +5,23 @@ import { buildProductionSitemap } from './production-state'
 
 const SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9'
 const ALLOWED_URL_CHILD_KEYS = new Set(['loc', 'lastmod', 'changefreq', 'priority'])
+const URLSET_ALLOWED_ATTRS = new Set(['@_xmlns'])
+const URL_ALLOWED_ATTRS = new Set<string>()
+const CHANGEFREQ_VALUES = new Set([
+  'always',
+  'hourly',
+  'daily',
+  'weekly',
+  'monthly',
+  'yearly',
+  'never',
+])
+
+const XML_PARSE_OPTIONS = {
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+  processEntities: true,
+} as const
 
 export class SitemapXmlValidationError extends Error {
   constructor(message: string) {
@@ -25,18 +42,91 @@ function asRecord(value: unknown, label: string): Record<string, unknown> {
 }
 
 function locText(value: unknown): string {
+  return textValue(value, 'loc')
+}
+
+function textValue(value: unknown, label: string): string {
   if (typeof value === 'string') return value.trim()
   if (typeof value === 'number') return String(value)
-  fail('loc must be text content')
+  if (value !== null && typeof value === 'object' && !Array.isArray(value) && '#text' in value) {
+    return textValue((value as Record<string, unknown>)['#text'], label)
+  }
+  fail(`${label} must be text content`)
+}
+
+function elementCount(value: unknown): number {
+  if (value === undefined) return 0
+  if (Array.isArray(value)) return value.length
+  return 1
+}
+
+function assertTextElementNoAttributes(value: unknown, label: string): void {
+  if (value === undefined) return
+  const items = Array.isArray(value) ? value : [value]
+  for (const item of items) {
+    if (item !== null && typeof item === 'object') {
+      for (const key of Object.keys(item as Record<string, unknown>)) {
+        if (key.startsWith('@_')) {
+          fail(`unexpected attribute on ${label}: ${key.slice(2)}`)
+        }
+      }
+    }
+  }
+}
+
+function assertAllowedAttributes(
+  node: Record<string, unknown>,
+  allowed: Set<string>,
+  label: string
+): void {
+  for (const key of Object.keys(node)) {
+    if (!key.startsWith('@_')) continue
+    if (!allowed.has(key)) {
+      fail(`unexpected attribute on ${label}: ${key.slice(2)}`)
+    }
+  }
+}
+
+function validateLastmod(value: unknown): void {
+  if (value === undefined) return
+  if (elementCount(value) > 1) fail('each <url> must contain at most one <lastmod>')
+  const text = textValue(value, 'lastmod')
+  if (
+    !/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})?)?$/.test(text)
+  ) {
+    fail('lastmod must be W3C Datetime compatible')
+  }
+  const [y, m, d] = text.slice(0, 10).split('-').map(Number)
+  const dt = new Date(Date.UTC(y, m - 1, d))
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() + 1 !== m || dt.getUTCDate() !== d) {
+    fail('lastmod date is invalid')
+  }
+}
+
+function validateChangefreq(value: unknown): void {
+  if (value === undefined) return
+  if (elementCount(value) > 1) fail('each <url> must contain at most one <changefreq>')
+  const text = textValue(value, 'changefreq')
+  if (!CHANGEFREQ_VALUES.has(text)) {
+    fail('changefreq must be one of always, hourly, daily, weekly, monthly, yearly, never')
+  }
+}
+
+function validatePriority(value: unknown): void {
+  if (value === undefined) return
+  if (elementCount(value) > 1) fail('each <url> must contain at most one <priority>')
+  const text = textValue(value, 'priority')
+  const n = Number(text)
+  if (!Number.isFinite(n) || n < 0 || n > 1) {
+    fail('priority must be a number from 0.0 to 1.0')
+  }
 }
 
 function parseXmlDocument(xml: string): Record<string, unknown> {
   const trimmed = xml.replace(/^\uFEFF/, '').trim()
   if (!trimmed.length) fail('sitemap XML is empty')
 
-  const validation = XMLValidator.validate(trimmed, {
-    allowBooleanAttributes: true,
-  })
+  const validation = XMLValidator.validate(trimmed, {})
   if (validation !== true) {
     const msg =
       typeof validation === 'object' && validation !== null && 'err' in validation
@@ -45,12 +135,7 @@ function parseXmlDocument(xml: string): Record<string, unknown> {
     fail(msg)
   }
 
-  const parser = new XMLParser({
-    ignoreAttributes: false,
-    attributeNamePrefix: '@_',
-    allowBooleanAttributes: true,
-    processEntities: true,
-  })
+  const parser = new XMLParser(XML_PARSE_OPTIONS)
 
   let doc: unknown
   try {
@@ -87,7 +172,9 @@ function readUrlEntries(urlset: Record<string, unknown>): Record<string, unknown
   return [asRecord(raw, 'url')]
 }
 
-function readLocFromUrl(urlNode: Record<string, unknown>): string {
+function validateUrlNode(urlNode: Record<string, unknown>): string {
+  assertAllowedAttributes(urlNode, URL_ALLOWED_ATTRS, 'url')
+
   const keys = Object.keys(urlNode).filter((k) => !k.startsWith('@_'))
   for (const key of keys) {
     if (!ALLOWED_URL_CHILD_KEYS.has(key)) {
@@ -97,11 +184,18 @@ function readLocFromUrl(urlNode: Record<string, unknown>): string {
   if (!('loc' in urlNode)) {
     fail('each <url> must contain a <loc>')
   }
-  const locCount =
-    urlNode.loc === undefined ? 0 : Array.isArray(urlNode.loc) ? urlNode.loc.length : 1
-  if (locCount !== 1) {
-    fail(`each <url> must contain exactly one <loc> (found ${locCount})`)
+  if (elementCount(urlNode.loc) !== 1) {
+    fail(`each <url> must contain exactly one <loc> (found ${elementCount(urlNode.loc)})`)
   }
+  assertTextElementNoAttributes(urlNode.loc, 'loc')
+
+  assertTextElementNoAttributes(urlNode.lastmod, 'lastmod')
+  validateLastmod(urlNode.lastmod)
+  assertTextElementNoAttributes(urlNode.changefreq, 'changefreq')
+  validateChangefreq(urlNode.changefreq)
+  assertTextElementNoAttributes(urlNode.priority, 'priority')
+  validatePriority(urlNode.priority)
+
   return locText(urlNode.loc)
 }
 
@@ -112,6 +206,7 @@ export function parseSitemapUrlsetXml(xml: string): { urls: string[] } {
   const doc = parseXmlDocument(xml)
   const urlset = readUrlset(doc)
   readUrlsetNamespace(urlset)
+  assertAllowedAttributes(urlset, URLSET_ALLOWED_ATTRS, 'urlset')
 
   const urlsetKeys = Object.keys(urlset).filter((k) => !k.startsWith('@_') && k !== 'url')
   if (urlsetKeys.length) {
@@ -119,7 +214,7 @@ export function parseSitemapUrlsetXml(xml: string): { urls: string[] } {
   }
 
   const entries = readUrlEntries(urlset)
-  const urls = entries.map((entry) => readLocFromUrl(entry))
+  const urls = entries.map((entry) => validateUrlNode(entry))
   return { urls }
 }
 

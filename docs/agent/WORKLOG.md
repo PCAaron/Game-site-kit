@@ -768,6 +768,22 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 **Node 22.14.0 验证：** typecheck 0；batch1 10；batch2 17；validate:seo 0；export build 0 + `--export-dir=out` 0。
 
-**冻结：** READY TO FREEZE WITH DOCUMENTED LIMITATIONS（Remediation **未 commit**）。
+**Commit：** `8b3f51a63e320e2da5b710f53dd1879075d3923b`（`test(seo): finalize Phase 3 validation`）— **已提交 `main`**。
 
-**未执行：** commit / push。
+**冻结：** READY TO FREEZE（机制）；HTTP / CI 仍 DOCUMENTED LIMITATIONS。
+
+---
+
+## 2026-11-03 — Phase 3 收尾：Sitemap XML Strictness + 文档同步
+
+**基线 HEAD（任务开始时）：** `8b3f51a` · **工作区：** Strictness 变更 **未 commit**
+
+**范围（Task A）：** `lib/seo/validate-sitemap-xml.ts` — 关闭 `allowBooleanAttributes`；`urlset`/`url` 属性白名单；`lastmod`/`changefreq`/`priority` 重复与合法值；`scripts/batch2-test-entry.ts` 新增 strict 负/正例。
+
+**范围（Task B）：** `phase-3-final-validation.md` v3、`STATUS.md`、本条目 — 修正「Remediation 未提交」；区分 `@8b3f51a` 与 `@工作区 Strictness`；CI 记为 **configure-pages** 基础设施阻塞（**非** Node 20 build fail/pass）。
+
+**Node 22.14.0 验证：** `yarn typecheck` 0；`yarn test:batch2` 0（**18** tests）；`yarn validate:seo` 0。
+
+**未执行：** export/normal build 重跑（Strictness 未改 export 路径）；commit / push / Phase 4。
+
+**冻结建议：** **READY TO FREEZE**（机制）；CI / HTTP / Phase 4 仍为 documented blockers。

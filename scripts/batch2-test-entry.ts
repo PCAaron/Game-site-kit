@@ -194,6 +194,41 @@ test('parseSitemapUrlsetXml rejects malformed XML structure', () => {
   throws(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>foo&bar</loc></url></urlset>`)
 })
 
+test('parseSitemapUrlsetXml strict structure: attributes and optional fields', () => {
+  const ns = 'http://www.sitemaps.org/schemas/sitemap/0.9'
+  const head = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="${ns}">`
+  const tail = `</urlset>`
+  const throws = (xml: string) =>
+    assert.throws(() => parseSitemapUrlsetXml(xml), SitemapXmlValidationError)
+
+  throws(`${head.replace('>', ' invalidAttribute>')}${tail}`)
+  throws(`${head.replace('>', ' data-unknown="x">')}${tail}`)
+  throws(`${head}<url data-unknown="x"><loc>https://ballgames.io</loc></url>${tail}`)
+  throws(
+    `${head}<url><loc>https://ballgames.io</loc><lastmod>2026-01-15</lastmod><lastmod>2026-01-16</lastmod></url>${tail}`
+  )
+  throws(
+    `${head}<url><loc>https://ballgames.io</loc><changefreq>daily</changefreq><changefreq>weekly</changefreq></url>${tail}`
+  )
+  throws(
+    `${head}<url><loc>https://ballgames.io</loc><priority>0.5</priority><priority>0.8</priority></url>${tail}`
+  )
+  throws(`${head}<url><loc>https://ballgames.io</loc><changefreq>often</changefreq></url>${tail}`)
+  throws(`${head}<url><loc>https://ballgames.io</loc><priority>-0.1</priority></url>${tail}`)
+  throws(`${head}<url><loc>https://ballgames.io</loc><priority>1.5</priority></url>${tail}`)
+  throws(`${head}<url><loc>https://ballgames.io</loc><lastmod>2026-13-40</lastmod></url>${tail}`)
+
+  const withOptional = parseSitemapUrlsetXml(
+    `${head}<url><loc>https://ballgames.io</loc><lastmod>2026-01-15T12:00:00Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>${tail}`
+  )
+  assert.deepEqual(withOptional.urls, ['https://ballgames.io'])
+
+  const xmlnsOnly = parseSitemapUrlsetXml(
+    `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="${ns}"></urlset>`
+  )
+  assert.deepEqual(xmlnsOnly.urls, [])
+})
+
 test('validateSitemapXmlUrls rejects illegal loc URLs', () => {
   const base = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
   assert.throws(
