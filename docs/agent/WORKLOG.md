@@ -757,3 +757,17 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 **冻结判断：** **READY TO FREEZE WITH DOCUMENTED LIMITATIONS**（HTTP BLOCKED；CI not independently verified；Node 22 ≠ Actions Node 20）。
 
 **未执行：** commit / push / Phase 4。
+
+---
+
+## 2026-11-03 — Phase 3 Final Remediation（Task A/B/C）
+
+**基线 HEAD：** `0f74c67`（`origin/main` 已同步）
+
+**范围：** URL 输入边界（无 trim 合法化）；`fast-xml-parser` sitemap 结构验证；`phase-3-final-validation.md` v2；测试与 `validate:seo` 扩展。
+
+**Node 22.14.0 验证：** typecheck 0；batch1 10；batch2 17；validate:seo 0；export build 0 + `--export-dir=out` 0。
+
+**冻结：** READY TO FREEZE WITH DOCUMENTED LIMITATIONS（Remediation **未 commit**）。
+
+**未执行：** commit / push。

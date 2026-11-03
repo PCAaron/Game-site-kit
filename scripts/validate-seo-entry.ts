@@ -69,6 +69,11 @@ check('canonical path strict validation', () => {
   assert.throws(() => siteUrl('//blog'), SiteConfigError)
   assert.throws(() => siteUrl('/blog/./post'), SiteConfigError)
   assert.throws(() => siteUrl('/%2e%2e/secret'), SiteConfigError)
+  assert.throws(() => siteUrl(' /blog'), SiteConfigError)
+  assert.throws(() => siteUrl('/blog '), SiteConfigError)
+  assert.throws(() => siteUrl('/blog\\post'), SiteConfigError)
+  assert.throws(() => siteUrl('/blog%5cpost'), SiteConfigError)
+  assert.throws(() => siteUrl('/blog%5Cpost'), SiteConfigError)
 })
 
 // --- Metadata ---

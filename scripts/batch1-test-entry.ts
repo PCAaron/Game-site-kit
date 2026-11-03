@@ -43,6 +43,11 @@ test('siteUrl rejects invalid canonical paths', () => {
   assert.throws(() => siteUrl('//blog'), SiteConfigError)
   assert.throws(() => siteUrl('/blog/./post'), SiteConfigError)
   assert.throws(() => siteUrl('/%2e%2e/secret'), SiteConfigError)
+  assert.throws(() => siteUrl(' /blog'), SiteConfigError)
+  assert.throws(() => siteUrl('/blog '), SiteConfigError)
+  assert.throws(() => siteUrl('/blog\\post'), SiteConfigError)
+  assert.throws(() => siteUrl('/blog%5cpost'), SiteConfigError)
+  assert.throws(() => siteUrl('/blog%5Cpost'), SiteConfigError)
 })
 
 test('siteUrl accepts valid canonical paths', () => {

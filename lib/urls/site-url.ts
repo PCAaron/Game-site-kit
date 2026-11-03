@@ -15,27 +15,38 @@ function invalidPath(message: string): never {
   throw new SiteConfigError('SITE_URL_PATH_INVALID', message)
 }
 
+/** Reject before trim, URL parsing, or path normalization. */
+function assertPathRawInput(path: string): void {
+  if (path !== path.trim()) {
+    invalidPath('canonical path must not have leading or trailing whitespace')
+  }
+  if (path.includes('\\')) {
+    invalidPath('canonical path must not contain backslashes')
+  }
+  if (/%5c/i.test(path)) {
+    invalidPath('canonical path must not contain encoded backslashes')
+  }
+}
+
 /**
- * Validates canonical path input before any silent normalization (Phase 3 §7.1).
- * Returns the path unchanged when valid (single leading slash, no trailing slash on non-root).
+ * Validates canonical path input without trim (Phase 3 §7.1).
+ * Caller must run assertPathRawInput first.
  */
 function assertValidCanonicalPath(path: string): string {
-  const trimmed = path.trim()
-
-  if (!trimmed.startsWith('/')) {
+  if (!path.startsWith('/')) {
     invalidPath('canonical path must start with /')
   }
-  if (trimmed.startsWith('//')) {
+  if (path.startsWith('//')) {
     invalidPath('canonical path must not be protocol-relative or contain duplicate slashes')
   }
-  if (trimmed.includes('//')) {
+  if (path.includes('//')) {
     invalidPath('canonical path must not contain duplicate slashes')
   }
-  if (trimmed.length > 1 && trimmed.endsWith('/')) {
+  if (path.length > 1 && path.endsWith('/')) {
     invalidPath('canonical path must not have a trailing slash')
   }
 
-  const segments = trimmed.slice(1).split('/')
+  const segments = path.slice(1).split('/')
   for (const segment of segments) {
     if (segment === '') {
       invalidPath('canonical path must not contain empty segments')
@@ -53,12 +64,12 @@ function assertValidCanonicalPath(path: string): string {
     if (decoded === '.' || decoded === '..') {
       invalidPath('canonical path must not contain . or .. segments')
     }
-    if (decoded.includes('/')) {
+    if (decoded.includes('/') || decoded.includes('\\')) {
       invalidPath('canonical path must not contain encoded path separators')
     }
   }
 
-  return trimmed
+  return path
 }
 
 /**
@@ -83,6 +94,7 @@ export function siteUrl(path?: string, instance?: SiteInstance): string {
     invalidPath('canonical path must not be an absolute URL')
   }
 
+  assertPathRawInput(path)
   const pathname = assertValidCanonicalPath(path)
   return `${origin}${pathname}`
 }
@@ -91,26 +103,34 @@ export function siteUrl(path?: string, instance?: SiteInstance): string {
  * Canonical portal URL for a game detail slug (not third-party launchUrl).
  */
 export function gameUrl(slug: string, instance?: SiteInstance): string {
-  if (typeof slug !== 'string' || !slug.trim()) {
+  if (typeof slug !== 'string' || !slug.length) {
     throw new SiteConfigError('GAME_SLUG_INVALID', 'slug must be a non-empty string')
   }
-  const trimmed = slug.trim()
-  if (trimmed.includes('/') || trimmed.includes('?') || trimmed.includes('#')) {
+  if (slug !== slug.trim()) {
+    throw new SiteConfigError(
+      'GAME_SLUG_INVALID',
+      'slug must not have leading or trailing whitespace'
+    )
+  }
+  if (slug.includes('\\') || /%5c/i.test(slug)) {
+    throw new SiteConfigError('GAME_SLUG_INVALID', 'slug must not contain backslashes')
+  }
+  if (slug.includes('/') || slug.includes('?') || slug.includes('#')) {
     throw new SiteConfigError(
       'GAME_SLUG_INVALID',
       'slug must not contain path separators, query, or hash'
     )
   }
-  if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(trimmed)) {
+  if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(slug)) {
     throw new SiteConfigError('GAME_SLUG_INVALID', 'slug must not be an absolute URL')
   }
-  if (!GAME_SLUG_PATTERN.test(trimmed)) {
+  if (!GAME_SLUG_PATTERN.test(slug)) {
     throw new SiteConfigError(
       'GAME_SLUG_INVALID',
       'slug must be lowercase kebab-case alphanumeric segments'
     )
   }
-  return siteUrl(`/${trimmed}`, instance)
+  return siteUrl(`/${slug}`, instance)
 }
 
 export function assertValidGameSlug(slug: string): void {

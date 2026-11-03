@@ -1,7 +1,10 @@
+import { XMLParser, XMLValidator } from 'fast-xml-parser'
+
 import type { SiteInstance } from '../site/types'
 import { buildProductionSitemap } from './production-state'
 
 const SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9'
+const ALLOWED_URL_CHILD_KEYS = new Set(['loc', 'lastmod', 'changefreq', 'priority'])
 
 export class SitemapXmlValidationError extends Error {
   constructor(message: string) {
@@ -14,57 +17,109 @@ function fail(message: string): never {
   throw new SitemapXmlValidationError(message)
 }
 
-/** Decode minimal XML entities in sitemap loc values. */
-function decodeXmlText(value: string): string {
-  return value
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, '&')
-    .trim()
+function asRecord(value: unknown, label: string): Record<string, unknown> {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    fail(`${label} must be an object`)
+  }
+  return value as Record<string, unknown>
 }
 
-/**
- * Parse a sitemap 0.9 urlset document into loc URLs.
- * Intentionally scoped to urlset/loc (not a general XML parser).
- */
-export function parseSitemapUrlsetXml(xml: string): { urls: string[] } {
+function locText(value: unknown): string {
+  if (typeof value === 'string') return value.trim()
+  if (typeof value === 'number') return String(value)
+  fail('loc must be text content')
+}
+
+function parseXmlDocument(xml: string): Record<string, unknown> {
   const trimmed = xml.replace(/^\uFEFF/, '').trim()
   if (!trimmed.length) fail('sitemap XML is empty')
 
-  if (!/^<\?xml[\s\S]*?\?>\s*<urlset/i.test(trimmed) && !/^<urlset/i.test(trimmed)) {
-    fail('sitemap must start with xml declaration + urlset or urlset root')
+  const validation = XMLValidator.validate(trimmed, {
+    allowBooleanAttributes: true,
+  })
+  if (validation !== true) {
+    const msg =
+      typeof validation === 'object' && validation !== null && 'err' in validation
+        ? String((validation as { err: { msg?: string } }).err.msg ?? 'invalid XML')
+        : 'invalid XML'
+    fail(msg)
   }
 
-  const urlsetOpen = trimmed.match(/<urlset\b([^>]*)>/i)
-  if (!urlsetOpen) fail('missing <urlset> root element')
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: '@_',
+    allowBooleanAttributes: true,
+    processEntities: true,
+  })
 
-  const attrs = urlsetOpen[1]
-  if (!/\bxmlns\s*=\s*["']http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9["']/i.test(attrs)) {
+  let doc: unknown
+  try {
+    doc = parser.parse(trimmed)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    fail(`XML parse failed: ${message}`)
+  }
+
+  return asRecord(doc, 'document')
+}
+
+function readUrlset(doc: Record<string, unknown>): Record<string, unknown> {
+  const rootKeys = Object.keys(doc).filter((k) => k !== '?xml')
+  if (rootKeys.length !== 1 || rootKeys[0] !== 'urlset') {
+    fail(`root element must be urlset (found: ${rootKeys.join(', ') || 'none'})`)
+  }
+  return asRecord(doc.urlset, 'urlset')
+}
+
+function readUrlsetNamespace(urlset: Record<string, unknown>): void {
+  const xmlns = urlset['@_xmlns']
+  if (typeof xmlns !== 'string' || xmlns !== SITEMAP_NS) {
     fail(`urlset must declare xmlns="${SITEMAP_NS}"`)
   }
+}
 
-  const inner = trimmed.slice(urlsetOpen.index! + urlsetOpen[0].length)
-  const closeIdx = inner.search(/<\/urlset>/i)
-  if (closeIdx === -1) fail('missing </urlset> closing tag')
-  const body = inner.slice(0, closeIdx)
-  const afterClose = inner.slice(closeIdx + '</urlset>'.length).trim()
-  if (afterClose.length) fail('unexpected content after </urlset>')
+function readUrlEntries(urlset: Record<string, unknown>): Record<string, unknown>[] {
+  const raw = urlset.url
+  if (raw === undefined) return []
+  if (Array.isArray(raw)) {
+    return raw.map((entry, i) => asRecord(entry, `url[${i}]`))
+  }
+  return [asRecord(raw, 'url')]
+}
 
-  const urlBlocks = [...body.matchAll(/<url\b[^>]*>([\s\S]*?)<\/url>/gi)]
-  const urls: string[] = []
-
-  for (const block of urlBlocks) {
-    const locMatches = [...block[1].matchAll(/<loc\b[^>]*>([\s\S]*?)<\/loc>/gi)]
-    if (locMatches.length !== 1) {
-      fail(`each <url> must contain exactly one <loc> (found ${locMatches.length})`)
+function readLocFromUrl(urlNode: Record<string, unknown>): string {
+  const keys = Object.keys(urlNode).filter((k) => !k.startsWith('@_'))
+  for (const key of keys) {
+    if (!ALLOWED_URL_CHILD_KEYS.has(key)) {
+      fail(`unexpected element <${key}> inside <url>`)
     }
-    const raw = decodeXmlText(locMatches[0][1])
-    if (!raw || raw.includes('<')) fail('invalid <loc> value')
-    urls.push(raw)
+  }
+  if (!('loc' in urlNode)) {
+    fail('each <url> must contain a <loc>')
+  }
+  const locCount =
+    urlNode.loc === undefined ? 0 : Array.isArray(urlNode.loc) ? urlNode.loc.length : 1
+  if (locCount !== 1) {
+    fail(`each <url> must contain exactly one <loc> (found ${locCount})`)
+  }
+  return locText(urlNode.loc)
+}
+
+/**
+ * Parse a sitemap 0.9 urlset document into loc URLs (full XML structure validation).
+ */
+export function parseSitemapUrlsetXml(xml: string): { urls: string[] } {
+  const doc = parseXmlDocument(xml)
+  const urlset = readUrlset(doc)
+  readUrlsetNamespace(urlset)
+
+  const urlsetKeys = Object.keys(urlset).filter((k) => !k.startsWith('@_') && k !== 'url')
+  if (urlsetKeys.length) {
+    fail(`unexpected children under urlset: ${urlsetKeys.join(', ')}`)
   }
 
+  const entries = readUrlEntries(urlset)
+  const urls = entries.map((entry) => readLocFromUrl(entry))
   return { urls }
 }
 

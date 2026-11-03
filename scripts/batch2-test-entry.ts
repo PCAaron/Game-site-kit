@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import {
-  SiteConfigError,
-  ballgamesPortalHomeContentFixture,
-  ballgamesSiteInstance,
-} from '../lib/site/index'
+import { SiteConfigError, ballgamesPortalHomeContentFixture, ballgamesSiteInstance } from '../lib/site/index'
 import {
   buildPortalHomeJsonLdBlocks,
   buildLegacyTemplateMetadata,
@@ -19,6 +15,7 @@ import {
   serializeJsonLd,
   parseSitemapUrlsetXml,
   serializeSitemapUrlsetXml,
+  SitemapXmlValidationError,
   validateProductionSitemapXml,
   validateSitemapXmlUrls,
   parseExportHtmlHead,
@@ -174,4 +171,59 @@ test('parseExportHtmlHead reads metadata from HTML head', () => {
   assert.equal(head.robots, 'noindex, follow')
   assert.equal(head.canonical, 'https://ballgames.io')
   assert.equal(head.openGraph.title, 'BallGames.io')
+})
+
+test('parseSitemapUrlsetXml rejects malformed XML structure', () => {
+  const throws = (xml: string) =>
+    assert.throws(() => parseSitemapUrlsetXml(xml), SitemapXmlValidationError)
+
+  throws(
+    `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://ballgames.io</loc>`
+  )
+  throws(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
+  throws(
+    `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`
+  )
+  throws(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://example.com/wrong"></urlset>`)
+  throws(
+    `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>a</loc><loc>b</loc></url></urlset>`
+  )
+  throws(
+    `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><evil/><loc>https://ballgames.io</loc></url></urlset>`
+  )
+  throws(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>foo&bar</loc></url></urlset>`)
+})
+
+test('validateSitemapXmlUrls rejects illegal loc URLs', () => {
+  const base = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
+  assert.throws(
+    () =>
+      validateSitemapXmlUrls(
+        `${base}<url><loc>https://evil.example/x</loc></url></urlset>`,
+        ['https://evil.example/x'],
+        ballgamesSiteInstance
+      ),
+    SitemapXmlValidationError
+  )
+  assert.throws(
+    () =>
+      validateSitemapXmlUrls(
+        `${base}<url><loc>https://ballgames.io/blog</loc></url></urlset>`,
+        ['https://ballgames.io/blog'],
+        ballgamesSiteInstance
+      ),
+    SitemapXmlValidationError
+  )
+})
+
+test('validateSitemapXmlUrls rejects duplicate loc across url entries', () => {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://ballgames.io</loc></url>
+  <url><loc>https://ballgames.io</loc></url>
+</urlset>`
+  assert.throws(
+    () => validateSitemapXmlUrls(xml, ['https://ballgames.io'], ballgamesSiteInstance),
+    SitemapXmlValidationError
+  )
 })

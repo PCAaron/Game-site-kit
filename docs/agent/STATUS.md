@@ -2,11 +2,11 @@
 
 - **Current phase:** Phase 3 — 最小 SEO Foundation（**implemented — PASS WITH LIMITATIONS**）
 - **Baseline commit:** `723499bf9e590b398ed888cffc834a9c54274d00`（`v2.4.0-9-g723499b`）
-- **Phase 3 implementation commit（已推送基线）：** `4514c3f7361beb59e69f95d7fdae42e377ff6a1a`（Batch 0–3）
+- **Phase 3 commits：** `4514c3f`（Batch 0–3）· **`0f74c67`**（follow-up，已推送 `origin/main`）
 - **Last updated:** 2026-11-03
 - **Current reviewed branch:** `main`
 - **Pages deployment branch:** `main`（[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml)）
-- **工作区：** 含 DEC-003-F、URL strict validation、SEO 结构化/export 验证增强（**未提交**；文档同步不编造 commit SHA）
+- **工作区：** Final Remediation（URL 边界 + XML 解析器 sitemap）**未提交** — 见 [`phase-3-final-validation.md`](reports/phase-3-final-validation.md) v2
 
 ## Phase summary
 
@@ -52,7 +52,9 @@ DEC-003-A–C **Applied**；DEC-003-D **Partial**（机制 done，production 集
 
 **Batch 3 @ 2026-11-03（Node 18.20.0）** — 见 [`phase3-batch3-validation.md`](reports/phase3-batch3-validation.md)。
 
-**Follow-up（工作区未提交 @ 2026-11-03）** — DEC-003-F、URL strict、SEO 结构化/export 验证、文档同步、**[`phase-3-final-validation.md`](reports/phase-3-final-validation.md)**（Node 22.14.0 矩阵 exit 0）。CI **未独立验证**；HTTP **BLOCKED**。
+**Follow-up @ `0f74c67`：** DEC-003-F、结构化验证（初版）已推送。
+
+**Final Remediation（未提交）：** URL 边界 + `fast-xml-parser` sitemap XML；Node **22.14.0** 矩阵 PASS — [`phase-3-final-validation.md`](reports/phase-3-final-validation.md) v2。CI **NOT INDEPENDENTLY VERIFIED**；HTTP **BLOCKED**。
 
 | Command | Exit | Result |
 |---|---|---|
