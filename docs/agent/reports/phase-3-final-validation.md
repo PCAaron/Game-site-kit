@@ -9,7 +9,7 @@
 
 | 角色 | SHA | 说明 |
 |---|---|---|
-| **Current HEAD** | `330ae02ea8bb6c207bbf67dcafdc0ea2e343a8c3` | `docs(seo): finalize Phase 3 agent docs and spec baseline` — **仅文档** |
+| **Current HEAD** | `ff59f652e0976b54aab7a438a3ceb8f9a00e95dc` | 文档 HEAD 指针（**非**代码验证） |
 | **Phase 3 Code Validation Baseline** | `f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9` | lastmod 无时区兼容 + 测试（§F） |
 | **Documentation sync** | `330ae02`、`5bbda06` | 不改变 `f2ea1b2` 代码验证结论 |
 
@@ -108,7 +108,7 @@
 | 已知失败 | **`actions/configure-pages@v5`** — Pages 未按 Actions 配置 |
 | 该 run | Checkout / Setup Node 20 **成功**；**未** `yarn` / **未** `yarn build` |
 | 归类 | **基础设施 BLOCKED** — **非** Node 20 build fail/pass |
-| CI @ Current HEAD `330ae02` | **NOT VERIFIED** |
+| CI @ Current HEAD | **NOT VERIFIED** |
 
 ---
 
@@ -123,7 +123,7 @@
 ### **READY WITH EXTERNAL BLOCKERS**
 
 1. Phase 3 **代码层**历史验证已通过（至 **`@f2ea1b2` §F**）。
-2. Agent 文档与验证证据基线已同步（**Current HEAD `330ae02`** 为文档提交，不扩展代码证据）。
+2. Agent 文档与验证证据基线已同步（Current HEAD 为文档链顶端 `ff59f65`，不扩展代码证据）。
 3. **最新 HEAD CI：** **NOT VERIFIED**。
 4. **Node 20：** **NOT VERIFIED**。
 5. **GitHub Pages / Live HTTP：** **BLOCKED**。

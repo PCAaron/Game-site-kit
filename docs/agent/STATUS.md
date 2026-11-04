@@ -2,9 +2,9 @@
 
 - **Current phase:** Phase 3 — 最小 SEO Foundation（**implemented — READY WITH EXTERNAL BLOCKERS**）
 - **Baseline commit:** `723499bf9e590b398ed888cffc834a9c54274d00`（`v2.4.0-9-g723499b`）
-- **Current HEAD：** `330ae02ea8bb6c207bbf67dcafdc0ea2e343a8c3`（`docs(seo): finalize Phase 3 agent docs and spec baseline` — **文档同步，非代码验证**）
+- **Current HEAD：** `ff59f652e0976b54aab7a438a3ceb8f9a00e95dc`（`docs(seo): set Current HEAD to 330ae02 in Phase 3 agent docs` — **文档指针同步，非代码验证**）
 - **Phase 3 Code Validation Baseline：** `f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9`（lastmod 无时区兼容 + batch2 **20** tests）· 更早：`29e526b` · `1ef3f2e` · `8b3f51a` · `0f74c67` · `4514c3f`
-- **Documentation sync（非验证基线）：** `330ae02` · `5bbda06` · `d02c69e`
+- **Documentation sync（非验证基线）：** `330ae02` · `5bbda06` · `d02c69e` · `ff59f65`（HEAD 指针）
 - **Last updated:** 2026-11-04
 - **Current reviewed branch:** `main`
 - **Pages deployment branch:** `main`（[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml)）
@@ -60,7 +60,7 @@ DEC-003-A–C **Applied**；DEC-003-D **Partial**；DEC-003-E **F1**；DEC-003-F
 | `yarn test:batch2` | 0 | PASS（**20** tests） |
 | `yarn validate:seo` | 0 | PASS |
 
-**未在 `330ae02`（Current HEAD）重跑上述命令。**
+**未在 Current HEAD（`ff59f65`）重跑上述命令。**
 
 **历史链：** `@29e526b` §E · `@1ef3f2e` §D · `@8b3f51a` §C · Batch 3 `@4514c3f`。
 

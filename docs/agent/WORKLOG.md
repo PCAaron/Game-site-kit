@@ -852,4 +852,4 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 **未执行：** SEO 测试重跑；CI / Live HTTP 验证。
 
-**Commit / push：** `330ae02ea8bb6c207bbf67dcafdc0ea2e343a8c3` → `origin/main`（Phase 3 文档终同步；代码基线仍为 `f2ea1b2`）。
+**Commit / push：** `330ae02` → `origin/main`；HEAD 指针跟进 `ff59f65`（见 STATUS Current HEAD）。
