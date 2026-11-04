@@ -1,11 +1,12 @@
 # Phase 3 — Minimum SEO Foundation
 
 - **阶段编号：** 3
-- **状态：** **implemented — PASS WITH LIMITATIONS**（与 [`docs/agent/STATUS.md`](../../docs/agent/STATUS.md) 一致）
+- **状态：** **implemented — READY WITH EXTERNAL BLOCKERS**（与 [`docs/agent/STATUS.md`](../../docs/agent/STATUS.md) 一致）
 - **Archetype：** `game-portal`
 - **首实例：** ballgames.io
 - **文档日期：** 2026-11-02
-- **实现状态：** 机制已落地（Batch 0–3 @ `4514c3f`；工作区另有 DEC-003-F / SEO 验证增强等待提交）
+- **实现状态：** 机制已落地（Batch 0–3 @ `4514c3f` 及后续 SEO 提交至 **`f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9`** 代码验证基线）；Current HEAD **`5bbda06`** 为 Agent 文档同步，**非**新代码验证
+- **阶段结论：** **READY WITH EXTERNAL BLOCKERS**（与 STATUS / 终验 v5 一致）
 - **关键决策：** ADR 0003 **Accepted**（DEC-003-A–F）；F1 `trailingSlash: false` 已落地；DEC-003-F Legacy indexability 已批准并应用
 
 ## 1. Objective
@@ -401,9 +402,15 @@ Rich Results Test 只能辅助语法/类型检查，不证明 Google 必然展�
 - [x] typecheck、non-mutating lint、normal build、CI-equivalent export 与 SEO validation 均实际 PASS。（见 [`phase3-batch3-validation.md`](../../docs/agent/reports/phase3-batch3-validation.md)；export 后 `validate:seo --export-dir=out`）
 - [x] 没有实现 Catalog、Detail page、Launcher、iframe、广告、Shared Core 或后续 archetype。
 
-### 13.1 Capability status（文档同步 @ 2026-11-03）
+### 13.1 Capability status（文档同步 @ 2026-11-04）
 
-证据基线：已提交 `4514c3f`（Batch 0–3）+ 工作区未提交项（DEC-003-F、URL strict、`validate-sitemap-xml` / export HTML 校验）。下列 **PASS** 均指 Phase 3 机制/契约层，非 R1 生产集成完成。
+**Current HEAD（Agent 文档）：** `5bbda06dd607b16ef4749031f78fcab83b03ab40`（文档同步，非代码验证）。
+
+**Phase 3 Code Validation Baseline：** `f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9`（Sitemap lastmod 兼容 + batch2 **20** tests @ Node 22.14.0，见 [`phase-3-final-validation.md`](../../docs/agent/reports/phase-3-final-validation.md) §F）。
+
+证据链：`4514c3f`（Batch 0–3）→ `0f74c67` / `8b3f51a` / `1ef3f2e` / `29e526b` / **`f2ea1b2`**。下列 **PASS** 均指 Phase 3 机制/契约层，非 R1 生产集成完成。
+
+**外部阻塞（独立）：** 最新 HEAD GitHub CI **NOT VERIFIED**；Node 20 build **NOT VERIFIED**；GitHub Pages configure-pages **BLOCKED**（历史）；Live HTTP **BLOCKED**；production exact-two sitemap 与页面 JSON-LD **DEFERRED TO PHASE 4**。
 
 | # | 能力 | 状态 | 证据 |
 |---|---|---|---|
