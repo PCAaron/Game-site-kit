@@ -787,3 +787,25 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 **未执行：** export/normal build 重跑（Strictness 未改 export 路径）；commit / push / Phase 4。
 
 **冻结建议：** **READY TO FREEZE**（机制）；CI / HTTP / Phase 4 仍为 documented blockers。
+
+---
+
+## 2026-11-03 — Commit：`1ef3f2e` Sitemap XML Strictness
+
+**Commit：** `1ef3f2ecfc5259270f9c27ba5873607b82f8c1d9` — `test(seo): Phase 3 sitemap XML strictness and doc sync`（5 files，已推送记录以用户 remote 为准）。
+
+**说明：** 承接上文「Strictness 未 commit」条目之计划；Strictness 代码与 v3 文档已进入 `main`。
+
+---
+
+## 2026-11-04 — Phase 3 Sitemap Strictness 边界修正（priority / lastmod）
+
+**基线 HEAD：** `1ef3f2e` · **工作区：** 边界修正 **未 commit**（任务要求不自动 commit/push）
+
+**代码：** `validate-sitemap-xml.ts` — 空/空白 `priority` 拒绝；lastmod 日历 + 时分秒 + 时区偏移 + 小数秒；`batch2-test-entry.ts` 新增 `priority and lastmod value boundaries` 测试。
+
+**文档：** `phase-3-final-validation.md` v4、`STATUS.md`、本条目。
+
+**Node 22.14.0 验证（本次执行）：** `yarn typecheck` 0；`yarn test:batch2` 0（**19** tests）；`yarn validate:seo` 0；`git diff --check` 0。
+
+**未执行：** export/normal build 重跑；commit / push。

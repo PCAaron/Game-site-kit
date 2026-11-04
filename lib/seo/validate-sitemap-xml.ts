@@ -87,19 +87,50 @@ function assertAllowedAttributes(
   }
 }
 
+function validateCalendarDate(ymd: string): void {
+  const [y, m, d] = ymd.split('-').map(Number)
+  const dt = new Date(Date.UTC(y, m - 1, d))
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() + 1 !== m || dt.getUTCDate() !== d) {
+    fail('lastmod date is invalid')
+  }
+}
+
 function validateLastmod(value: unknown): void {
   if (value === undefined) return
   if (elementCount(value) > 1) fail('each <url> must contain at most one <lastmod>')
   const text = textValue(value, 'lastmod')
-  if (
-    !/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})?)?$/.test(text)
-  ) {
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    validateCalendarDate(text)
+    return
+  }
+
+  const match = text.match(
+    /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|([+-])(\d{2}):(\d{2}))$/
+  )
+  if (!match) {
     fail('lastmod must be W3C Datetime compatible')
   }
-  const [y, m, d] = text.slice(0, 10).split('-').map(Number)
-  const dt = new Date(Date.UTC(y, m - 1, d))
-  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() + 1 !== m || dt.getUTCDate() !== d) {
-    fail('lastmod date is invalid')
+
+  validateCalendarDate(match[1])
+
+  const hour = Number(match[2])
+  const minute = Number(match[3])
+  const second = Number(match[4])
+  if (hour > 23 || minute > 59 || second > 59) {
+    fail('lastmod time is invalid')
+  }
+
+  const tz = match[6]
+  if (tz === 'Z') return
+
+  const offsetHour = Number(match[8])
+  const offsetMinute = Number(match[9])
+  if (offsetHour > 14 || offsetMinute > 59) {
+    fail('lastmod timezone offset is invalid')
+  }
+  if (offsetHour === 14 && offsetMinute !== 0) {
+    fail('lastmod timezone offset is invalid')
   }
 }
 
@@ -116,6 +147,9 @@ function validatePriority(value: unknown): void {
   if (value === undefined) return
   if (elementCount(value) > 1) fail('each <url> must contain at most one <priority>')
   const text = textValue(value, 'priority')
+  if (text.length === 0) {
+    fail('priority must not be empty')
+  }
   const n = Number(text)
   if (!Number.isFinite(n) || n < 0 || n > 1) {
     fail('priority must be a number from 0.0 to 1.0')
