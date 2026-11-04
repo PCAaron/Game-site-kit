@@ -25,15 +25,15 @@ node scripts/probe/batch0-export-url-probe.mjs
 
 ### 验证
 
-| Check | Exit | Result |
-|---|---|---|
-| 场景 A build（`trailingSlash: true`, 无 BASE_PATH） | 0 | PASS |
-| 场景 B build（`trailingSlash: false`, 无 BASE_PATH） | 0 | PASS |
-| 场景 C build（`trailingSlash: true`, `BASE_PATH=/Game-site-kit`） | 0 | PASS |
-| `next.config.js` 恢复（SHA256 前后一致） | — | PASS（manifest `configRestored: true`） |
-| `app/tag-data.json` | — | build 副作用已 `git checkout` 恢复 |
-| GitHub Pages live HTTP | — | **NOT RUN** |
-| ADR DEC-003-E 实施方案批准 | — | **Pending User Approval**（报告建议 F1） |
+| Check                                                             | Exit | Result                                   |
+| ----------------------------------------------------------------- | ---- | ---------------------------------------- |
+| 场景 A build（`trailingSlash: true`, 无 BASE_PATH）               | 0    | PASS                                     |
+| 场景 B build（`trailingSlash: false`, 无 BASE_PATH）              | 0    | PASS                                     |
+| 场景 C build（`trailingSlash: true`, `BASE_PATH=/Game-site-kit`） | 0    | PASS                                     |
+| `next.config.js` 恢复（SHA256 前后一致）                          | —    | PASS（manifest `configRestored: true`）  |
+| `app/tag-data.json`                                               | —    | build 副作用已 `git checkout` 恢复       |
+| GitHub Pages live HTTP                                            | —    | **NOT RUN**                              |
+| ADR DEC-003-E 实施方案批准                                        | —    | **Pending User Approval**（报告建议 F1） |
 
 ### 结论摘要
 
@@ -53,12 +53,12 @@ node scripts/probe/batch0-export-url-probe.mjs
 
 ### 验证（Node 18.20.0）
 
-| Command | Exit | Result |
-|---|---|---|
-| `yarn typecheck` | 0 | PASS |
-| `$env:EXPORT='1'; $env:UNOPTIMIZED='1'; yarn build` | 0 | PASS；`out/blog.html` 存在（F1 扁平 export）；无 `out/blog/index.html` |
-| `git checkout -- app/tag-data.json` | 0 | build 副作用已恢复 |
-| GitHub Pages live HTTP | — | **NOT RUN** |
+| Command                                             | Exit | Result                                                                 |
+| --------------------------------------------------- | ---- | ---------------------------------------------------------------------- |
+| `yarn typecheck`                                    | 0    | PASS                                                                   |
+| `$env:EXPORT='1'; $env:UNOPTIMIZED='1'; yarn build` | 0    | PASS；`out/blog.html` 存在（F1 扁平 export）；无 `out/blog/index.html` |
+| `git checkout -- app/tag-data.json`                 | 0    | build 副作用已恢复                                                     |
+| GitHub Pages live HTTP                              | —    | **NOT RUN**                                                            |
 
 **未启动 Batch 1。** F3 **未**批准。
 
@@ -79,11 +79,11 @@ node scripts/probe/batch0-export-url-probe.mjs
 
 ### 验证
 
-| Command | Exit | Result |
-|---|---|---|
-| `yarn typecheck` | 0 | PASS |
-| `yarn test:batch1` | 0 | PASS（9 tests） |
-| `yarn next lint --dir lib` | 0 | PASS |
+| Command                    | Exit | Result          |
+| -------------------------- | ---- | --------------- |
+| `yarn typecheck`           | 0    | PASS            |
+| `yarn test:batch1`         | 0    | PASS（9 tests） |
+| `yarn next lint --dir lib` | 0    | PASS            |
 
 **Batch 2 未启动**（metadata/sitemap 等仍待授权）。
 
@@ -104,13 +104,13 @@ node scripts/probe/batch0-export-url-probe.mjs
 
 ### 验证
 
-| Command | Exit | Result |
-|---|---|---|
-| `yarn typecheck` | 0 | PASS |
-| `yarn test:batch1` | 0 | PASS |
-| `yarn test:batch2` | 0 | PASS（9 tests） |
-| `EXPORT=1 UNOPTIMIZED=1 yarn build` | 0 | PASS；`out/sitemap.xml` 空 urlset |
-| `yarn next lint --dir lib --dir app/seo.tsx ...` | 0 | PASS |
+| Command                                          | Exit | Result                            |
+| ------------------------------------------------ | ---- | --------------------------------- |
+| `yarn typecheck`                                 | 0    | PASS                              |
+| `yarn test:batch1`                               | 0    | PASS                              |
+| `yarn test:batch2`                               | 0    | PASS（9 tests）                   |
+| `EXPORT=1 UNOPTIMIZED=1 yarn build`              | 0    | PASS；`out/sitemap.xml` 空 urlset |
+| `yarn next lint --dir lib --dir app/seo.tsx ...` | 0    | PASS                              |
 
 **Batch 3 未启动**（`validate-seo.mjs`、CI export 验收）。
 
@@ -128,16 +128,16 @@ node scripts/probe/batch0-export-url-probe.mjs
 
 ### 验证（Node 18.20.0）
 
-| Command | Exit | Result |
-|---|---|---|
-| `yarn typecheck` | 0 | PASS |
-| `yarn test:batch1` / `test:batch2` | 0 | PASS |
-| `yarn validate:seo` | 0 | PASS |
-| `yarn build`（清除 EXPORT） | 0 | PASS（无 static export 阶段） |
-| `EXPORT=1 UNOPTIMIZED=1 yarn build` | 0 | PASS |
-| `EXPORT=1 UNOPTIMIZED=1 BASE_PATH=/Game-site-kit yarn build` | 0 | PASS |
-| `node scripts/validate-seo.mjs --export-dir=out`（根与子路径各一次） | 0 | PASS |
-| `yarn next lint --dir lib` | 0 | PASS |
+| Command                                                              | Exit | Result                        |
+| -------------------------------------------------------------------- | ---- | ----------------------------- |
+| `yarn typecheck`                                                     | 0    | PASS                          |
+| `yarn test:batch1` / `test:batch2`                                   | 0    | PASS                          |
+| `yarn validate:seo`                                                  | 0    | PASS                          |
+| `yarn build`（清除 EXPORT）                                          | 0    | PASS（无 static export 阶段） |
+| `EXPORT=1 UNOPTIMIZED=1 yarn build`                                  | 0    | PASS                          |
+| `EXPORT=1 UNOPTIMIZED=1 BASE_PATH=/Game-site-kit yarn build`         | 0    | PASS                          |
+| `node scripts/validate-seo.mjs --export-dir=out`（根与子路径各一次） | 0    | PASS                          |
+| `yarn next lint --dir lib`                                           | 0    | PASS                          |
 
 构建后已恢复 `app/tag-data.json`（若被 contentlayer 改动）。
 
@@ -192,11 +192,11 @@ node scripts/probe/batch0-export-url-probe.mjs
 
 ### 验证
 
-| Check | Result |
-|---|---|
-| 文档引用路径存在性 | PASS |
-| `git diff` 无 package/应用代码 | PASS |
-| `yarn build` | 未执行（文档任务） |
+| Check                          | Result             |
+| ------------------------------ | ------------------ |
+| 文档引用路径存在性             | PASS               |
+| `git diff` 无 package/应用代码 | PASS               |
+| `yarn build`                   | 未执行（文档任务） |
 
 ### 遗留
 
@@ -219,11 +219,11 @@ node scripts/probe/batch0-export-url-probe.mjs
 
 ### 验证
 
-| Check | Result |
-|---|---|
-| `git diff` 无 package.json / app 源码 | PASS |
-| 术语交叉检索（Rich Results 承诺、首页无 iframe 等） | PASS（已修正 SEO 05） |
-| 自动化 md lint | 无仓库脚本；人工一致性审查 |
+| Check                                               | Result                     |
+| --------------------------------------------------- | -------------------------- |
+| `git diff` 无 package.json / app 源码               | PASS                       |
+| 术语交叉检索（Rich Results 承诺、首页无 iframe 等） | PASS（已修正 SEO 05）      |
+| 自动化 md lint                                      | 无仓库脚本；人工一致性审查 |
 
 ### 遗留
 
@@ -264,12 +264,12 @@ node scripts/probe/batch0-export-url-probe.mjs
 
 ### Validation
 
-| Check | Result |
-|---|---|
-| `git diff --check` | PASS（编辑中与最终范围复核均执行） |
-| 分支 / HEAD | `spec` / `aca82e6b0c8c8467295fba274777ac6b043948e1` |
-| 应用代码、package、lockfile、业务 Spec diff | 无 |
-| Build / lint / typecheck | **Not Run**（文档规划任务） |
+| Check                                       | Result                                              |
+| ------------------------------------------- | --------------------------------------------------- |
+| `git diff --check`                          | PASS（编辑中与最终范围复核均执行）                  |
+| 分支 / HEAD                                 | `spec` / `aca82e6b0c8c8467295fba274777ac6b043948e1` |
+| 应用代码、package、lockfile、业务 Spec diff | 无                                                  |
+| Build / lint / typecheck                    | **Not Run**（文档规划任务）                         |
 
 ### Outstanding user decisions
 
@@ -303,13 +303,13 @@ node scripts/probe/batch0-export-url-probe.mjs
 
 ### Validation
 
-| Check | Result |
-|---|---|
-| `git diff --check` | PASS（编辑中与最终复核） |
-| Matrix row/priority targeted checks | PASS：31 rows；P0 11、P1 16、P2 4；ACM-019 P0；ACM-031 P1 |
-| ADR / Phase 3 contract targeted checks | PASS：PortalHome fields、URL helper ownership、mapping 与 DEC-003-E gate 均存在 |
-| `yarn prettier --check`（六个目标文档） | FAIL：5 个既有 Markdown 文件有格式差异；未运行 `--write`，避免无关整篇重排 |
-| Build / lint / typecheck / deployment | **Not Run**（文档 remediation；`yarn lint` 含 `--fix`） |
+| Check                                   | Result                                                                          |
+| --------------------------------------- | ------------------------------------------------------------------------------- |
+| `git diff --check`                      | PASS（编辑中与最终复核）                                                        |
+| Matrix row/priority targeted checks     | PASS：31 rows；P0 11、P1 16、P2 4；ACM-019 P0；ACM-031 P1                       |
+| ADR / Phase 3 contract targeted checks  | PASS：PortalHome fields、URL helper ownership、mapping 与 DEC-003-E gate 均存在 |
+| `yarn prettier --check`（六个目标文档） | FAIL：5 个既有 Markdown 文件有格式差异；未运行 `--write`，避免无关整篇重排      |
+| Build / lint / typecheck / deployment   | **Not Run**（文档 remediation；`yarn lint` 含 `--fix`）                         |
 
 ### Pending decisions
 
@@ -345,14 +345,14 @@ node scripts/probe/batch0-export-url-probe.mjs
 
 ### Validation
 
-| Check | Result |
-|---|---|
-| `git diff --check` | PASS |
-| Matrix structure / priorities | PASS：31 rows；每行 12 列；P0 11、P1 16、P2 4 |
-| ACM classifications | PASS：ACM-003/009 `Pending decision`；ACM-013 `Implementation gap` |
-| PortalHome contract cross-check | PASS：required title/description、OG fallback、helper canonical、updatedAt 单一映射均一致 |
-| `yarn prettier --check docs/architecture/architecture-consistency-review.md docs/architecture/architecture-conflict-matrix.md docs/agent/decisions/0003-site-instance-url-and-seo-source.md specs/phases/03-minimum-seo-foundation.md docs/agent/STATUS.md docs/agent/WORKLOG.md` | FAIL：Architecture Review、Conflict Matrix、Phase 3 Spec、STATUS、WORKLOG；ADR 0003 PASS |
-| Build / lint / typecheck / deployment | **Not run — documentation-only scope**；`yarn lint` 含 `--fix` |
+| Check                                                                                                                                                                                                                                                                             | Result                                                                                    |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `git diff --check`                                                                                                                                                                                                                                                                | PASS                                                                                      |
+| Matrix structure / priorities                                                                                                                                                                                                                                                     | PASS：31 rows；每行 12 列；P0 11、P1 16、P2 4                                             |
+| ACM classifications                                                                                                                                                                                                                                                               | PASS：ACM-003/009 `Pending decision`；ACM-013 `Implementation gap`                        |
+| PortalHome contract cross-check                                                                                                                                                                                                                                                   | PASS：required title/description、OG fallback、helper canonical、updatedAt 单一映射均一致 |
+| `yarn prettier --check docs/architecture/architecture-consistency-review.md docs/architecture/architecture-conflict-matrix.md docs/agent/decisions/0003-site-instance-url-and-seo-source.md specs/phases/03-minimum-seo-foundation.md docs/agent/STATUS.md docs/agent/WORKLOG.md` | FAIL：Architecture Review、Conflict Matrix、Phase 3 Spec、STATUS、WORKLOG；ADR 0003 PASS  |
+| Build / lint / typecheck / deployment                                                                                                                                                                                                                                             | **Not run — documentation-only scope**；`yarn lint` 含 `--fix`                            |
 
 Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c1fd670b9ad0db7d5a4990f754891a51` 的六个 Git blob 做只读 `prettier.check`，当时与当前相同的五文件 FAIL，ADR 0003 PASS；当前 reviewed HEAD / 编辑前与最终检查仍是同一清单。因此现存五项是 **早于本轮且早于最近 Phase 3 readiness remediation 的格式差异**，不是本轮引入；没有证据显示 formatter 不可用或配置故障。建议单独 formatting-only 任务审阅整篇重排。
 
@@ -373,13 +373,13 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 ### Decisions recorded
 
-| ID | Option | Documentation |
-|---|---|---|
-| DEC-003-A | A-1 | ADR Accepted；ACM-008/011 Decision resolved |
-| DEC-003-B | B-1 | PortalHomeContent；`status` → `publicationStatus` 映射 |
-| DEC-003-C | C-1 | Blog 保留；R1 不读 allBlogs |
-| DEC-003-D | D-1 | Phase 3/4 边界 |
-| DEC-003-E | E-1 | §20 调查；**实施方案未批准** |
+| ID        | Option | Documentation                                          |
+| --------- | ------ | ------------------------------------------------------ |
+| DEC-003-A | A-1    | ADR Accepted；ACM-008/011 Decision resolved            |
+| DEC-003-B | B-1    | PortalHomeContent；`status` → `publicationStatus` 映射 |
+| DEC-003-C | C-1    | Blog 保留；R1 不读 allBlogs                            |
+| DEC-003-D | D-1    | Phase 3/4 边界                                         |
+| DEC-003-E | E-1    | §20 调查；**实施方案未批准**                           |
 
 ### Files changed
 
@@ -399,14 +399,14 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 ### Validation（ADR 0003 落地任务 — Previous task validation）
 
-| Validation | Command | Actual Result | Notes |
-|---|---|---|---|
-| Git whitespace check | `git diff --check` | **Historical execution result not independently verifiable.** | 任务 Final Report 未保留终端输出；编辑基线 `04a61a5` 已不可在本机重放 diff |
-| Prettier check | `yarn prettier --check`（六目标文档，见 Final Pass 条目） | **Historical execution result not independently verifiable.** | 同批文档在 Final Pass 中有可核对 FAIL 清单（5 文件 FAIL、ADR PASS）；ADR 落地 commit 未单独留存 prettier 输出 |
-| ballgames Spec 保护 | `git diff specs/ballgames/ballgames-specs-v1.md` | PASS（无变更） | 2026-11-02 任务范围声明；**本次 remediation 前未重跑** |
-| 应用/配置隔离 | `git diff package.json next.config.js .github/` | PASS（无变更） | 同上 |
-| Build / lint / typecheck | `yarn build` / `yarn lint` / `yarn typecheck` | **NOT RUN** | 文档 + 只读调查范围 |
-| Internal links | 人工路径存在性 | **NOT RUN** | 未记录独立命令 |
+| Validation               | Command                                                   | Actual Result                                                 | Notes                                                                                                         |
+| ------------------------ | --------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Git whitespace check     | `git diff --check`                                        | **Historical execution result not independently verifiable.** | 任务 Final Report 未保留终端输出；编辑基线 `04a61a5` 已不可在本机重放 diff                                    |
+| Prettier check           | `yarn prettier --check`（六目标文档，见 Final Pass 条目） | **Historical execution result not independently verifiable.** | 同批文档在 Final Pass 中有可核对 FAIL 清单（5 文件 FAIL、ADR PASS）；ADR 落地 commit 未单独留存 prettier 输出 |
+| ballgames Spec 保护      | `git diff specs/ballgames/ballgames-specs-v1.md`          | PASS（无变更）                                                | 2026-11-02 任务范围声明；**本次 remediation 前未重跑**                                                        |
+| 应用/配置隔离            | `git diff package.json next.config.js .github/`           | PASS（无变更）                                                | 同上                                                                                                          |
+| Build / lint / typecheck | `yarn build` / `yarn lint` / `yarn typecheck`             | **NOT RUN**                                                   | 文档 + 只读调查范围                                                                                           |
+| Internal links           | 人工路径存在性                                            | **NOT RUN**                                                   | 未记录独立命令                                                                                                |
 
 ### Outstanding
 
@@ -439,16 +439,16 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 ### Validation — Current remediation validation
 
-| Validation | Command | Actual Result | Notes |
-|---|---|---|---|
-| Git status | `git status --short` | PASS（仅授权文档变更） | 编辑后复核 |
-| Git whitespace check | `git diff --check` | PASS | 编辑前基线干净 exit 0；编辑后无 whitespace error |
-| Diff scope | `git diff 916314c..4e80893 --stat` | PASS（**retroactive 记录修正**） | **3 文件**：STATUS、WORKLOG、Phase 3 Spec；**无**应用代码、配置、依赖、ballgames 产品 Spec、部署 workflow。原表「仅 Phase 3 Spec + WORKLOG」与实际上一轮 commit 不符 |
-| Decision status phrases | `rg` 待批准类关键词于 Phase 3 Spec | PASS | §6.2/§8.2/§10 已修正；§7.4 trailing-slash **实施方案**单独批准表述保留 |
-| Prettier check | `yarn prettier --check`（六文档） | **记录不一致 — 见 reconciliation** | **Previous task（本条目原写）：**「六文件均有格式 warn（含 ADR 0003）」。**Final Pass 历史可核对清单：** Architecture Review、Conflict Matrix、Phase 3 Spec、STATUS、WORKLOG 为 FAIL；ADR 0003 为 PASS（见上文 Final Pass Validation 表）。**本条目 commit 未单独留存 prettier 终端输出**；不得将 ADR 0003 在历史 PASS 与 FAIL 之间无证据改写。逐文件 **2026-11-02 最新只读执行** 见 [WORKLOG Validation Evidence Consistency Remediation](#2026-11-02--worklog-validation-evidence-consistency-remediation)。未运行 `--write` |
-| Markdown lint | 无仓库脚本 | **NOT RUN** | |
-| Internal links | 人工 spot-check 相对路径 | PASS | ADR/Matrix/Review/Phase 3 交叉引用未改路径 |
-| Build / lint / typecheck | — | **NOT RUN** | documentation-only |
+| Validation               | Command                            | Actual Result                      | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------ | ---------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Git status               | `git status --short`               | PASS（仅授权文档变更）             | 编辑后复核                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Git whitespace check     | `git diff --check`                 | PASS                               | 编辑前基线干净 exit 0；编辑后无 whitespace error                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Diff scope               | `git diff 916314c..4e80893 --stat` | PASS（**retroactive 记录修正**）   | **3 文件**：STATUS、WORKLOG、Phase 3 Spec；**无**应用代码、配置、依赖、ballgames 产品 Spec、部署 workflow。原表「仅 Phase 3 Spec + WORKLOG」与实际上一轮 commit 不符                                                                                                                                                                                                                                                                                                                                                           |
+| Decision status phrases  | `rg` 待批准类关键词于 Phase 3 Spec | PASS                               | §6.2/§8.2/§10 已修正；§7.4 trailing-slash **实施方案**单独批准表述保留                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Prettier check           | `yarn prettier --check`（六文档）  | **记录不一致 — 见 reconciliation** | **Previous task（本条目原写）：**「六文件均有格式 warn（含 ADR 0003）」。**Final Pass 历史可核对清单：** Architecture Review、Conflict Matrix、Phase 3 Spec、STATUS、WORKLOG 为 FAIL；ADR 0003 为 PASS（见上文 Final Pass Validation 表）。**本条目 commit 未单独留存 prettier 终端输出**；不得将 ADR 0003 在历史 PASS 与 FAIL 之间无证据改写。逐文件 **2026-11-02 最新只读执行** 见 [WORKLOG Validation Evidence Consistency Remediation](#2026-11-02--worklog-validation-evidence-consistency-remediation)。未运行 `--write` |
+| Markdown lint            | 无仓库脚本                         | **NOT RUN**                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Internal links           | 人工 spot-check 相对路径           | PASS                               | ADR/Matrix/Review/Phase 3 交叉引用未改路径                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Build / lint / typecheck | —                                  | **NOT RUN**                        | documentation-only                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 ### Cross-document consistency（复核结论）
 
@@ -479,49 +479,49 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 ### Validation
 
-| Validation | Command | Result | Evidence / Notes |
-|---|---|---|---|
-| Git baseline | `git branch --show-current`; `git rev-parse HEAD`; `git rev-parse origin/spec` | PASS | `spec` / `4e80893` / 与 origin 一致 |
-| Previous commit scope | `git diff HEAD^ HEAD --name-status` | PASS | M STATUS、WORKLOG、Phase 3 Spec（3 文件） |
-| Current diff scope | `git diff --stat`; `git diff --name-only` | PASS（编辑后复核） | 仅 WORKLOG + STATUS |
-| Git whitespace | `git diff --check` | PASS | 无 trailing whitespace 类 error |
-| Prettier 3.8.1 | `yarn prettier --check <file>`（逐文件，见下表） | FAIL（6/6） | 只读 check；未 `--write` |
-| Decision consistency | `rg` 于 Phase 3 Spec / ADR 0003 当前正文 | PASS | 无「待用户批准」等过期 Phase 3 措辞；ADR Status Accepted |
-| Build / lint / typecheck | — | **NOT RUN** | documentation-only；`yarn lint` 含 `--fix` |
+| Validation               | Command                                                                        | Result             | Evidence / Notes                                         |
+| ------------------------ | ------------------------------------------------------------------------------ | ------------------ | -------------------------------------------------------- |
+| Git baseline             | `git branch --show-current`; `git rev-parse HEAD`; `git rev-parse origin/spec` | PASS               | `spec` / `4e80893` / 与 origin 一致                      |
+| Previous commit scope    | `git diff HEAD^ HEAD --name-status`                                            | PASS               | M STATUS、WORKLOG、Phase 3 Spec（3 文件）                |
+| Current diff scope       | `git diff --stat`; `git diff --name-only`                                      | PASS（编辑后复核） | 仅 WORKLOG + STATUS                                      |
+| Git whitespace           | `git diff --check`                                                             | PASS               | 无 trailing whitespace 类 error                          |
+| Prettier 3.8.1           | `yarn prettier --check <file>`（逐文件，见下表）                               | FAIL（6/6）        | 只读 check；未 `--write`                                 |
+| Decision consistency     | `rg` 于 Phase 3 Spec / ADR 0003 当前正文                                       | PASS               | 无「待用户批准」等过期 Phase 3 措辞；ADR Status Accepted |
+| Build / lint / typecheck | —                                                                              | **NOT RUN**        | documentation-only；`yarn lint` 含 `--fix`               |
 
 #### Prettier — This task newly executed（Prettier **3.8.1**；`prettier.config.js`；无 `.prettierignore`）
 
-| File | Command | Result |
-|---|---|---|
-| `docs/architecture/architecture-consistency-review.md` | `yarn prettier --check docs/architecture/architecture-consistency-review.md` | FAIL |
-| `docs/architecture/architecture-conflict-matrix.md` | `yarn prettier --check docs/architecture/architecture-conflict-matrix.md` | FAIL |
-| `docs/agent/decisions/0003-site-instance-url-and-seo-source.md` | `yarn prettier --check docs/agent/decisions/0003-site-instance-url-and-seo-source.md` | FAIL |
-| `specs/phases/03-minimum-seo-foundation.md` | `yarn prettier --check specs/phases/03-minimum-seo-foundation.md` | FAIL |
-| `docs/agent/STATUS.md` | `yarn prettier --check docs/agent/STATUS.md` | FAIL |
-| `docs/agent/WORKLOG.md` | `yarn prettier --check docs/agent/WORKLOG.md` | FAIL |
+| File                                                            | Command                                                                               | Result |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------ |
+| `docs/architecture/architecture-consistency-review.md`          | `yarn prettier --check docs/architecture/architecture-consistency-review.md`          | FAIL   |
+| `docs/architecture/architecture-conflict-matrix.md`             | `yarn prettier --check docs/architecture/architecture-conflict-matrix.md`             | FAIL   |
+| `docs/agent/decisions/0003-site-instance-url-and-seo-source.md` | `yarn prettier --check docs/agent/decisions/0003-site-instance-url-and-seo-source.md` | FAIL   |
+| `specs/phases/03-minimum-seo-foundation.md`                     | `yarn prettier --check specs/phases/03-minimum-seo-foundation.md`                     | FAIL   |
+| `docs/agent/STATUS.md`                                          | `yarn prettier --check docs/agent/STATUS.md`                                          | FAIL   |
+| `docs/agent/WORKLOG.md`                                         | `yarn prettier --check docs/agent/WORKLOG.md`                                         | FAIL   |
 
 **Historical result preservation：**
 
-| Source | Prettier summary | Verifiability |
-|---|---|---|
-| Final Pass 条目 | 5 FAIL + ADR 0003 **PASS** | 条目内命令与清单可核对 |
-| Phase 3 Spec 决策状态修正条目（原写） | 「六文件均有 warn（含 ADR 0003）」 | 与 Final Pass 冲突；**无**独立终端输出 |
-| ADR 0003 落地条目 Prettier 行 | **Historical execution result not independently verifiable** | 未改 |
-| **This task** | 六文件均 FAIL | 上表命令 exit 1 + `[warn]` |
+| Source                                | Prettier summary                                             | Verifiability                          |
+| ------------------------------------- | ------------------------------------------------------------ | -------------------------------------- |
+| Final Pass 条目                       | 5 FAIL + ADR 0003 **PASS**                                   | 条目内命令与清单可核对                 |
+| Phase 3 Spec 决策状态修正条目（原写） | 「六文件均有 warn（含 ADR 0003）」                           | 与 Final Pass 冲突；**无**独立终端输出 |
+| ADR 0003 落地条目 Prettier 行         | **Historical execution result not independently verifiable** | 未改                                   |
+| **This task**                         | 六文件均 FAIL                                                | 上表命令 exit 1 + `[warn]`             |
 
 本任务新结果与 Final Pass 对 ADR 0003 的 PASS **不一致**；在无 blob/版本 diff 证据前**不得**归因于配置或 Prettier 版本变化。
 
 ### Cross-document consistency
 
-| Item | Status |
-|---|---|
-| DEC-003-A–D | Accepted / A-1–D-1 |
-| DEC-003-E | E-1 investigation recorded；实施方案未批准 |
-| Phase 3 | Specified / Implementation Gated / **Not Started** |
-| Phase 4 | **Not Started** |
-| Shared Core | Not an approved phase / Deferred |
-| Trailing-slash implementation | Requires separate approval |
-| ballgames-specs-v1.md | 未修改 |
+| Item                          | Status                                             |
+| ----------------------------- | -------------------------------------------------- |
+| DEC-003-A–D                   | Accepted / A-1–D-1                                 |
+| DEC-003-E                     | E-1 investigation recorded；实施方案未批准         |
+| Phase 3                       | Specified / Implementation Gated / **Not Started** |
+| Phase 4                       | **Not Started**                                    |
+| Shared Core                   | Not an approved phase / Deferred                   |
+| Trailing-slash implementation | Requires separate approval                         |
+| ballgames-specs-v1.md         | 未修改                                             |
 
 ### Remaining findings
 
@@ -534,13 +534,13 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 ### Reviewed baseline
 
-| Item | Value |
-|---|---|
-| Branch | `spec` |
-| HEAD（编辑前） | `9c24d5349d1fd19908ea61771dfe1ca2f7d9819a` |
-| Parent commit | `4e808930f83936eab9ce2687c01a972fe51d9a0b`（`docs: Phase 3 spec decision status and WORKLOG verification`） |
+| Item                               | Value                                                                                                                         |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Branch                             | `spec`                                                                                                                        |
+| HEAD（编辑前）                     | `9c24d5349d1fd19908ea61771dfe1ca2f7d9819a`                                                                                    |
+| Parent commit                      | `4e808930f83936eab9ce2687c01a972fe51d9a0b`（`docs: Phase 3 spec decision status and WORKLOG verification`）                   |
 | Prior remediation commit on branch | `9c24d53`（`docs: WORKLOG validation evidence and change scope consistency`）— 本任务在其上追加独立证据条目并同步 STATUS 引用 |
-| Working tree（编辑前） | 干净（`git status --short` 无输出） |
+| Working tree（编辑前）             | 干净（`git status --short` 无输出）                                                                                           |
 
 ### Scope
 
@@ -562,22 +562,22 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 - **Combined command：** `yarn prettier --check docs/architecture/architecture-consistency-review.md docs/architecture/architecture-conflict-matrix.md docs/agent/decisions/0003-site-instance-url-and-seo-source.md specs/phases/03-minimum-seo-foundation.md docs/agent/STATUS.md docs/agent/WORKLOG.md`
 - **Combined exit code：** 1（六文件均 `[warn]`）
 
-| File | Fresh result | Evidence |
-|---|---|---|
-| Architecture Review | **FAIL** | Combined + `yarn prettier --check docs/architecture/architecture-consistency-review.md` → exit 1；`[warn] docs/architecture/architecture-consistency-review.md` |
-| Conflict Matrix | **FAIL** | Combined + per-file check → exit 1；`[warn] docs/architecture/architecture-conflict-matrix.md` |
-| ADR 0003 | **FAIL** | Combined + per-file check → exit 1；`[warn] docs/agent/decisions/0003-site-instance-url-and-seo-source.md` |
-| Phase 3 Spec | **FAIL** | Combined + per-file check → exit 1；`[warn] specs/phases/03-minimum-seo-foundation.md` |
-| STATUS | **FAIL** | Combined + per-file check → exit 1；`[warn] docs/agent/STATUS.md` |
-| WORKLOG | **FAIL** | Combined + per-file check → exit 1；`[warn] docs/agent/WORKLOG.md` |
+| File                | Fresh result | Evidence                                                                                                                                                        |
+| ------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Architecture Review | **FAIL**     | Combined + `yarn prettier --check docs/architecture/architecture-consistency-review.md` → exit 1；`[warn] docs/architecture/architecture-consistency-review.md` |
+| Conflict Matrix     | **FAIL**     | Combined + per-file check → exit 1；`[warn] docs/architecture/architecture-conflict-matrix.md`                                                                  |
+| ADR 0003            | **FAIL**     | Combined + per-file check → exit 1；`[warn] docs/agent/decisions/0003-site-instance-url-and-seo-source.md`                                                      |
+| Phase 3 Spec        | **FAIL**     | Combined + per-file check → exit 1；`[warn] specs/phases/03-minimum-seo-foundation.md`                                                                          |
+| STATUS              | **FAIL**     | Combined + per-file check → exit 1；`[warn] docs/agent/STATUS.md`                                                                                               |
+| WORKLOG             | **FAIL**     | Combined + per-file check → exit 1；`[warn] docs/agent/WORKLOG.md`                                                                                              |
 
 **Historical vs fresh（摘要）：**
 
-| Source | ADR 0003 | Other five | Verifiability |
-|---|---|---|---|
-| Final Pass WORKLOG 表 | PASS | FAIL | 条目内命令与清单可核对 |
+| Source                                | ADR 0003        | Other five  | Verifiability                      |
+| ------------------------------------- | --------------- | ----------- | ---------------------------------- |
+| Final Pass WORKLOG 表                 | PASS            | FAIL        | 条目内命令与清单可核对             |
 | Phase 3 Spec 决策状态修正条目（原写） | 曾写含 ADR warn | 六文件 warn | 与 Final Pass 冲突；无独立终端输出 |
-| **This task（fresh @ 9c24d53）** | FAIL | FAIL | 上表命令 exit 1 |
+| **This task（fresh @ 9c24d53）**      | FAIL            | FAIL        | 上表命令 exit 1                    |
 
 ### Changes
 
@@ -591,13 +591,13 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 ### Phase status（本 remediation 不改变）
 
-| Item | Status |
-|---|---|
-| DEC-003-A–D | Accepted |
-| DEC-003-E | Investigation recorded；实施方案未批准 |
-| Phase 3 | **specified / implementation gated / not started** |
-| Phase 4 | **not started** |
-| Shared Core | **not an approved phase / deferred** |
+| Item        | Status                                             |
+| ----------- | -------------------------------------------------- |
+| DEC-003-A–D | Accepted                                           |
+| DEC-003-E   | Investigation recorded；实施方案未批准             |
+| Phase 3     | **specified / implementation gated / not started** |
+| Phase 4     | **not started**                                    |
+| Shared Core | **not an approved phase / deferred**               |
 
 ---
 
@@ -626,23 +626,23 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 - Command: `yarn prettier --check docs/architecture/architecture-consistency-review.md docs/architecture/architecture-conflict-matrix.md docs/agent/decisions/0003-site-instance-url-and-seo-source.md specs/phases/03-minimum-seo-foundation.md docs/agent/STATUS.md docs/agent/WORKLOG.md`
 - Exit code: **1**
 
-| File | Result |
-|---|---|
+| File                | Result   |
+| ------------------- | -------- |
 | Architecture Review | **FAIL** |
-| Conflict Matrix | **FAIL** |
-| ADR 0003 | **FAIL** |
-| Phase 3 Spec | **FAIL** |
-| STATUS | **FAIL** |
-| WORKLOG | **FAIL** |
+| Conflict Matrix     | **FAIL** |
+| ADR 0003            | **FAIL** |
+| Phase 3 Spec        | **FAIL** |
+| STATUS              | **FAIL** |
+| WORKLOG             | **FAIL** |
 
 #### Git（编辑 STATUS/WORKLOG **之前** @ HEAD `47e4127`）
 
-| Check | Command | Result |
-|---|---|---|
-| Whitespace | `git diff --check` | **PASS**（exit 0） |
+| Check         | Command                | Result                  |
+| ------------- | ---------------------- | ----------------------- |
+| Whitespace    | `git diff --check`     | **PASS**（exit 0）      |
 | Changed files | `git diff --name-only` | （无输出 — 工作区干净） |
-| Diff summary | `git diff --stat` | （无输出） |
-| Working tree | `git status --short` | （无输出） |
+| Diff summary  | `git diff --stat`      | （无输出）              |
+| Working tree  | `git status --short`   | （无输出）              |
 
 #### Prettier（**最终** — STATUS/WORKLOG 更新后；以本节为准）
 
@@ -651,30 +651,30 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 - Command: `yarn prettier --check docs/architecture/architecture-consistency-review.md docs/architecture/architecture-conflict-matrix.md docs/agent/decisions/0003-site-instance-url-and-seo-source.md specs/phases/03-minimum-seo-foundation.md docs/agent/STATUS.md docs/agent/WORKLOG.md`
 - Exit code: **1**
 
-| File | Result |
-|---|---|
+| File                | Result   |
+| ------------------- | -------- |
 | Architecture Review | **FAIL** |
-| Conflict Matrix | **FAIL** |
-| ADR 0003 | **FAIL** |
-| Phase 3 Spec | **FAIL** |
-| STATUS | **FAIL** |
-| WORKLOG | **FAIL** |
+| Conflict Matrix     | **FAIL** |
+| ADR 0003            | **FAIL** |
+| Phase 3 Spec        | **FAIL** |
+| STATUS              | **FAIL** |
+| WORKLOG             | **FAIL** |
 
 #### Git（**最终** — STATUS/WORKLOG 更新后）
 
-| Check | Command | Result |
-|---|---|---|
-| Whitespace | `git diff --check` | **PASS**（exit 0） |
-| Changed files | `git diff --name-only` | `docs/agent/STATUS.md`、`docs/agent/WORKLOG.md` |
-| Diff summary | `git diff --stat` | 2 files changed, 113 insertions(+), 1 deletion(-) |
-| Working tree | `git status --short` | ` M docs/agent/STATUS.md`、` M docs/agent/WORKLOG.md` |
+| Check         | Command                | Result                                                |
+| ------------- | ---------------------- | ----------------------------------------------------- |
+| Whitespace    | `git diff --check`     | **PASS**（exit 0）                                    |
+| Changed files | `git diff --name-only` | `docs/agent/STATUS.md`、`docs/agent/WORKLOG.md`       |
+| Diff summary  | `git diff --stat`      | 2 files changed, 113 insertions(+), 1 deletion(-)     |
+| Working tree  | `git status --short`   | ` M docs/agent/STATUS.md`、` M docs/agent/WORKLOG.md` |
 
 #### Stability confirmation（WORKLOG 定稿后再次执行）
 
-| Check | Exit | Result |
-|---|---|---|
-| Combined Prettier（六文件） | 1 | 六文件均 FAIL — 与「Prettier（最终）」一致 **stable** |
-| `git diff --check` | 0 | **PASS** — 与「Git（最终）」一致 **stable** |
+| Check                       | Exit | Result                                                |
+| --------------------------- | ---- | ----------------------------------------------------- |
+| Combined Prettier（六文件） | 1    | 六文件均 FAIL — 与「Prettier（最终）」一致 **stable** |
+| `git diff --check`          | 0    | **PASS** — 与「Git（最终）」一致 **stable**           |
 
 本条目不再因稳定性同步而追加正文；若后续编辑 WORKLOG，须重新执行 Post-Edit 验证。
 
@@ -687,17 +687,17 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 ### Cross-Document Consistency
 
-| Item | Status |
-|---|---|
-| DEC-003-A | Accepted |
-| DEC-003-B | Accepted |
-| DEC-003-C | Accepted |
-| DEC-003-D | Accepted |
-| DEC-003-E | Investigation recorded；implementation / 配置方案 **未批准** |
-| Phase 3 | **specified / implementation gated / not started** |
-| Phase 4 | **not started** |
-| Shared Core | **not an approved phase / deferred** |
-| Trailing-slash implementation | 须单独批准（§20 调查 ≠ 实施方案） |
+| Item                          | Status                                                       |
+| ----------------------------- | ------------------------------------------------------------ |
+| DEC-003-A                     | Accepted                                                     |
+| DEC-003-B                     | Accepted                                                     |
+| DEC-003-C                     | Accepted                                                     |
+| DEC-003-D                     | Accepted                                                     |
+| DEC-003-E                     | Investigation recorded；implementation / 配置方案 **未批准** |
+| Phase 3                       | **specified / implementation gated / not started**           |
+| Phase 4                       | **not started**                                              |
+| Shared Core                   | **not an approved phase / deferred**                         |
+| Trailing-slash implementation | 须单独批准（§20 调查 ≠ 实施方案）                            |
 
 ### Outstanding Findings
 
@@ -853,3 +853,49 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 **未执行：** SEO 测试重跑；CI / Live HTTP 验证。
 
 **Commit / push：** `330ae02` → `origin/main`；HEAD 指针跟进 `ff59f65`（见 STATUS Current HEAD）。
+
+---
+
+## 2026-11-04 — Phase 4.0 Kickoff：ballgames R1 Spec + 部署 gate 调整
+
+**Git HEAD（任务开始）：** `975f7da8ecd6816ac8d1d0b955237ba0d5d9d344` · **工作区：** 干净（文档变更前）
+
+**用户授权：** 正式启动 Phase 4（Ballgames R1 Implementation）；**本次仅 Phase 4.0** — 无业务代码。
+
+**部署策略决策（用户）：**
+
+- GitHub Pages CI（`configure-pages@v5`）**不再**作为 Phase 4 前置条件。
+- 正式部署目标：**Cloudflare Pages**（构建/路由/SEO/域名 → 部署阶段验证）。
+- **保留历史事实：** GitHub Pages CI **NOT VERIFIED**；Node 20 Actions build **NOT VERIFIED**；不得改写为 PASS；不删除 Phase 3 验证报告。
+
+**已审查权威文档：** `AGENTS.md` · `specs/00-project-charter.md` · Phase 2/3 Spec · `specs/ballgames/ballgames-specs-v1.md` · `specs/instances/ballgames/README.md` · `specs/04-config-and-content-models.md` · `specs/seo/*` · ADR 0003 · architecture-consistency-review / conflict-matrix · ADR 0002/0004/0005（Proposed 边界记入 Phase 4 Spec）。
+
+**Phase 3 代码集成点（审查 @ HEAD）：**
+
+- `lib/site/instances/ballgames.ts` — SiteInstance + PortalHome **draft** fixture。
+- `lib/urls/site-url.ts` — `siteUrl` / `gameUrl`。
+- `lib/seo/production-state.ts` — production sitemap **0 URL**（预期）。
+- `lib/seo/routes.ts` — `/hockey-bros` routeExists **false**。
+- `app/page.tsx` — 仍为 starter 博客首页。
+- `contentlayer.config.ts` — 仅 Blog + Authors。
+- `lib/seo/structured-data.ts` — PortalHome fixture JSON-LD；Organization **未输出**（缺证据）。
+
+**识别的冲突 / 风险（摘要）：**
+
+- ACM-004 Catalog/Detail 生命周期 — Phase 4.1 前需决策或 R1 默认。
+- ACM-018/019 iframe vs embed 许可 — ADR 0004 方案 C；生产 embed **MANUAL REVIEW**。
+- ACM-016/017 Organization/VideoGame — 缺证据字段须省略。
+- ACM-024 R1 广告 DOM 槽 — **MANUAL REVIEW**。
+- conflict-matrix 部分行与 Phase 3 已实现代码 **文档漂移**（以终验 v5 + 代码为准）。
+
+**交付：**
+
+- 新增 [`specs/phases/04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md)（Objective、批次 4.0–4.7、验收、Manual review）。
+- 更新 `docs/agent/STATUS.md` — Phase 4 **4.0 ACTIVE**；4.1+ **NOT STARTED**。
+- 本 WORKLOG 条目。
+
+**未执行：** Phase 4.1+ 业务代码；GitHub Pages workflow 修复；Cloudflare 配置；依赖升级。
+
+**验证（Phase 4.0）：** `git diff --check`；Prettier check on touched markdown（见 Phase 4.0 审查报告）。
+
+**下一步：** 用户审查 Phase 4.0 → 授权 Phase 4.1（内容模型与 Catalog）。
