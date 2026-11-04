@@ -5,7 +5,7 @@
 - **Archetype：** `game-portal`
 - **首实例：** ballgames.io
 - **文档日期：** 2026-11-02
-- **实现状态：** 机制已落地（Batch 0–3 @ `4514c3f` 及后续 SEO 提交至 **`f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9`** 代码验证基线）；Current HEAD **`5bbda06`** 为 Agent 文档同步，**非**新代码验证
+- **实现状态：** 机制已落地（Batch 0–3 @ `4514c3f` 及后续 SEO 提交至 **`f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9`** 代码验证基线）；Current HEAD **`330ae02`** 为 Agent 文档同步，**非**新代码验证
 - **阶段结论：** **READY WITH EXTERNAL BLOCKERS**（与 STATUS / 终验 v5 一致）
 - **关键决策：** ADR 0003 **Accepted**（DEC-003-A–F）；F1 `trailingSlash: false` 已落地；DEC-003-F Legacy indexability 已批准并应用
 
@@ -404,7 +404,7 @@ Rich Results Test 只能辅助语法/类型检查，不证明 Google 必然展�
 
 ### 13.1 Capability status（文档同步 @ 2026-11-04）
 
-**Current HEAD（Agent 文档）：** `5bbda06dd607b16ef4749031f78fcab83b03ab40`（文档同步，非代码验证）。
+**Current HEAD（Agent 文档）：** `330ae02ea8bb6c207bbf67dcafdc0ea2e343a8c3`（文档同步，非代码验证）。
 
 **Phase 3 Code Validation Baseline：** `f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9`（Sitemap lastmod 兼容 + batch2 **20** tests @ Node 22.14.0，见 [`phase-3-final-validation.md`](../../docs/agent/reports/phase-3-final-validation.md) §F）。
 

@@ -1,6 +1,6 @@
 # Phase 3 — Final Validation
 
-- **报告版本：** 5（Agent 文档基线同步 @ Current HEAD `5bbda06`）
+- **报告版本：** 5（Agent 文档基线同步 @ Current HEAD `330ae02`）
 - **最后更新：** 2026-11-04
 
 ---
@@ -9,9 +9,9 @@
 
 | 角色 | SHA | 说明 |
 |---|---|---|
-| **Current HEAD** | `5bbda06dd607b16ef4749031f78fcab83b03ab40` | `docs(seo): align agent status with f2ea1b2 on main` — **仅文档** |
+| **Current HEAD** | `330ae02ea8bb6c207bbf67dcafdc0ea2e343a8c3` | `docs(seo): finalize Phase 3 agent docs and spec baseline` — **仅文档** |
 | **Phase 3 Code Validation Baseline** | `f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9` | lastmod 无时区兼容 + 测试（§F） |
-| **Documentation sync** | `5bbda06` | 不改变 `f2ea1b2` 代码验证结论 |
+| **Documentation sync** | `330ae02`、`5bbda06` | 不改变 `f2ea1b2` 代码验证结论 |
 
 ---
 
@@ -26,7 +26,8 @@
 | `29e526bf0dc819e7e3c1357502b124d3fb39064f` | priority / lastmod 边界（§E） |
 | `f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9` | lastmod 无时区兼容（§F，**代码验证基线**） |
 | `d02c69e7c2a9de29a97fe25547f57ff7abc6a4b3` | 文档：记录 `29e526b` push |
-| `5bbda06dd607b16ef4749031f78fcab83b03ab40` | 文档：对齐 `f2ea1b2` Agent 状态（**Current HEAD**） |
+| `5bbda06dd607b16ef4749031f78fcab83b03ab40` | 文档：对齐 `f2ea1b2` Agent 状态 |
+| `330ae02ea8bb6c207bbf67dcafdc0ea2e343a8c3` | 文档：Phase 3 终验 v5 + Spec §13.1（**Current HEAD**） |
 
 ---
 
@@ -39,6 +40,7 @@
 | **`@1ef3f2e`** | Strictness（§D） |
 | **`@29e526b`** | priority / lastmod 边界（§E） |
 | **`@f2ea1b2`** | lastmod 无时区兼容（§F，**代码**） |
+| **`@330ae02`** | Agent 文档终同步（**非**代码验证；**Current HEAD**） |
 | **`@5bbda06`** | Agent 文档同步（**非**代码验证） |
 | **BLOCKED / NOT VERIFIED** | 见下表 |
 
@@ -46,7 +48,7 @@
 
 | 项目 | 状态 |
 |---|---|
-| Node 22 本地历史验证（`@f2ea1b2` §F） | **PASS**（历史提交前/时记录，**非** `@5bbda06` 重跑） |
+| Node 22 本地历史验证（`@f2ea1b2` §F） | **PASS**（历史记录，**非** `@330ae02` 重跑） |
 | 最新 HEAD GitHub CI | **NOT VERIFIED** |
 | Node 20 构建 | **NOT VERIFIED** |
 | GitHub Pages configure-pages（历史 run） | **BLOCKED**（基础设施；非 build fail/pass） |
@@ -106,7 +108,7 @@
 | 已知失败 | **`actions/configure-pages@v5`** — Pages 未按 Actions 配置 |
 | 该 run | Checkout / Setup Node 20 **成功**；**未** `yarn` / **未** `yarn build` |
 | 归类 | **基础设施 BLOCKED** — **非** Node 20 build fail/pass |
-| CI @ Current HEAD `5bbda06` | **NOT VERIFIED** |
+| CI @ Current HEAD `330ae02` | **NOT VERIFIED** |
 
 ---
 
@@ -121,7 +123,7 @@
 ### **READY WITH EXTERNAL BLOCKERS**
 
 1. Phase 3 **代码层**历史验证已通过（至 **`@f2ea1b2` §F**）。
-2. Agent 文档与验证证据基线已同步（**Current HEAD `5bbda06`** 为文档提交，不扩展代码证据）。
+2. Agent 文档与验证证据基线已同步（**Current HEAD `330ae02`** 为文档提交，不扩展代码证据）。
 3. **最新 HEAD CI：** **NOT VERIFIED**。
 4. **Node 20：** **NOT VERIFIED**。
 5. **GitHub Pages / Live HTTP：** **BLOCKED**。
