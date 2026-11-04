@@ -915,3 +915,56 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 **验证：** `git diff --check` PASS；`npx prettier@3.8.1 --check` PASS（四文件）；`yarn prettier` NOT RUN。详见 [`phase-4.0-review.md`](reports/phase-4.0-review.md) §4。
 
 **下一步：** Phase 4.0 文档验收 → 用户授权 Phase 4.1。
+
+---
+
+## 2026-11-04 — Phase 4.1：Catalog / Data Contract
+
+**Git HEAD（任务开始）：** `5e6b6b1b3ac01901ce1fb3aea77ff0495266662b`（pointer-only documentation sync）· **Last substantive Phase 4.0 revision：** `87adf9866c8f8bb6f9eb4898b8618ced8d8abf49` · **分支：** `main` · **工作区：** 未提交（本批次）
+
+**用户授权：** Phase 4.1 Catalog / Data Contract。**未**授权 4.2+ 页面、SEO 集成、Shared Core、CI / Cloudflare。
+
+### Preflight
+
+- **F4.0-FIX-01：** `specs/phases/04-ballgames-r1.md` §7.5 第 5 条「§7.5.2」改为本节第 2 条（该子节不存在）。全文无其他失效 `§7.5.x` 引用。
+- **F4.0-FIX-02：** STATUS 不再把 `87adf98` 写成 Current HEAD。字段改为 **Last substantive Phase 4.0 revision** = `87adf98`；`5e6b6b1` 标明 pointer-only。
+
+### 实施选择（相对 Phase Spec 4.1 字面「contentlayer Game」）
+
+- 物理存储采用 **TypeScript 模块 + 只读 adapter**（沿用 Phase 3 `lib/site` 模式），**未**新增 contentlayer `Game` document type。
+- 依据：ADR 0002 仍为 Proposed，且不固定物理格式；跨记录唯一性 / Embed / published 约束无法单靠 contentlayer schema 表达；用户任务要求优先复用现有设计，且禁止提前接页面。
+- PortalHome 真实内容源仍为 Phase 3 draft fixture → **留待 4.5**（用户 4.1 任务未要求 PortalHome 页面内容）。
+
+### 交付
+
+- `lib/catalog/*` — 类型、校验、adapter、ballgames 实例数据
+- `scripts/catalog-tests.mjs` / `test:catalog` — 18 tests（含负向约束）
+- `scripts/validate-catalog.mjs` / `validate:catalog` — schema PASS + readiness 报告（BLOCKED / MANUAL REVIEW）
+
+### Catalog 事实
+
+| 项                                  | 结果                                                                                              |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 生产首页 `published` + `showOnHome` | **1**（`hockey-bros`）                                                                            |
+| Spec 列出的其余 Bros slug           | **9** 条 `draft`，无 `primaryUrl`                                                                 |
+| 虚构 URL / Provider / granted embed | **无**                                                                                            |
+| Embed                               | 全部 `unknown`；`cspFrameSrcVerified: false`                                                      |
+| 详情内容                            | 仅 `hockey-bros`（正文来自产品 Spec §6；studio/日期仍 VERIFICATION REQUIRED，未写 `publishedAt`） |
+
+### 验证（Node 22.14.0，本次执行）
+
+| Command                    | Exit | Result                                       |
+| -------------------------- | ---- | -------------------------------------------- |
+| `yarn typecheck`           | 0    | PASS                                         |
+| `yarn test:catalog`        | 0    | PASS（**18**）                               |
+| `yarn test:batch1`         | 0    | PASS（**10**）                               |
+| `yarn test:batch2`         | 0    | PASS（**20**）                               |
+| `yarn validate:seo`        | 0    | PASS                                         |
+| `yarn validate:catalog`    | 0    | schema PASS；readiness **BLOCKED**           |
+| `yarn next lint --dir lib` | 0    | PASS                                         |
+| `git diff --check`         | 0    | PASS                                         |
+| export / live HTTP / CI    | —    | **NOT RUN** / **NOT VERIFIED** / **BLOCKED** |
+
+**未执行：** commit / push；Phase 4.2；首页 UI；详情页 UI；contentlayer Game 类型；Shared Core。
+
+**下一步：** 停止。等待用户审查 4.1 并明确授权 4.2。

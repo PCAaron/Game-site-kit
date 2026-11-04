@@ -1,0 +1,429 @@
+import { assertValidGameSlug } from '../urls/site-url'
+import { SiteConfigError } from '../site/types'
+import {
+  AVAILABILITY_STATES,
+  CARD_ACTIONS,
+  CatalogError,
+  DEFAULT_SEO_INDEXABLE,
+  EMBED_PERMISSION_STATUSES,
+  LAUNCH_MODES,
+  PUBLICATION_STATUSES,
+  R1_DETAIL_CONTENT_SLUG,
+  R1_INDEXABLE_GAME_SLUG,
+  type Availability,
+  type Catalog,
+  type CatalogGame,
+  type EmbedPermission,
+  type GameDetailContent,
+  type LaunchConfig,
+  type Provider,
+  type PublicationStatus,
+} from './types'
+
+const PLACEHOLDER_HOST_RE = /(^|\.)(example\.(com|org|net)|localhost|invalid|placeholder)$/i
+const BLOCKED_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1'])
+
+function fail(code: string, message: string): never {
+  throw new CatalogError(code, message)
+}
+
+function assertNonEmpty(value: unknown, code: string, message: string): asserts value is string {
+  if (typeof value !== 'string' || !value.trim()) {
+    fail(code, message)
+  }
+}
+
+function isHttpsAbsoluteUrl(value: string): boolean {
+  let url: URL
+  try {
+    url = new URL(value)
+  } catch {
+    return false
+  }
+  if (url.protocol !== 'https:') return false
+  if (url.username || url.password) return false
+  return true
+}
+
+function isPlaceholderUrl(value: string): boolean {
+  let url: URL
+  try {
+    url = new URL(value)
+  } catch {
+    return true
+  }
+  const host = url.hostname.toLowerCase()
+  if (BLOCKED_HOSTS.has(host)) return true
+  if (PLACEHOLDER_HOST_RE.test(host)) return true
+  if (/todo|changeme|your-game|placeholder|invalid/i.test(url.href)) return true
+  return false
+}
+
+function assertValidHttpsUrl(value: string, code: string, label: string): void {
+  if (!isHttpsAbsoluteUrl(value)) {
+    fail(code, `${label} must be an absolute https URL`)
+  }
+  if (isPlaceholderUrl(value)) {
+    fail('CATALOG_LAUNCH_URL_PLACEHOLDER', `${label} must not use a placeholder or fictitious host`)
+  }
+}
+
+function assertPublicationStatus(status: unknown): asserts status is PublicationStatus {
+  if (typeof status !== 'string' || !PUBLICATION_STATUSES.includes(status as PublicationStatus)) {
+    fail(
+      'CATALOG_PUBLICATION_STATUS_INVALID',
+      'publicationStatus must be draft, published, or archived'
+    )
+  }
+}
+
+function hasCompleteDetail(detail: GameDetailContent | undefined): detail is GameDetailContent {
+  if (!detail) return false
+  return (
+    typeof detail.intro === 'string' &&
+    detail.intro.trim().length > 0 &&
+    typeof detail.howToPlay === 'string' &&
+    detail.howToPlay.trim().length > 0 &&
+    Array.isArray(detail.sections) &&
+    detail.sections.length > 0 &&
+    Array.isArray(detail.faq) &&
+    detail.faq.length > 0 &&
+    Array.isArray(detail.controls) &&
+    detail.controls.length > 0
+  )
+}
+
+function assertLaunch(game: CatalogGame): void {
+  const launch = game.launch
+  if (!launch || (launch.verification !== 'verified' && launch.verification !== 'unverified')) {
+    fail('CATALOG_FIELD_REQUIRED', `${game.slug}: launch.verification is required`)
+  }
+
+  if (launch.verification === 'unverified') {
+    if ('primaryUrl' in launch && launch.primaryUrl) {
+      fail(
+        'CATALOG_UNVERIFIED_LAUNCH_HAS_URL',
+        `${game.slug}: unverified launch must not record a primaryUrl`
+      )
+    }
+    return
+  }
+
+  if (!LAUNCH_MODES.includes(launch.mode)) {
+    fail('CATALOG_LAUNCH_MODE_INVALID', `${game.slug}: launch.mode is invalid`)
+  }
+  assertNonEmpty(
+    launch.primaryUrl,
+    'CATALOG_FIELD_REQUIRED',
+    `${game.slug}: launch.primaryUrl is required`
+  )
+  assertValidHttpsUrl(
+    launch.primaryUrl,
+    'CATALOG_LAUNCH_URL_INVALID',
+    `${game.slug}: launch.primaryUrl`
+  )
+}
+
+function assertProvider(provider: Provider): void {
+  assertNonEmpty(provider.id, 'CATALOG_FIELD_REQUIRED', 'provider.id is required')
+  assertNonEmpty(
+    provider.name,
+    'CATALOG_FIELD_REQUIRED',
+    `provider ${provider.id}: name is required`
+  )
+  if (provider.verification !== 'verified' && provider.verification !== 'unverified') {
+    fail(
+      'CATALOG_PROVIDER_VERIFICATION_INVALID',
+      `provider ${provider.id}: verification is invalid`
+    )
+  }
+  if (provider.verification === 'verified') {
+    assertNonEmpty(
+      provider.site,
+      'CATALOG_PROVIDER_SITE_REQUIRED',
+      `provider ${provider.id}: verified provider requires site`
+    )
+    assertValidHttpsUrl(
+      provider.site,
+      'CATALOG_PROVIDER_SITE_INVALID',
+      `provider ${provider.id}: site`
+    )
+  }
+  if (
+    provider.defaultEmbedPermission !== undefined &&
+    !EMBED_PERMISSION_STATUSES.includes(provider.defaultEmbedPermission)
+  ) {
+    fail(
+      'CATALOG_EMBED_STATUS_INVALID',
+      `provider ${provider.id}: defaultEmbedPermission is invalid`
+    )
+  }
+}
+
+function assertEmbedPermission(permission: EmbedPermission, catalog: Catalog): void {
+  assertNonEmpty(permission.id, 'CATALOG_FIELD_REQUIRED', 'embedPermission.id is required')
+  assertNonEmpty(
+    permission.providerId,
+    'CATALOG_FIELD_REQUIRED',
+    `embedPermission ${permission.id}: providerId is required`
+  )
+  if (!catalog.providers.some((provider) => provider.id === permission.providerId)) {
+    fail(
+      'CATALOG_EMBED_PROVIDER_MISSING',
+      `embedPermission ${permission.id}: providerId ${permission.providerId} does not exist`
+    )
+  }
+  if (!EMBED_PERMISSION_STATUSES.includes(permission.status)) {
+    fail('CATALOG_EMBED_STATUS_INVALID', `embedPermission ${permission.id}: status is invalid`)
+  }
+  assertNonEmpty(
+    permission.permissionBasis,
+    'CATALOG_FIELD_REQUIRED',
+    `embedPermission ${permission.id}: permissionBasis is required`
+  )
+  if (typeof permission.cspFrameSrcVerified !== 'boolean') {
+    fail(
+      'CATALOG_EMBED_CSP_FLAG_REQUIRED',
+      `embedPermission ${permission.id}: cspFrameSrcVerified must be a boolean`
+    )
+  }
+  if (permission.status === 'granted' && !permission.permissionBasis.trim()) {
+    fail(
+      'CATALOG_EMBED_GRANTED_WITHOUT_BASIS',
+      `embedPermission ${permission.id}: granted requires a non-empty permissionBasis`
+    )
+  }
+  if (permission.sourceUrl) {
+    assertValidHttpsUrl(
+      permission.sourceUrl,
+      'CATALOG_EMBED_SOURCE_URL_INVALID',
+      `embedPermission ${permission.id}: sourceUrl`
+    )
+  }
+}
+
+function assertDetail(game: CatalogGame): void {
+  const detail = game.detail
+  if (game.slug !== R1_DETAIL_CONTENT_SLUG) {
+    if (detail?.seo?.indexable === true) {
+      fail(
+        'CATALOG_INDEXABLE_NOT_ALLOWED',
+        `${game.slug}: R1 only ${R1_INDEXABLE_GAME_SLUG} may set seo.indexable true`
+      )
+    }
+    if (detail) {
+      fail(
+        'CATALOG_DETAIL_NOT_ALLOWED',
+        `${game.slug}: R1 launcher-only games must not include Game Detail content`
+      )
+    }
+    return
+  }
+
+  if (!detail) {
+    if (game.publicationStatus === 'published') {
+      fail(
+        'CATALOG_DETAIL_REQUIRED',
+        `${game.slug}: published R1 indexable game requires complete Game Detail content`
+      )
+    }
+    return
+  }
+
+  const seo = detail.seo
+  if (!seo) {
+    fail('CATALOG_FIELD_REQUIRED', `${game.slug}: detail.seo is required`)
+  }
+  assertNonEmpty(seo.title, 'CATALOG_FIELD_REQUIRED', `${game.slug}: detail.seo.title is required`)
+  assertNonEmpty(
+    seo.description,
+    'CATALOG_FIELD_REQUIRED',
+    `${game.slug}: detail.seo.description is required`
+  )
+  if (typeof seo.indexable !== 'boolean') {
+    fail('CATALOG_INDEXABLE_REQUIRED', `${game.slug}: detail.seo.indexable must be a boolean`)
+  }
+  if ('canonical' in seo) {
+    fail(
+      'CATALOG_CANONICAL_URL_FORBIDDEN',
+      `${game.slug}: in-site canonical URL must not be stored on Catalog data; use gameUrl(slug)`
+    )
+  }
+  if (seo.indexable === true && game.slug !== R1_INDEXABLE_GAME_SLUG) {
+    fail(
+      'CATALOG_INDEXABLE_NOT_ALLOWED',
+      `${game.slug}: R1 only ${R1_INDEXABLE_GAME_SLUG} may set seo.indexable true`
+    )
+  }
+  if (seo.indexable === true && game.publicationStatus !== 'published') {
+    fail(
+      'CATALOG_INDEXABLE_REQUIRES_PUBLISHED',
+      `${game.slug}: seo.indexable true requires publicationStatus published`
+    )
+  }
+  if (seo.indexable === true && !hasCompleteDetail(detail)) {
+    fail(
+      'CATALOG_INDEXABLE_REQUIRES_DETAIL',
+      `${game.slug}: seo.indexable true requires complete Game Detail content`
+    )
+  }
+  if (game.publicationStatus === 'published' && !hasCompleteDetail(detail)) {
+    fail(
+      'CATALOG_DETAIL_INCOMPLETE',
+      `${game.slug}: published R1 detail game requires intro, howToPlay, sections, faq, and controls`
+    )
+  }
+}
+
+function assertR1CardAction(game: CatalogGame): void {
+  if (!CARD_ACTIONS.includes(game.cardAction)) {
+    fail('CATALOG_CARD_ACTION_INVALID', `${game.slug}: cardAction is invalid`)
+  }
+  if (game.slug === R1_DETAIL_CONTENT_SLUG) {
+    if (game.cardAction !== 'navigate-to-detail') {
+      fail('CATALOG_CARD_ACTION_INVALID', `${game.slug}: R1 cardAction must be navigate-to-detail`)
+    }
+    return
+  }
+  if (game.cardAction !== 'launcher-select') {
+    fail(
+      'CATALOG_CARD_ACTION_INVALID',
+      `${game.slug}: R1 launcher-only cardAction must be launcher-select`
+    )
+  }
+}
+
+export function isLaunchVerified(
+  launch: LaunchConfig
+): launch is Extract<LaunchConfig, { verification: 'verified' }> {
+  return launch.verification === 'verified'
+}
+
+export function isPublishedForHome(game: CatalogGame): boolean {
+  return game.publicationStatus === 'published' && game.showOnHome === true
+}
+
+export function validateGame(game: CatalogGame, catalog: Catalog): void {
+  assertNonEmpty(game.id, 'CATALOG_FIELD_REQUIRED', 'game.id is required')
+  assertNonEmpty(game.slug, 'CATALOG_FIELD_REQUIRED', 'game.slug is required')
+  try {
+    assertValidGameSlug(game.slug)
+  } catch (error) {
+    if (error instanceof SiteConfigError) {
+      fail('CATALOG_SLUG_INVALID', `${game.slug}: ${error.message}`)
+    }
+    throw error
+  }
+  if ('canonical' in game || 'canonicalUrl' in game || 'siteUrl' in game) {
+    fail(
+      'CATALOG_CANONICAL_URL_FORBIDDEN',
+      `${game.slug}: in-site canonical URL must not be stored on Catalog data; use gameUrl(slug) / siteUrl()`
+    )
+  }
+  assertNonEmpty(game.title, 'CATALOG_FIELD_REQUIRED', `${game.slug}: title is required`)
+  assertNonEmpty(game.providerId, 'CATALOG_FIELD_REQUIRED', `${game.slug}: providerId is required`)
+  assertNonEmpty(
+    game.embedPermissionId,
+    'CATALOG_FIELD_REQUIRED',
+    `${game.slug}: embedPermissionId is required`
+  )
+  assertPublicationStatus(game.publicationStatus)
+
+  if (typeof game.showOnHome !== 'boolean') {
+    fail('CATALOG_FIELD_REQUIRED', `${game.slug}: showOnHome must be a boolean`)
+  }
+  if (typeof game.homeSort !== 'number' || !Number.isFinite(game.homeSort)) {
+    fail('CATALOG_FIELD_REQUIRED', `${game.slug}: homeSort must be a number`)
+  }
+  if (
+    game.availability !== undefined &&
+    !AVAILABILITY_STATES.includes(game.availability as Availability)
+  ) {
+    fail('CATALOG_AVAILABILITY_INVALID', `${game.slug}: availability is invalid`)
+  }
+
+  const provider = catalog.providers.find((item) => item.id === game.providerId)
+  if (!provider) {
+    fail('CATALOG_PROVIDER_MISSING', `${game.slug}: providerId ${game.providerId} does not exist`)
+  }
+
+  const permission = catalog.embedPermissions.find((item) => item.id === game.embedPermissionId)
+  if (!permission) {
+    fail(
+      'CATALOG_EMBED_PERMISSION_MISSING',
+      `${game.slug}: embedPermissionId ${game.embedPermissionId} does not exist`
+    )
+  }
+  if (permission.gameSlug && permission.gameSlug !== game.slug) {
+    fail('CATALOG_EMBED_GAME_MISMATCH', `${game.slug}: embed permission gameSlug does not match`)
+  }
+
+  assertLaunch(game)
+  assertR1CardAction(game)
+  assertDetail(game)
+
+  if (game.publicationStatus === 'published') {
+    if (!isLaunchVerified(game.launch)) {
+      fail(
+        'CATALOG_PUBLISHED_REQUIRES_VERIFIED_LAUNCH',
+        `${game.slug}: published games require a verified launch.primaryUrl and mode`
+      )
+    }
+    if (provider.verification !== 'verified') {
+      fail(
+        'CATALOG_PUBLISHED_REQUIRES_VERIFIED_PROVIDER',
+        `${game.slug}: published games require a verified provider`
+      )
+    }
+  }
+
+  if (game.showOnHome && game.publicationStatus !== 'published') {
+    fail(
+      'CATALOG_SHOW_ON_HOME_REQUIRES_PUBLISHED',
+      `${game.slug}: unverified or unpublished games must not set showOnHome true`
+    )
+  }
+}
+
+export function validateCatalog(catalog: Catalog): void {
+  if (!catalog || !Array.isArray(catalog.providers) || !Array.isArray(catalog.games)) {
+    fail('CATALOG_FIELD_REQUIRED', 'catalog providers and games are required')
+  }
+  if (!Array.isArray(catalog.embedPermissions)) {
+    fail('CATALOG_FIELD_REQUIRED', 'catalog embedPermissions is required')
+  }
+
+  const providerIds = new Set<string>()
+  for (const provider of catalog.providers) {
+    if (providerIds.has(provider.id)) {
+      fail('CATALOG_PROVIDER_DUPLICATE', `duplicate provider id: ${provider.id}`)
+    }
+    providerIds.add(provider.id)
+    assertProvider(provider)
+  }
+
+  const permissionIds = new Set<string>()
+  for (const permission of catalog.embedPermissions) {
+    if (permissionIds.has(permission.id)) {
+      fail('CATALOG_EMBED_PERMISSION_DUPLICATE', `duplicate embedPermission id: ${permission.id}`)
+    }
+    permissionIds.add(permission.id)
+    assertEmbedPermission(permission, catalog)
+  }
+
+  const slugs = new Set<string>()
+  const ids = new Set<string>()
+  for (const game of catalog.games) {
+    if (ids.has(game.id)) {
+      fail('CATALOG_GAME_ID_DUPLICATE', `duplicate game id: ${game.id}`)
+    }
+    ids.add(game.id)
+    if (slugs.has(game.slug)) {
+      fail('CATALOG_SLUG_DUPLICATE', `duplicate game slug: ${game.slug}`)
+    }
+    slugs.add(game.slug)
+    validateGame(game, catalog)
+  }
+}
+
+export { DEFAULT_SEO_INDEXABLE }

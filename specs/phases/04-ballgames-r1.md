@@ -1,7 +1,7 @@
 # Phase 4 — ballgames.io R1 Implementation
 
 - **阶段编号：** 4
-- **状态：** **Phase 4.0 — Spec 已创建**（业务代码 **NOT STARTED**；4.0 文档验收 **待复核**）
+- **状态：** **Phase 4.1 — Catalog / Data Contract（实施中）**（4.0 文档已定点修订；业务页面 **NOT STARTED**）
 - **Archetype：** `game-portal`
 - **首实例：** ballgames.io
 - **文档日期：** 2026-11-04
@@ -163,7 +163,7 @@ showOnHome         ⇏  详情路由          ⇏  seo.indexable
 2. **`publicationStatus: 'published'`** 仅当该行的 `launch.primaryUrl`、Provider 关联、启动方式（`LaunchConfig.mode`）与 embed 许可记录 **已经人工核实**（许可见 §7.3、§11）。
 3. **未核实行** 必须保持 `draft`（或 `archived`），且 **`showOnHome` 不得为 true**（或校验失败）。可保留 placeholder 字段供编辑，但不得进入生产首页 grid 或 sitemap。
 4. **禁止** 猜测 URL、虚构 Provider、未经证实的 `primaryUrl` 或 launch mode。
-5. **R1 上线验收：** 凡出现在生产首页 grid 的 `published` 行，须满足 §7.5.2 核验；embed 生产 iframe 另须 `EmbedPermission.status === 'granted'` + CSP（§11）。
+5. **R1 上线验收：** 凡出现在生产首页 grid 的 `published` 行，须满足本节第 2 条核验（`launch.primaryUrl`、Provider、启动方式与 embed 许可记录已人工核实）；embed 生产 iframe 另须 `EmbedPermission.status === 'granted'` + CSP（§11）。
 6. **`unknown` ≠ `granted`。** 未确认或未获授权的 embed **不得**启用生产 iframe；可 `published` + 外链回退（ADR 0004 方案 C）。
 7. **阻塞清单：** 未完成的 Catalog 核验项须写入 Agent 报告 / Manual review，不得静默标记为 `published`。
 
@@ -312,16 +312,17 @@ Phase 4 **整体**完成（4.7 后）须满足：
 
 Phase 4.0 alone（文档；**不**等于业务实现）：
 
-| 项目                 | 状态                                          |
-| -------------------- | --------------------------------------------- |
-| Phase 4.0 Spec 创建  | **DONE**（@ `866343e` 初稿 + 定点修订）       |
-| Phase 4.0 文档验收   | **待复核**（定点修订完成后由用户/审查方确认） |
-| Phase 4 业务页面实现 | **NOT STARTED**                               |
-| Phase 4.1 授权       | **PENDING**                                   |
+| 项目                 | 状态                                         |
+| -------------------- | -------------------------------------------- |
+| Phase 4.0 Spec 创建  | **DONE**（@ `866343e` 初稿 + 定点修订）      |
+| Phase 4.0 文档验收   | 用户已授权 Phase 4.1；定点修订 SHA `87adf98` |
+| Phase 4.1 授权       | **Satisfied**                                |
+| Phase 4.1 Catalog    | **IMPLEMENTED WITH BLOCKERS**（见 STATUS）   |
+| Phase 4 业务页面实现 | **NOT STARTED**（4.2+）                      |
 
 - [x] 本文档存在且与 ballgames v1、Phase 3、ADR 0003 一致（定点修订后）。
 - [x] STATUS / WORKLOG / [`phase-4.0-review.md`](../../docs/agent/reports/phase-4.0-review.md) 与仓库状态一致（定点修订任务完成后）。
-- [x] 业务页面 **NOT STARTED**（诚实状态；文档完成 ≠ 页面实现）。
+- [x] 业务页面 **NOT STARTED**（诚实状态；Catalog 契约 ≠ 页面实现）。
 
 ## 15. Manual review items
 
