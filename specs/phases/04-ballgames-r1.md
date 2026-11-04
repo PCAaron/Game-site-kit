@@ -1,7 +1,7 @@
 # Phase 4 — ballgames.io R1 Implementation
 
 - **阶段编号：** 4
-- **状态：** **Phase 4.0 — Spec 已批准启动**（业务代码 **NOT STARTED**）
+- **状态：** **Phase 4.0 — Spec 已创建**（业务代码 **NOT STARTED**；4.0 文档验收 **待复核**）
 - **Archetype：** `game-portal`
 - **首实例：** ballgames.io
 - **文档日期：** 2026-11-04
@@ -57,7 +57,8 @@
 - contentlayer2 扩展：**独立 `Game` 文档类型**（ADR 0002 推荐方案 B；单记录可合并 Catalog + 可选 Detail 字段组）。
 - **PortalHome** 独立内容包（非 Blog、非 Game 伪装）。
 - **Provider**、**LaunchConfig**、**EmbedPermission**（或等价结构化字段）可校验数据源。
-- R1：**15–20** 条 `published` Catalog 行；**仅 `hockey-bros`** 完整 Detail + `seo.indexable === true`；其余 launcher-only。
+- R1：首页 **15–20** 张可启动游戏卡（产品目标）；Catalog 可含更多 **draft** 行用于筹备，但 **不得**为凑数发布未核实数据（见 §7.5）。
+- **仅 `hockey-bros`** 完整 Detail + `seo.indexable === true`；其余 launcher-only。
 - `publicationStatus`、`availability`、`showOnHome`、`homeSort`、页面级 `seo.indexable`。
 
 ### 4.3 组件与 Launcher
@@ -119,14 +120,14 @@
 
 ### 6.2 与 ADR / 冲突矩阵
 
-| ID                | 主题                          | Phase 4 处理                                                                                             |
-| ----------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------- |
-| ACM-004           | Catalog vs Detail 生命周期    | 实施前用户确认 archived Catalog + published Detail 策略；R1 默认同行 `published` 或 Detail 包独立 status |
-| ACM-014 / ACM-015 | 存储与 Catalog adapter        | 采用 ADR 0002 方案 B；页面经只读 adapter，不直接耦合 UI 与 generated 类型                                |
-| ACM-016 / ACM-017 | Organization / VideoGame 证据 | 缺证据字段 **省略**；不得为 DoD 凑数                                                                     |
-| ACM-018 / ACM-019 | iframe vs 治理 / Embed 许可   | ADR 0004 方案 C：**granted + CSP 验证** 才生产 iframe；否则外链回退 + 配置边界；**unknown 非 granted**   |
-| ACM-024           | R1 广告槽                     | 无 provider DOM 占位 vs 推迟 — **MANUAL REVIEW**（产品 §6.3 要求槽位）                                   |
-| ACM-031           | Phase 3/4 边界                | 本阶段完成 production sitemap + 页面 JSON-LD；不得提前 index 未实现路由                                  |
+| ID                | 主题                          | Phase 4 处理                                                                                                                                                                                                                                        |
+| ----------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ACM-004           | Catalog vs Detail 生命周期    | **R1 策略（本 Spec；不改 ADR 状态）：** 单条 `Game` 统一 `publicationStatus`；不引入 Catalog/Detail 双生命周期。仅 `hockey-bros` 含完整 Detail；仅其 `seo.indexable === true`。ACM-004 矩阵仍为 Pending — R2+ 若需分离发布态，须新 ADR + 用户批准。 |
+| ACM-014 / ACM-015 | 存储与 Catalog adapter        | 采用 ADR 0002 方案 B；页面经只读 adapter，不直接耦合 UI 与 generated 类型                                                                                                                                                                           |
+| ACM-016 / ACM-017 | Organization / VideoGame 证据 | 缺证据字段 **省略**；不得为 DoD 凑数                                                                                                                                                                                                                |
+| ACM-018 / ACM-019 | iframe vs 治理 / Embed 许可   | ADR 0004 方案 C：**granted + CSP 验证** 才生产 iframe；否则外链回退 + 配置边界；**unknown 非 granted**                                                                                                                                              |
+| ACM-024           | R1 广告槽                     | 无 provider DOM 占位 vs 推迟 — **MANUAL REVIEW**（产品 §6.3 要求槽位）                                                                                                                                                                              |
+| ACM-031           | Phase 3/4 边界                | 本阶段完成 production sitemap + 页面 JSON-LD；不得提前 index 未实现路由                                                                                                                                                                             |
 
 **矩阵文档漂移：** `architecture-conflict-matrix.md` 部分行仍写 Phase 3「未实现」；以 **当前代码 + Phase 3 终验 v5** 为准，矩阵更新非 Phase 4.0 范围（需单独文档授权）。
 
@@ -152,6 +153,19 @@ showOnHome         ⇏  详情路由          ⇏  seo.indexable
 - **Catalog 必填（R1 全部行）：** `slug`, `title`, `providerId`, `launch`, `publicationStatus`, `showOnHome`, `homeSort`；推荐 `thumbnail`, `availability`。
 - **Detail 必填（仅 indexable 行）：** `seo`（title, description, indexable）, `intro`, `howToPlay`, `sections[]`, `faq[]`, `controls[]`, `publishedAt`, `updatedAt`。
 - **字段名：** 架构统一 `publicationStatus`（DEC-003-B）；产品 §2 `status` 为简写。
+- **R1 生命周期：** 每条 `Game` **一条** `publicationStatus`（`draft` | `published` | `archived`）。逻辑上仍区分 Catalog 字段组与 Detail 字段组，但 **不**维护两套独立发布状态字段。
+
+### 7.5 Catalog 发布与数据核验（R1）
+
+下列规则优先于「凑满 15–20 条」的数量目标：
+
+1. **数量目标不是发布未核实数据的理由。** 15–20 张首页卡是产品展示目标；未达目标时不得用猜测数据填充 `published` 行。
+2. **`publicationStatus: 'published'`** 仅当该行的 `launch.primaryUrl`、Provider 关联、启动方式（`LaunchConfig.mode`）与 embed 许可记录 **已经人工核实**（许可见 §7.3、§11）。
+3. **未核实行** 必须保持 `draft`（或 `archived`），且 **`showOnHome` 不得为 true**（或校验失败）。可保留 placeholder 字段供编辑，但不得进入生产首页 grid 或 sitemap。
+4. **禁止** 猜测 URL、虚构 Provider、未经证实的 `primaryUrl` 或 launch mode。
+5. **R1 上线验收：** 凡出现在生产首页 grid 的 `published` 行，须满足 §7.5.2 核验；embed 生产 iframe 另须 `EmbedPermission.status === 'granted'` + CSP（§11）。
+6. **`unknown` ≠ `granted`。** 未确认或未获授权的 embed **不得**启用生产 iframe；可 `published` + 外链回退（ADR 0004 方案 C）。
+7. **阻塞清单：** 未完成的 Catalog 核验项须写入 Agent 报告 / Manual review，不得静默标记为 `published`。
 
 ### 7.2 PortalHomeContent
 
@@ -162,7 +176,7 @@ showOnHome         ⇏  详情路由          ⇏  seo.indexable
 ### 7.3 Provider / EmbedPermission
 
 - 每条 `launch.primaryUrl` 映射 Provider；embed 状态为 **数据字段**（`granted` | `requested` | `denied` | `unknown`）。
-- R1 Catalog `primaryUrl`：**人工填满** — Agent 不得虚构；未核实 URL 用 placeholder + `draft` 或 blocking 清单。
+- R1 Catalog `primaryUrl`：**仅人工核实后写入 `published` 行** — Agent 不得虚构。未核实内容保持 `draft`，列入 §7.5 阻塞清单，**不得**用 placeholder 冒充可发布 Catalog。
 
 ### 7.4 Card action 配置
 
@@ -237,18 +251,52 @@ showOnHome         ⇏  详情路由          ⇏  seo.indexable
 
 各批次 **独立授权、独立验收**；不得跨批次合并未验收工作宣称 Phase 4 完成。
 
-| Batch   | 名称                   | 范围                                                              | 主要交付                          | 验收要点                                          |
-| ------- | ---------------------- | ----------------------------------------------------------------- | --------------------------------- | ------------------------------------------------- |
-| **4.0** | Spec 与规划            | 本文档、STATUS、WORKLOG                                           | 无业务代码                        | Spec 完整、批次可执行                             |
-| **4.1** | 内容模型与 adapter     | contentlayer `Game`、PortalHome 源、Provider/Embed 数据、校验脚本 | 类型 + 15–20 行数据（URL 人工填） | build 生成；校验 publication/indexable 分层       |
-| **4.2** | 路由与 descriptor 注册 | `app/[slug]`、`isAppRoutePath`、production descriptors            | 静态路由仅 hockey-bros            | generateStaticParams；无 launcher-only 详情页     |
-| **4.3** | Launcher 与卡片        | GameCard、GameGrid、PlayFrame、Launcher                           | 可 Storybook/临时页或并入 4.4     | 首页 button/a 行为；8s 兜底；无第二 iframe        |
-| **4.4** | Portal Home 页面       | `app/page.tsx`、正文+FAQ、metadata                                | 可见首页                          | TDK、词频、iframe 唯一、legacy `/` 切换 indexable |
-| **4.5** | Hockey Bros 详情       | 详情模板、正文、Related、Breadcrumbs                              | `/hockey-bros` 200                | §6 DoD 结构；Related scrollIntoView               |
-| **4.6** | SEO 生产集成           | sitemap exact-two、页面 JSON-LD、grep 硬编码                      | `validate:seo` export             | 2 URL sitemap；FAQ JSON-LD 一致                   |
-| **4.7** | R1 终验                | typecheck、batch tests、export、Agent 报告                        | phase-4-final-validation.md       | ballgames §8 DoD 逐项；**非** Cloudflare live     |
+| Batch   | 名称                         | 范围                                                                  | 主要交付                                  | 验收要点                                        |
+| ------- | ---------------------------- | --------------------------------------------------------------------- | ----------------------------------------- | ----------------------------------------------- |
+| **4.0** | Spec Review                  | 本文档、STATUS、WORKLOG、审查报告                                     | 无业务代码                                | Spec 一致、批次依赖明确、Catalog 发布规则无歧义 |
+| **4.1** | Catalog / Data Contract      | contentlayer `Game`、PortalHome 源、Provider/Embed、校验脚本          | 类型 + 已核实 `published` 行 + draft 筹备 | §7.5 校验；禁止未核实 `published`               |
+| **4.2** | Route / Metadata Integration | `app/[slug]`、`isAppRoutePath`、production descriptors、metadata 接线 | 静态详情路由仅 hockey-bros                | generateStaticParams；descriptor 与 resolver    |
+| **4.3** | Homepage / PlayFrame         | GameCard、GameGrid、PlayFrame、Launcher；首页可玩区与 grid 壳层       | 组件 + `/` 可玩区（完整 SEO 正文可 4.5）  | 单 iframe；button/a 行为；8s 兜底               |
+| **4.4** | Hockey Bros Page             | 详情模板、正文、Related、Breadcrumbs                                  | `/hockey-bros` 200                        | §6 DoD 结构；Related scrollIntoView             |
+| **4.5** | Content / SEO Integration    | Portal SEO 正文+FAQ、页面 metadata、production sitemap、页面 JSON-LD  | exact-two sitemap；FAQ JSON-LD 与可见一致 | 2 URL；legacy `/` indexable 切换                |
+| **4.6** | Validation                   | `validate:seo` export、batch tests、硬编码 path grep                  | 集成测试报告                              | export XML/HTML；**非** Cloudflare live         |
+| **4.7** | Acceptance                   | typecheck、DoD 对照、Agent 终验报告                                   | `phase-4-final-validation.md`（待创建）   | ballgames §8；**非** 宣称 CI/部署 PASS          |
 
-**建议顺序：** 4.0 → 4.1 → 4.2 → 4.3 ∥ 4.4/4.5（4.4 依赖 4.3；4.5 依赖 4.3）→ 4.6 → 4.7。
+### 13.1 批次依赖（强制）
+
+```text
+4.0 Spec Review
+      |
+      v
+4.1 Catalog / Data Contract
+      |
+      v
+4.2 Route / Metadata Integration
+      |
+      v
+4.3 Homepage / PlayFrame
+      |
+      +-------------------+
+      |                   |
+      v                   v
+4.4 Hockey Bros Page   4.5 Content / SEO Integration
+      |                   |
+      +-------------------+
+              |
+              v
+      4.6 Validation
+              |
+              v
+      4.7 Acceptance
+```
+
+**并行规则：**
+
+1. **4.4** 与 **4.5** 均 **依赖 4.3** 完成（共享 Launcher / PlayFrame / Grid 组件）。
+2. 4.4 与 4.5 **可并行** 仅当修改文件范围无冲突；若同文件（如 `app/page.tsx`、共享 layout、production descriptors）冲突，须 **串行**（建议先 4.5 Portal 正文+metadata 壳，或按 WORKLOG 记录顺序）。
+3. **4.6** 须等待 **4.4 与 4.5 均验收**。
+4. **4.7** 须等待 **4.6** 验证完成。
+5. 不得因并行跳过集成验证或 export 检查。
 
 ## 14. Acceptance criteria
 
@@ -262,11 +310,18 @@ Phase 4 **整体**完成（4.7 后）须满足：
 - [ ] 无未经批准的依赖升级；Blog 未删除。
 - [ ] **不得**声称 GitHub Pages CI PASS、Node 20 CI PASS、Cloudflare 部署 PASS、embed 生产许可 PASS，除非有独立证据。
 
-Phase 4.0 alone：
+Phase 4.0 alone（文档；**不**等于业务实现）：
 
-- [x] 本文档存在且与 ballgames v1、Phase 3、ADR 0003 一致。
-- [x] STATUS / WORKLOG 反映 Phase 4 启动与 4.0 完成。
-- [ ] 业务页面 **NOT STARTED**（诚实状态）。
+| 项目                 | 状态                                          |
+| -------------------- | --------------------------------------------- |
+| Phase 4.0 Spec 创建  | **DONE**（@ `866343e` 初稿 + 定点修订）       |
+| Phase 4.0 文档验收   | **待复核**（定点修订完成后由用户/审查方确认） |
+| Phase 4 业务页面实现 | **NOT STARTED**                               |
+| Phase 4.1 授权       | **PENDING**                                   |
+
+- [x] 本文档存在且与 ballgames v1、Phase 3、ADR 0003 一致（定点修订后）。
+- [x] STATUS / WORKLOG / [`phase-4.0-review.md`](../../docs/agent/reports/phase-4.0-review.md) 与仓库状态一致（定点修订任务完成后）。
+- [x] 业务页面 **NOT STARTED**（诚实状态；文档完成 ≠ 页面实现）。
 
 ## 15. Manual review items
 
@@ -308,4 +363,5 @@ Phase 4.0 alone：
 - [`specs/phases/03-minimum-seo-foundation.md`](03-minimum-seo-foundation.md)
 - [`docs/agent/decisions/0003-site-instance-url-and-seo-source.md`](../../docs/agent/decisions/0003-site-instance-url-and-seo-source.md)
 - [`docs/agent/reports/phase-3-final-validation.md`](../../docs/agent/reports/phase-3-final-validation.md)
+- [`docs/agent/reports/phase-4.0-review.md`](../../docs/agent/reports/phase-4.0-review.md)
 - [`docs/architecture/architecture-conflict-matrix.md`](../../docs/architecture/architecture-conflict-matrix.md)

@@ -1,26 +1,26 @@
 # Agent Project Status
 
-- **Current phase:** Phase 4 — ballgames.io R1 Implementation（**Phase 4.0 Spec — ACTIVE**；业务代码 **NOT STARTED**）
+- **Current phase:** Phase 4 — ballgames.io R1 Implementation（**Phase 4.0 文档 — 待复核**；业务代码 **NOT STARTED**）
 - **Baseline commit:** `723499bf9e590b398ed888cffc834a9c54274d00`（`v2.4.0-9-g723499b`）
-- **Current HEAD：** `975f7da8ecd6816ac8d1d0b955237ba0d5d9d344`（Phase 4.0 启动前快照；4.0 文档提交后须同步）
+- **Current HEAD：** `b45b3cc`（`docs(phase4): Phase 4.0 targeted spec and agent doc revision` — **文档**；非代码验证）
 - **Phase 3 Code Validation Baseline：** `f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9`（lastmod 无时区兼容 + batch2 **20** tests）· 更早：`29e526b` · `1ef3f2e` · `8b3f51a` · `0f74c67` · `4514c3f`
-- **Documentation sync（非验证基线）：** `330ae02` · `5bbda06` · `d02c69e` · `ff59f65` · Phase 4.0 待提交
+- **Documentation sync（非验证基线）：** `866343e`（4.0 初稿）· **`b45b3cc`**（4.0 定点修订）
 - **Last updated:** 2026-11-04
 - **Current reviewed branch:** `main`
 - **Pages deployment branch：** `main`（[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml) — **历史验证路径，非 R1 正式部署目标**）
-- **工作区：** Phase 4.0 文档变更中（4.0 完成前以 `git status` 为准）
+- **工作区：** 干净（与 `origin/main` 同步 — 推送后）
 
 ## Phase summary
 
-| Phase | 名称                     | 状态                                              | 证据                                                                       |
-| ----- | ------------------------ | ------------------------------------------------- | -------------------------------------------------------------------------- |
-| 0     | 模板基线审计             | **completed** / **validated**                     | [`template-audit.md`](reports/template-audit.md)                           |
-| 1     | Agent 文档与工作流基础   | **completed** / **validated**                     | Phase 1 Spec                                                               |
-| 2     | SEO 页面模型与内容契约   | **completed**（文档）                             | Phase 2 Spec                                                               |
-| 2.2   | Instance-to-Kit 契约对齐 | **completed**（文档）                             | Phase 2 §2.2                                                               |
-| 3     | 最小 SEO Foundation      | **completed**（**READY WITH EXTERNAL BLOCKERS**） | [`phase-3-final-validation.md`](reports/phase-3-final-validation.md) v5    |
-| 4     | ballgames R1 页面        | **Phase 4.0 ACTIVE** / 4.1+ **NOT STARTED**       | [`specs/phases/04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) |
-| —     | Shared Core              | **deferred**                                      | 非获批阶段                                                                 |
+| Phase | 名称                     | 状态                                                                 | 证据                                                                                                                              |
+| ----- | ------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | 模板基线审计             | **completed** / **validated**                                        | [`template-audit.md`](reports/template-audit.md)                                                                                  |
+| 1     | Agent 文档与工作流基础   | **completed** / **validated**                                        | Phase 1 Spec                                                                                                                      |
+| 2     | SEO 页面模型与内容契约   | **completed**（文档）                                                | Phase 2 Spec                                                                                                                      |
+| 2.2   | Instance-to-Kit 契约对齐 | **completed**（文档）                                                | Phase 2 §2.2                                                                                                                      |
+| 3     | 最小 SEO Foundation      | **completed**（**READY WITH EXTERNAL BLOCKERS**）                    | [`phase-3-final-validation.md`](reports/phase-3-final-validation.md) v5                                                           |
+| 4     | ballgames R1 页面        | **4.0 Spec 已创建** / 4.0 文档验收 **待复核** / 4.1+ **NOT STARTED** | [`specs/phases/04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) · [`phase-4.0-review.md`](reports/phase-4.0-review.md) |
+| —     | Shared Core              | **deferred**                                                         | 非获批阶段                                                                                                                        |
 
 ## Phase 3 能力摘要（与 Spec §13.1 一致）
 
@@ -36,11 +36,13 @@
 
 ## Phase 4.0 摘要
 
-| 项                                                                         | 状态                                                                               |
-| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Phase 4 Spec [`04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) | **ACTIVE**（Kickoff 2026-11-04）                                                   |
-| 业务代码（Catalog、路由、Launcher、页面）                                  | **NOT STARTED**                                                                    |
-| 部署 gate 调整                                                             | GitHub Pages CI **非** Phase 4 前置；正式目标 **Cloudflare Pages**（部署阶段验证） |
+| 项                   | 状态                                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------- |
+| Phase 4.0 Spec 创建  | **DONE** @ `866343e`                                                                                  |
+| Phase 4.0 文档验收   | **待复核**（定点修订后由用户/审查方确认）                                                             |
+| Phase 4 业务页面实现 | **NOT STARTED**                                                                                       |
+| Phase 4.1 授权       | **PENDING**                                                                                           |
+| 部署 gate            | GitHub Pages CI **非** Phase 4 前置；**NOT VERIFIED** 保留；正式目标 **Cloudflare Pages**（部署阶段） |
 
 ## ADR 0003（摘要）
 
@@ -57,8 +59,8 @@ DEC-003-A–C **Applied**；DEC-003-D **Partial**（production exact-two / page 
 
 ## Recommended next action
 
-1. **审查 Phase 4.0** — [`specs/phases/04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) 与批次表 §13。
-2. 用户授权 **Phase 4.1**（contentlayer Game + PortalHome + Catalog 数据）后启动业务代码。
+1. **复核 Phase 4.0 定点修订** — [`specs/phases/04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) · [`phase-4.0-review.md`](reports/phase-4.0-review.md)。
+2. 验收通过后，用户明确授权 **Phase 4.1**（Catalog / Data Contract）再启动业务代码。
 3. Phase 3 机制已 **READY WITH EXTERNAL BLOCKERS**；GitHub Pages 修复 **不**作为 Phase 4 必要条件。
 
 ## Last verified checks（代码 — 历史，非 Current HEAD 重跑）

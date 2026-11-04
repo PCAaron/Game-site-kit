@@ -882,7 +882,7 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 **识别的冲突 / 风险（摘要）：**
 
-- ACM-004 Catalog/Detail 生命周期 — Phase 4.1 前需决策或 R1 默认。
+- ACM-004 Catalog/Detail 生命周期 — **R1 已写入 Phase 4 Spec**（单一 `publicationStatus`）；矩阵仍为 Pending。
 - ACM-018/019 iframe vs embed 许可 — ADR 0004 方案 C；生产 embed **MANUAL REVIEW**。
 - ACM-016/017 Organization/VideoGame — 缺证据字段须省略。
 - ACM-024 R1 广告 DOM 槽 — **MANUAL REVIEW**。
@@ -896,6 +896,22 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 **未执行：** Phase 4.1+ 业务代码；GitHub Pages workflow 修复；Cloudflare 配置；依赖升级。
 
-**验证（Phase 4.0）：** `git diff --check`；Prettier check on touched markdown（见 Phase 4.0 审查报告）。
+**验证（Phase 4.0 Kickoff）：** `git diff --check` **PASS**。Markdown：`yarn prettier --check` **NOT RUN**（Corepack/yarn 路径缺失）；`npx prettier@3.8.1 --write` + `--check` **PASS**（Kickoff 三文件）。详见 [`phase-4.0-review.md`](reports/phase-4.0-review.md)。
 
 **下一步：** 用户审查 Phase 4.0 → 授权 Phase 4.1（内容模型与 Catalog）。
+
+---
+
+## 2026-11-04 — Phase 4.0 定点修订（Review P1/P2）
+
+**Git HEAD（任务开始）：** `866343eb2f2abda9ddc2fee7ee847af1f22f0de1` · **分支：** `main`
+
+**范围：** 仅文档 — `specs/phases/04-ballgames-r1.md`、`docs/agent/STATUS.md`、`docs/agent/WORKLOG.md`、新增 `docs/agent/reports/phase-4.0-review.md`。
+
+**修复：** P1-1 STATUS HEAD/工作区；P1-2 审查报告与 WORKLOG 引用；P1-3 §7.5 Catalog 发布核验；P1-4 ACM-004 R1 单一 `publicationStatus`；P2-1 §14 checkbox/状态表；P2-2 §13.1 批次依赖图。
+
+**未执行：** 业务代码；Phase 4.1；commit/push（除非用户授权）。
+
+**验证：** `git diff --check` PASS；`npx prettier@3.8.1 --check` PASS（四文件）；`yarn prettier` NOT RUN。详见 [`phase-4.0-review.md`](reports/phase-4.0-review.md) §4。
+
+**下一步：** Phase 4.0 文档验收 → 用户授权 Phase 4.1。
