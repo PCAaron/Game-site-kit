@@ -24,8 +24,10 @@
 | **`@4514c3f` / Node 18** | [`phase3-batch3-validation.md`](phase3-batch3-validation.md) — **历史** |
 | **`@8b3f51a`** | Final Remediation Node 22 矩阵（§C） |
 | **`@1ef3f2e`** | Strictness（§D） |
-| **`@29e526b`** | priority / lastmod 边界修正（§E） |
-| **BLOCKED / NOT VERIFIED** | 无独立证据 |
+| **`@29e526b`** | priority / lastmod 边界修正（§E，**代码**） |
+| **`d02c69e`** | Agent 文档同步（**非**代码验证基线） |
+| **`@工作区 §F`** | lastmod 无时区兼容收尾（2026-11-04 本次执行） |
+| **BLOCKED / NOT VERIFIED** | CI / Live HTTP |
 
 ---
 
@@ -68,6 +70,23 @@
 
 ---
 
+## §F — lastmod 无时区兼容收尾（`@工作区 §F`）
+
+**Git HEAD：** `d02c69e` · **代码对比基线：** `29e526b` · **工作区未 commit** · **Node** v22.14.0 · **2026-11-04**
+
+| # | 命令 | Exit | 结果 |
+|---|---|---:|---|
+| 1 | `yarn typecheck` | 0 | **PASS** |
+| 2 | `yarn test:batch2` | 0 | **PASS**（**20** tests） |
+| 3 | `yarn validate:seo` | 0 | **PASS** |
+| 4 | `git diff --check` | 0 | **PASS** |
+
+**策略：** 接受无时区 datetime（如 `2026-01-15T12:30:45`）— Phase 3 Spec 未强制时区；`@1ef3f2e` 曾可选时区；`29e526b` 强制时区为回归，已修正。
+
+**未执行：** export build 重跑；CI Node 20；Live HTTP。
+
+---
+
 ## GitHub Actions / Node 20
 
 | 项 | 状态 |
@@ -92,16 +111,17 @@
 | Production exact-two + 页面 JSON-LD | **DEFERRED TO PHASE 4** |
 | Live HTTP | **BLOCKED** |
 | CI（Pages + Node 20 build） | **BLOCKED / NOT VERIFIED** |
+| §F 补丁 | **工作区未 commit** |
 
 ---
 
 ## Phase 3 冻结判断
 
-### **READY TO FREEZE**
+### **READY WITH EXTERNAL BLOCKERS**
 
-机制范围：Batch 0–3 + `@1ef3f2e` Strictness + `@29e526b` 边界修正；§E 矩阵 **exit 0**（提交前本地执行）。
+机制：Batch 0–3 + `@1ef3f2e` + `@29e526b` + §F 本地验证 **PASS**。
 
-非机制阻塞：CI configure-pages、Live HTTP、Phase 4 集成。
+**外部（独立）：** CI configure-pages / Node 20 **NOT VERIFIED**；Live HTTP **BLOCKED**；Phase 4 production 集成。
 
 ---
 

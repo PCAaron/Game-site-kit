@@ -808,4 +808,20 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 **Node 22.14.0 验证（本次执行）：** `yarn typecheck` 0；`yarn test:batch2` 0（**19** tests）；`yarn validate:seo` 0；`git diff --check` 0。
 
-**Commit / push：** `29e526bf0dc819e7e3c1357502b124d3fb39064f` → `origin/main`。
+**Commit / push：** `29e526bf0dc819e7e3c1357502b124d3fb39064f` → `origin/main`；文档 **`d02c69e`** 单独同步。
+
+---
+
+## 2026-11-04 — Phase 3 收尾：lastmod 无时区兼容
+
+**Git HEAD（任务时）：** `d02c69e7c2a9de29a97fe25547f57ff7abc6a4b3`（文档提交，**非**代码验证 SHA）· **代码基线：** `29e526b` · **工作区未 commit**
+
+**目的：** 修复 `29e526b` 对无时区 W3C datetime 的回归；同步 STATUS / 终验 §F。
+
+**策略依据：** Phase 3 Spec 未强制时区；`1ef3f2e` 正则 `(Z|±HH:MM)?` 曾接受 `2026-01-15T12:30:45`。
+
+**修改：** `validate-sitemap-xml.ts`（时区可选）；`batch2-test-entry.ts`（`lastmod W3C datetime compatibility`）；`STATUS.md`；`phase-3-final-validation.md` §F。
+
+**Node 22.14.0 验证：** typecheck 0；batch2 0（**20** tests）；validate:seo 0；git diff --check 0。
+
+**未验证：** CI Node 20、Live HTTP、export build。**未 commit/push**（本任务默认）。

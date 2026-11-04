@@ -258,6 +258,34 @@ test('parseSitemapUrlsetXml priority and lastmod value boundaries', () => {
   accepts('<lastmod>2026-01-15T12:30:45.123Z</lastmod>')
 })
 
+test('parseSitemapUrlsetXml lastmod W3C datetime compatibility', () => {
+  const ns = 'http://www.sitemaps.org/schemas/sitemap/0.9'
+  const head = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="${ns}">`
+  const tail = `</urlset>`
+  const urlOpen = `<url><loc>https://ballgames.io</loc>`
+  const urlClose = `</url>`
+  const wrap = (lastmod: string) => `${head}${urlOpen}${lastmod}${urlClose}${tail}`
+  const throws = (lastmod: string) =>
+    assert.throws(() => parseSitemapUrlsetXml(wrap(lastmod)), SitemapXmlValidationError)
+  const accepts = (lastmod: string) => {
+    const parsed = parseSitemapUrlsetXml(wrap(lastmod))
+    assert.deepEqual(parsed.urls, ['https://ballgames.io'])
+  }
+
+  accepts('<lastmod>2026-01-15</lastmod>')
+  accepts('<lastmod>2026-01-15T12:30:45Z</lastmod>')
+  accepts('<lastmod>2026-01-15T12:30:45+08:00</lastmod>')
+  accepts('<lastmod>2026-01-15T12:30:45.123Z</lastmod>')
+  accepts('<lastmod>2026-01-15T12:30:45</lastmod>')
+
+  throws('<lastmod>2026-02-30</lastmod>')
+  throws('<lastmod>2026-01-15T25:30:45Z</lastmod>')
+  throws('<lastmod>2026-01-15T12:60:45Z</lastmod>')
+  throws('<lastmod>2026-01-15T12:30:60Z</lastmod>')
+  throws('<lastmod>2026-01-15T12:30:45+25:00</lastmod>')
+  throws('<lastmod>2026-01-15T12:30:45+08:60</lastmod>')
+})
+
 test('validateSitemapXmlUrls rejects illegal loc URLs', () => {
   const base = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
   assert.throws(
