@@ -13,7 +13,9 @@
 | `0f74c67bed0897349500fa36441db3ace12b117b` | Phase 3 follow-up（DEC-003-F、初版验证） |
 | `8b3f51a63e320e2da5b710f53dd1879075d3923b` | Final Remediation（URL 边界、初版 `fast-xml-parser` sitemap） |
 | `1ef3f2ecfc5259270f9c27ba5873607b82f8c1d9` | Sitemap XML **Strictness** |
-| `29e526bf0dc819e7e3c1357502b124d3fb39064f` | priority / lastmod **边界修正** + 文档 v4 — **已提交并推送 `main`** |
+| `29e526bf0dc819e7e3c1357502b124d3fb39064f` | priority / lastmod 边界修正（§E） |
+| `f2ea1b2`（完整 SHA 见 Git） | lastmod 无时区兼容（§F）— **已推送 `main`** |
+| `d02c69e` | 文档：记录 `29e526b` push（非代码验证） |
 
 ---
 
@@ -24,9 +26,8 @@
 | **`@4514c3f` / Node 18** | [`phase3-batch3-validation.md`](phase3-batch3-validation.md) — **历史** |
 | **`@8b3f51a`** | Final Remediation Node 22 矩阵（§C） |
 | **`@1ef3f2e`** | Strictness（§D） |
-| **`@29e526b`** | priority / lastmod 边界修正（§E，**代码**） |
-| **`d02c69e`** | Agent 文档同步（**非**代码验证基线） |
-| **`@工作区 §F`** | lastmod 无时区兼容收尾（2026-11-04 本次执行） |
+| **`@f2ea1b2`** | lastmod 无时区兼容（§F，**代码**） |
+| **`d02c69e`** | Agent 文档同步（非代码验证基线） |
 | **BLOCKED / NOT VERIFIED** | CI / Live HTTP |
 
 ---
@@ -70,9 +71,9 @@
 
 ---
 
-## §F — lastmod 无时区兼容收尾（`@工作区 §F`）
+## §F — lastmod 无时区兼容（`@f2ea1b2`）
 
-**Git HEAD：** `d02c69e` · **代码对比基线：** `29e526b` · **工作区未 commit** · **Node** v22.14.0 · **2026-11-04**
+**Commit：** `test(seo): restore optional timezone in sitemap lastmod` · **Node** v22.14.0 · **2026-11-04**
 
 | # | 命令 | Exit | 结果 |
 |---|---|---:|---|
@@ -111,7 +112,6 @@
 | Production exact-two + 页面 JSON-LD | **DEFERRED TO PHASE 4** |
 | Live HTTP | **BLOCKED** |
 | CI（Pages + Node 20 build） | **BLOCKED / NOT VERIFIED** |
-| §F 补丁 | **工作区未 commit** |
 
 ---
 
@@ -119,7 +119,7 @@
 
 ### **READY WITH EXTERNAL BLOCKERS**
 
-机制：Batch 0–3 + `@1ef3f2e` + `@29e526b` + §F 本地验证 **PASS**。
+机制：Batch 0–3 + `@1ef3f2e` + `@29e526b` + `@f2ea1b2` §F 本地验证 **PASS**（提交前/后矩阵见 §F 表）。
 
 **外部（独立）：** CI configure-pages / Node 20 **NOT VERIFIED**；Live HTTP **BLOCKED**；Phase 4 production 集成。
 

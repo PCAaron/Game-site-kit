@@ -824,4 +824,6 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 **Node 22.14.0 验证：** typecheck 0；batch2 0（**20** tests）；validate:seo 0；git diff --check 0。
 
-**未验证：** CI Node 20、Live HTTP、export build。**未 commit/push**（本任务默认）。
+**未验证：** CI Node 20、Live HTTP、export build。
+
+**Commit / push：** `f2ea1b2` → `origin/main`。
