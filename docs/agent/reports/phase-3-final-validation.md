@@ -12,10 +12,8 @@
 | `4514c3f7361beb59e69f95d7fdae42e377ff6a1a` | Batch 0–3 机制基线 |
 | `0f74c67bed0897349500fa36441db3ace12b117b` | Phase 3 follow-up（DEC-003-F、初版验证） |
 | `8b3f51a63e320e2da5b710f53dd1879075d3923b` | Final Remediation（URL 边界、初版 `fast-xml-parser` sitemap） |
-| `1ef3f2ecfc5259270f9c27ba5873607b82f8c1d9` | Sitemap XML **Strictness**（属性白名单、可选字段、`allowBooleanAttributes` 关闭）— **已提交 `main`** |
-| **工作区（§E）** | priority 空值、lastmod 时间/时区/小数秒边界修正 + 文档 v4 — **未提交** |
-
-**历史：** v3 曾把 Strictness 标为「工作区未 commit」；该状态在 **`1ef3f2e` 提交后已结束**。
+| `1ef3f2ecfc5259270f9c27ba5873607b82f8c1d9` | Sitemap XML **Strictness** |
+| `29e526bf0dc819e7e3c1357502b124d3fb39064f` | priority / lastmod **边界修正** + 文档 v4 — **已提交并推送 `main`** |
 
 ---
 
@@ -25,8 +23,8 @@
 |---|---|
 | **`@4514c3f` / Node 18** | [`phase3-batch3-validation.md`](phase3-batch3-validation.md) — **历史** |
 | **`@8b3f51a`** | Final Remediation Node 22 矩阵（§C） |
-| **`@1ef3f2e`** | Strictness 已提交；§D 为提交时/关联记录 |
-| **`@工作区 §E`** | 2026-11-04 边界修正增量（**本次任务执行**） |
+| **`@1ef3f2e`** | Strictness（§D） |
+| **`@29e526b`** | priority / lastmod 边界修正（§E） |
 | **BLOCKED / NOT VERIFIED** | 无独立证据 |
 
 ---
@@ -55,9 +53,9 @@
 
 ---
 
-## §E — priority / lastmod 边界修正（`@工作区 §E`）
+## §E — priority / lastmod 边界修正（`@29e526b`）
 
-**基线 HEAD：** `1ef3f2e` + 未提交改动 · **Node：** v22.14.0 · **日期：** 2026-11-04
+**Commit：** `test(seo): tighten sitemap priority and lastmod validation` · **Node：** v22.14.0 · **日期：** 2026-11-04
 
 | # | 命令 | Exit | 结果 | 说明 |
 |---|---|---:|---|---|
@@ -94,7 +92,6 @@
 | Production exact-two + 页面 JSON-LD | **DEFERRED TO PHASE 4** |
 | Live HTTP | **BLOCKED** |
 | CI（Pages + Node 20 build） | **BLOCKED / NOT VERIFIED** |
-| 边界修正补丁 | **工作区未 commit** |
 
 ---
 
@@ -102,7 +99,7 @@
 
 ### **READY TO FREEZE**
 
-机制范围：Batch 0–3 + `@1ef3f2e` Strictness；§E 边界修正本地 **PASS**（待用户 commit）。
+机制范围：Batch 0–3 + `@1ef3f2e` Strictness + `@29e526b` 边界修正；§E 矩阵 **exit 0**（提交前本地执行）。
 
 非机制阻塞：CI configure-pages、Live HTTP、Phase 4 集成。
 

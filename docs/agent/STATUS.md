@@ -2,11 +2,11 @@
 
 - **Current phase:** Phase 3 — 最小 SEO Foundation（**implemented — PASS WITH LIMITATIONS**）
 - **Baseline commit:** `723499bf9e590b398ed888cffc834a9c54274d00`（`v2.4.0-9-g723499b`）
-- **Phase 3 commits：** `4514c3f` · `0f74c67` · `8b3f51a` · **`1ef3f2e`**（Sitemap XML Strictness，**已提交 `main`**）
+- **Phase 3 commits：** `4514c3f` · `0f74c67` · `8b3f51a` · `1ef3f2e` · **`29e526b`**（priority/lastmod 边界，**HEAD / `main`**）
 - **Last updated:** 2026-11-04
 - **Current reviewed branch:** `main`
 - **Pages deployment branch:** `main`（[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml)）
-- **工作区：** Sitemap **priority / lastmod 边界修正**（`validate-sitemap-xml.ts` + batch2）**未提交** — 见 [`phase-3-final-validation.md`](reports/phase-3-final-validation.md) §E
+- **工作区：** 干净（与 `pcaaron/main` 同步）
 
 ## Phase summary
 
@@ -26,7 +26,7 @@
 |---|---|---|
 | SiteInstance / PortalHomeContent / URL helpers | **PASS** | `test:batch1`、`validate:seo` |
 | Metadata / canonical / OG / robots | **PASS** | `test:batch2`、export HTML 校验 |
-| Sitemap eligibility + XML | **PARTIAL** | 机制 PASS（Strictness @ `1ef3f2e` + 边界修正工作区）；**production 0 URL** |
+| Sitemap eligibility + XML | **PARTIAL** | 机制 PASS（Strictness + 边界 @ `29e526b`）；**production 0 URL** |
 | JSON-LD | **PARTIAL** | fixture PASS；FAQ/页面集成 **Phase 4** |
 | Legacy indexability | **PASS** | DEC-003-F；`LEGACY_PAGE_ROBOTS` |
 | Static export 本地校验 | **PARTIAL** | `validate:seo --export-dir=out`（@ `8b3f51a` §C 矩阵） |
@@ -51,7 +51,7 @@ DEC-003-A–C **Applied**；DEC-003-D **Partial**；DEC-003-E **F1 applied**；*
 
 ## Last verified checks
 
-**边界修正 @ `1ef3f2e` + 工作区（Node 22.14.0，2026-11-04）** — [`phase-3-final-validation.md`](reports/phase-3-final-validation.md) §E。
+**边界修正 @ `29e526b`（Node 22.14.0，2026-11-04）** — [`phase-3-final-validation.md`](reports/phase-3-final-validation.md) §E。
 
 | Command | Exit | Result |
 |---|---|---|

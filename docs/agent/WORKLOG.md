@@ -800,7 +800,7 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 ## 2026-11-04 — Phase 3 Sitemap Strictness 边界修正（priority / lastmod）
 
-**基线 HEAD：** `1ef3f2e` · **工作区：** 边界修正 **未 commit**（任务要求不自动 commit/push）
+**基线 HEAD：** `1ef3f2e` · **交付：** `29e526b` 已 commit + push
 
 **代码：** `validate-sitemap-xml.ts` — 空/空白 `priority` 拒绝；lastmod 日历 + 时分秒 + 时区偏移 + 小数秒；`batch2-test-entry.ts` 新增 `priority and lastmod value boundaries` 测试。
 
@@ -808,4 +808,4 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 
 **Node 22.14.0 验证（本次执行）：** `yarn typecheck` 0；`yarn test:batch2` 0（**19** tests）；`yarn validate:seo` 0；`git diff --check` 0。
 
-**未执行：** export/normal build 重跑；commit / push。
+**Commit / push：** `29e526bf0dc819e7e3c1357502b124d3fb39064f` → `origin/main`。
