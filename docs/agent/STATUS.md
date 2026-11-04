@@ -2,9 +2,9 @@
 
 - **Current phase:** Phase 4 — ballgames.io R1 Implementation（**Phase 4.0 文档 — 待复核**；业务代码 **NOT STARTED**）
 - **Baseline commit:** `723499bf9e590b398ed888cffc834a9c54274d00`（`v2.4.0-9-g723499b`）
-- **Current HEAD：** `b45b3cc`（`docs(phase4): Phase 4.0 targeted spec and agent doc revision` — **文档**；非代码验证）
+- **Current HEAD：** `87adf9866c8f8bb6f9eb4898b8618ced8d8abf49`（`docs(phase4): Phase 4.0 targeted spec and agent doc revision` — **文档**；非代码验证）
 - **Phase 3 Code Validation Baseline：** `f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9`（lastmod 无时区兼容 + batch2 **20** tests）· 更早：`29e526b` · `1ef3f2e` · `8b3f51a` · `0f74c67` · `4514c3f`
-- **Documentation sync（非验证基线）：** `866343e`（4.0 初稿）· **`b45b3cc`**（4.0 定点修订）
+- **Documentation sync（非验证基线）：** `866343e`（4.0 初稿）· **`87adf98`**（4.0 定点修订）
 - **Last updated:** 2026-11-04
 - **Current reviewed branch:** `main`
 - **Pages deployment branch：** `main`（[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml) — **历史验证路径，非 R1 正式部署目标**）
