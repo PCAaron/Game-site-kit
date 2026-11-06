@@ -4,6 +4,8 @@
 
 章程与旅程定义见 [`specs/00-project-charter.md`](00-project-charter.md)。
 
+**Site Archetype**（站点类型：`game-portal` | `game-wiki` | `embedded-game`）与 **Game Launch Capability**（单游戏 `LaunchConfig.mode`：`iframe-official` | `iframe-provider` | `external-link` | `hosted`）是 **两个独立维度**。同一 portal 可混用多种 launch mode；某游戏不能 iframe **不**改变整站 archetype。
+
 ---
 
 ## game-portal（首个验证：ballgames.io）

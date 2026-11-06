@@ -968,3 +968,43 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 **未执行：** commit / push；Phase 4.2；首页 UI；详情页 UI；contentlayer Game 类型；Shared Core。
 
 **下一步：** 停止。等待用户审查 4.1 并明确授权 4.2。
+
+---
+
+## 2026-11-06 — Phase 4.1：Spec Architecture Alignment（仅文档）
+
+**Git HEAD（任务开始）：** `4ea8e14cb0c3a048029b5cbeca8efa626db91d3d` · **分支：** `main`
+
+**范围：** Phase 4.1 架构决策与 Spec/ADR/Catalog README 一致性；**未**修改 `lib/catalog/` 业务代码、实例数据、页面组件。
+
+### 交付
+
+- 新增 [`specs/phases/04.1-catalog-architecture-alignment.md`](../../specs/phases/04.1-catalog-architecture-alignment.md)
+- 新增 [`lib/catalog/README.md`](../../lib/catalog/README.md)
+- 修订 ADR [`0002`](decisions/0002-portal-content-and-catalog-boundary.md)、[`0004`](decisions/0004-ballgames-launcher-embed-policy.md) → **Accepted**
+- 同步 [`04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md)、[`ballgames-specs-v1.md`](../../specs/ballgames/ballgames-specs-v1.md)、[`04-config-and-content-models.md`](../../specs/04-config-and-content-models.md)、[`seo/05`](../../specs/seo/05-content-quality-and-validation.md)、[`01-site-archetypes.md`](../../specs/01-site-archetypes.md)、实例 [`README`](../../specs/instances/ballgames/README.md)、[`STATUS.md`](STATUS.md)
+
+### 八项决策（文档）
+
+| # | 主题 | 文档对齐 |
+|---|------|----------|
+| 3.1 | R1 TS modules + Adapter | **已对齐** |
+| 3.2 | Provider/Embed 可选 + 条件校验 | **已对齐**（**代码未对齐** — 仍必填 providerId/embedPermissionId） |
+| 3.3 | Embed 三维度 | **已对齐** |
+| 3.4 | Error/Warning/Info | **已对齐**（readiness BLOCKED 映射 **部分** — 代码待改） |
+| 3.5 | published ≠ indexable | **已对齐** |
+| 3.6 | 首页 15–20 设计目标 | **已对齐**（`HOME_CARD_COUNT_BELOW_TARGET` 代码仍为 BLOCKED） |
+| 3.7 | iframe 浏览器边界 | **已对齐** |
+| 3.8 | Archetype vs Launch mode | **已对齐** |
+
+### 验证（本任务）
+
+| Command | Result |
+|---|---|
+| `git diff --check` | 见执行报告 |
+| `yarn test:catalog` | **NOT RUN**（无代码变更） |
+| Markdown/链接专用脚本 | 仓库 **无** 对应工具 — **NOT RUN** |
+
+**未执行：** commit / push；Catalog 校验器代码修订；Phase 4.2+。
+
+**下一步：** 用户审查架构对齐 → 决定是否先做 Catalog 代码 follow-up → 授权 Phase 4.2。

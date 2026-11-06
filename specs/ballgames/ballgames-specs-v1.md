@@ -30,7 +30,7 @@
 
 ## 2. 全局硬性约束（验收项）
 
-1. indexable 默认 false；sitemap 只输出 `status === "published" && indexable === true`。
+1. **`publicationStatus === "published"`** 且页面级 **`seo.indexable === true`** 才进 sitemap（产品 §2 写 `status` 时指 **`publicationStatus`**）。**`published` 不自动 `indexable`。**
 2. R1 **无** `/search` 路由与顶栏搜索；R2 上线 `/search` 后：`noindex,follow`，**不加** robots `Disallow: /search`（与 noindex 策略一致，见 §9 R2）。
 3. 分页第 2 页起 noindex, follow，每页 ≥24 张卡（R1 无分页）。
 4. tags 不出页面；categories 须 ≥12 款 + ≥600 词手写才可发布。
@@ -43,7 +43,7 @@
 11. **数据只存 `slug`**，不存完整 path；**全站 URL 经 `gameUrl(slug)`** 与 **`siteUrl()`** 生成：内链、canonical、sitemap、JSON-LD、OG。首页 canonical = **`siteUrl()`** → `https://ballgames.io`（无尾斜杠）。
 12. **禁止硬编码**路径字面量（如 `"/hockey-bros"`）；CI grep 拦截（排除 redirect 表、测试 fixture、`specs/`）。
 13. **将来 URL 加前缀：** 只改 `gameUrl` → 批量 301 → sitemap/内链/结构化数据重生成 → GSC 重提 sitemap；模板与正文字段不改。
-14. **首页卡位：** 15–20 张；**Hockey Bros** → `<a href={gameUrl('hockey-bros')}>`；其余 → `<button type="button">` **仅替换**上述 iframe 的 `src`（及 iframe 上游戏名）；**不** pushState、**不** `#hash`、**不**第二个 iframe、**不** `<a>` 到未建详情页或官方站。
+14. **首页卡位：** **目标** 15–20 张（实际 `published` + 展示条件满足多少展示多少，**不得**伪造数据凑数）；**Hockey Bros** → `<a href={gameUrl('hockey-bros')}>`；其余 → `<button type="button">` **仅替换**上述 iframe 的 `src`（及 iframe 上游戏名）；**不** pushState、**不** `#hash`、**不**第二个 iframe、**不** `<a>` 到未建详情页或官方站。
 
 ---
 
@@ -53,7 +53,10 @@
 
 Kit 术语见 [`specs/04-config-and-content-models.md`](../04-config-and-content-models.md)。存储可合并为一条 `Game` 记录，但校验分层：
 
-**Catalog Item（R1 全部 15–20 行至少）：** `slug`, `title`, `providerId`, `launch`, `publicationStatus`, `showOnHome`, `homeSort`；可选 `thumbnail`, `availability`。
+**Catalog Item（R1 全部 Catalog 行）：** `slug`, `title`, `launch`, `publicationStatus`, `showOnHome`, `homeSort`, `cardAction`；可选 `providerId`, `embedPermissionId`, `thumbnail`, `availability`。
+
+- **`providerId` / `embedPermissionId` 可选** — 未声明不判无效；声明则须可解析（Kit Phase 4.1 对齐 Spec）。`external-link` **不**强制 EmbedPermission。
+- **15–20** 为首页 **设计目标**，非 Catalog schema 硬门禁。
 
 **Game Detail Content（R1 仅 `hockey-bros`）：** `seo`, `intro`, `howToPlay`, `sections`, `faq`, `controls`, `categories`, `tags`, `publishedAt`, `updatedAt`。
 
@@ -65,13 +68,15 @@ interface Game {
   id: string
   slug: string
   title: string
-  providerId: string
+  providerId?: string
+  embedPermissionId?: string
   launch: LaunchConfig
   publicationStatus: 'draft' | 'published' | 'archived'
   availability?: 'available' | 'temporarily-unavailable' | 'discontinued' | 'unknown'
   showOnHome?: boolean
   homeSort?: number
-  // --- 以下仅详情 / indexable 行必填 ---
+  cardAction: 'navigate-to-detail' | 'launcher-select'
+  // --- 以下仅详情 / indexable 行 ---
   seo?: { title: string; description: string; canonical?: string; indexable: boolean }
   intro?: string
   howToPlay?: string
@@ -132,7 +137,7 @@ interface LaunchConfig {
 | SEOHead（title / description / canonical / OG / 默认回退）       | **R1**  | 全页共用                                                                                     |
 | JSON-LD 生成器（按页面类型分发）                                 | **R1**  | WebSite / ItemList / Organization / VideoGame / FAQPage / BreadcrumbList；禁止页内手写重复块 |
 | Sitemap 生成                                                     | **R1**  | 只收 `published && indexable`；R1 固定 2 URL                                                 |
-| Provider 表                                                      | **R1**  | embed 许可状态是**数据字段**，不是注释（§3.3）                                               |
+| Provider 表                                                      | **R1**  | **推荐**；embed 许可状态是**数据字段**（可选 EmbedPermission 记录），不是注释（§3.3） |
 | Redirect 管理（slug 变更 → 301/302 表）                          | **R2**  | R1 仅预留 `Redirect` 模型；无 UI 亦可，但迁移 playbook 须遵守 §2-13                          |
 
 ### 4.2 游戏呈现（Launcher / 页面模板）
@@ -656,7 +661,7 @@ title 1 · h1 1 · 副标题 0 · 面包屑 1 · H2④ 正文 3~4 · H2⑤ 1 · 
 - [ ] 卡片锚文本仅游戏名，不含 "Play … Free Online" 式长句
 - [ ] `/search`、顶栏 Sports / 2 Player / .IO、分类页：**R1 不实现**；`/search` 与 robots Disallow 验收项 **标 R2**（§2-2、§9 R2）
 - [ ] 可玩区：桌面 `min-height:480px`；窄屏按 16:9 自适应（375px 下约 147px），不再写「≥210px」
-- [ ] 首页 **15–20 卡**；Hockey `<a>`，其余 `<button>` 换 iframe src；无 hash/pushState
+- [ ] 首页 **目标 15–20 卡**（不足时如实展示，不伪造）；Hockey `<a>`，其余 `<button>` 换 iframe src；无 hash/pushState
 - [ ] 首页 **1 个 iframe**；内页 iframe + **双广告位**；无 sandbox/lazy
 - [ ] 内页 **无** iframe 下 Controls/Note 两行
 - [ ] 内页相关游戏 **12–16**；相关区 **全部 `<button>` + scrollIntoView**（§6.7）；面包屑 **两级**
@@ -691,3 +696,4 @@ title 1 · h1 1 · 副标题 0 · 面包屑 1 · H2④ 正文 3~4 · H2⑤ 1 · 
 | 2026-11-01 | R1 冻结：双页 indexable、首页 15–20 卡 + 单 iframe 换 src、URL 四条工程约束、H1 `<p>` 副标题表、内页广告、FAQ 7 定稿全文、相关 12–16、R2/R3 路线图 | 已冻结             |
 | 2026-11-01 | 走查：§4 恢复完整组件表并标注 R1/R2/R3；§6.6 恢复 7 条 FAQ Answer 定稿                                                                             | 已冻结             |
 | 2026-11-02 | Phase 2.2：Kit 契约对齐；首页 canonical 无尾斜杠；Catalog/Detail 分层；优先级与 Rich Results DoD | 文档已对齐 |
+| 2026-11-06 | Phase 4.1 架构对齐：TS Catalog、可选 Provider/Embed、Error/Warning/Info、published≠indexable、首页数量为设计目标、Launcher 浏览器边界 | 文档已对齐 |

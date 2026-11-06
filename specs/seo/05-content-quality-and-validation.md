@@ -8,8 +8,12 @@ SEO 指南 §11。自动化可检结构；事实与许可须人工 **MANUAL REVI
 
 | 层级 | 负责方 | 示例 |
 |---|---|---|
-| **Kit 校验** | 所有 portal 实例 | 必填字段、URL 格式、slug 唯一、canonical 与 helper 一致、indexable⇔published、结构化数据语法与可见内容一致、sitemap 规则、内链目标存在性 |
+| **Kit schema Error** | 所有 portal 实例 | slug 唯一、launch 合法、已声明 provider/embed 可解析、indexable 与 published 一致性（页面级） |
+| **Kit Warning** | 所有 portal 实例 | Detail 正文/FAQ/Controls 缺口、SEO 描述质量（**不**阻止 Catalog 读取） |
+| **Kit Info** | 所有 portal 实例 | 首页 grid 行数低于实例设计目标、可选 tags/Provider 未填 |
 | **实例 Editorial** | 单站点 Spec | 正文字数配额、主词词频、分类 ≥12 款 + ≥600 词、R1/R2/R3 scope、首页区块顺序、DoD 清单 |
+
+**Readiness 报告**（如 `buildCatalogVerificationReport`）中的 `BLOCKED` / `MANUAL REVIEW` 表示 **运营/生产 iframe 提示**，与 schema **Error** 不同 — 见 [`specs/phases/04.1-catalog-architecture-alignment.md`](../phases/04.1-catalog-architecture-alignment.md) §4.4。
 
 Kit **不得**把 ballgames 词数/分类阈值写成所有未来实例的硬编码默认值；实例 Spec 引用 Kit 校验并在其之上追加政策。
 
@@ -37,8 +41,8 @@ Draft
 |---|---|
 | 标识 | `slug` 唯一；`launch.primaryUrl` 格式合法 |
 | 发布 | `published` 出现在 launcher/grid 前须有 URL 或降级文案 |
-| 许可 | iframe 模式：`EmbedPermission` 非 denied；unknown 不得当 granted |
-| 索引 | Catalog 行 **无** `indexable`；index 仅页面级 |
+| 许可 | iframe **生产启用**：EmbedPermission granted + CSP（ADR 0004）；**未**声明 EmbedPermission 不阻止 external-link 或 Catalog 读取 |
+| 索引 | Catalog 行 **无** `indexable`；index 仅页面级；**published 不自动 indexable** |
 
 ### Game Detail / indexable 页面
 

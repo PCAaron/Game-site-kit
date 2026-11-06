@@ -5,7 +5,7 @@
 | **站点 ID** | `ballgames` |
 | **Archetype** | `game-portal` |
 | **域名（目标）** | `https://ballgames.io` |
-| **R1 范围** | indexable：**`https://ballgames.io`**（路由 `/`）与 **`https://ballgames.io/hockey-bros`**；sitemap **2 条 canonical**；首页 **15–20** 卡 + 单 iframe；Catalog 可多于 2 条 launch 数据 |
+| **R1 范围** | indexable：**`https://ballgames.io`**（路由 `/`）与 **`https://ballgames.io/hockey-bros`**；sitemap **2 条 canonical**；首页 **目标 15–20** 卡 + 单 iframe；Catalog 可多于 2 条 launch 数据 |
 
 ## 文档分层
 
@@ -14,6 +14,8 @@
 | **Game Site Kit** | [`specs/01-site-archetypes.md`](../../01-site-archetypes.md) | portal 页面类型与 Launcher 能力 |
 | | [`specs/04-config-and-content-models.md`](../../04-config-and-content-models.md) | Catalog / Detail / PageSEO |
 | | [`specs/seo/*`](../../seo/) | URL、索引、sitemap、metadata、内链 |
+| | [`specs/phases/04.1-catalog-architecture-alignment.md`](../../phases/04.1-catalog-architecture-alignment.md) | Catalog 架构、校验分级 |
+| | [`lib/catalog/README.md`](../../../lib/catalog/README.md) | R1 数据契约与 Adapter |
 | **实例** | [`ballgames-specs-v1.md`](../ballgames/ballgames-specs-v1.md) | R1 产品权威：结构、TDK、正文、Launcher、DoD；§9 R2/R3 |
 
 **冲突处理（Phase 2.2）：** [`ballgames-specs-v1.md`](../ballgames/ballgames-specs-v1.md) 为 **ballgames 产品行为与 R1 配置权威**。Kit 文档定义可复用契约与校验机制。安全、许可、禁止虚构 structured data、未知 embed 不得视为批准 — **双方均须遵守**。Kit 默认**不得**静默覆盖实例已写明的 product 要求。

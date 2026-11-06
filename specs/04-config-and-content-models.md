@@ -49,7 +49,7 @@ launcher、首页网格、Related 区消费的最小单元。实现时可与详�
 |---|---|---|
 | `id`, `slug` | 是 | `slug` 唯一；变更走 `Redirect` |
 | `title` | 是 | 卡片/iframe 标题来源 |
-| `providerId` | 是 | → `Provider.id`（**唯一**关联源；不在 Provider 上维护独立 `games[]` 列表为主数据） |
+| `providerId` | 否 | 可选；声明时 → `Provider.id` 须可解析 |
 | `launch` | 是 | → `LaunchConfig` |
 | `thumbnail` | 推荐 | 卡片图；launcher-only 行可简化 |
 | `showOnHome`, `homeSort` | 否 | 首页可见性与排序 |
@@ -57,10 +57,13 @@ launcher、首页网格、Related 区消费的最小单元。实现时可与详�
 | `publicationStatus` | 是 | `draft` \| `published` \| `archived` — **Catalog 行**发布态 |
 | `availability` | 推荐 | `available` \| `temporarily-unavailable` \| `discontinued` \| `unknown` |
 
-**Kit 校验（Catalog）：**
+**Kit 校验（Catalog）— 严重级别见 [`specs/phases/04.1-catalog-architecture-alignment.md`](phases/04.1-catalog-architecture-alignment.md) §4：**
 
-- `published` + 出现在首页 grid → 须有 verified `launch.primaryUrl` 或已文档化的降级 UI
-- Catalog `published` **不要求** `intro` / `sections` / 完整 `seo.description`
+- **Error：** slug 唯一、launch 合法、已声明关联可解析、iframe 模式 verified URL 等（schema 失败）
+- **Warning：** FAQ/Controls/正文完整度、SEO 描述质量等（不阻止 Catalog 读取）
+- **Info：** tags 缺失、首页行数低于实例设计目标等
+- `published` + 首页 grid → 须有 verified launch；**不**因缺少 Provider 而一律禁止（external-link / 官方 URL）
+- Catalog `published` **不要求** Detail 字段组
 
 ---
 
@@ -89,7 +92,8 @@ interface CatalogItem {
   id: string
   slug: string
   title: string
-  providerId: string
+  providerId?: string
+  embedPermissionId?: string
   launch: LaunchConfig
   publicationStatus: 'draft' | 'published' | 'archived'
   availability?: 'available' | 'temporarily-unavailable' | 'discontinued' | 'unknown'
@@ -147,11 +151,13 @@ interface EmbedLayout {
 
 Kit **不**规定 ballgames 的 480px / 16:9 为全局默认；实例在 Spec 或 SiteInstance 中声明。
 
-**Kit 规则：** `external-link` 符合 AGENTS 默认；iframe 模式要求对应 **EmbedPermission** 非 `denied`，且非 `unknown` 冒充 `granted`。
+**Kit 规则：** `external-link` 符合 AGENTS 默认。**iframe 模式** 在生产启用时须 EmbedPermission **非 denied** 且 **granted + CSP**（ADR 0004）；**未**声明 EmbedPermission 的游戏仍可用 external-link。**`published` ⇏ `indexable`**（页面级 `seo.indexable` 默认 false）。
 
 ---
 
-## EmbedPermission（许可记录）
+## EmbedPermission（许可记录 — 可选）
+
+游戏 **可不**挂载 EmbedPermission；`external-link` **不**强制。显式引用时须校验关联与状态语义。
 
 许可与 Provider 关联，但粒度可到 **游戏 + URL + 域**：
 
@@ -216,12 +222,14 @@ slug 变更必须登记。ballgames：源失效时详情 URL 仍 **200** + 正�
 
 ---
 
-## 与 contentlayer 的关系（proposed）
+## 与 contentlayer 的关系
 
-Phase 4 选项（未决，需 ADR 若偏离 MDX）：
+**R1（Accepted — ADR 0002）：** Catalog 使用 **TypeScript modules + 只读 Adapter**（`lib/catalog/`）。**不**强制 contentlayer `Game` document type。
+
+**后续选项（不改变 Adapter 消费契约）：**
 
 1. 新增 contentlayer document types（`Game`, `Category`, …）
-2. 并行 JSON/YAML catalog + 只读 adapter
-3. 混合：首页 MDX + 游戏 JSON
+2. 并行 JSON/YAML catalog + adapter
+3. 混合：PortalHome MDX + 游戏 JSON
 
-Phase 2 **不**选定实现；业务代码应通过 **Catalog 读取接口** 消费上述逻辑模型，避免与 `Blog` 耦死。
+业务代码应通过 **Catalog Adapter** 消费逻辑模型，避免与 `Blog` 耦死。
