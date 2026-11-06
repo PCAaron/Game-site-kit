@@ -45,4 +45,12 @@ export {
   getProductionHomeCatalog,
   isProductionEmbedAllowed,
 } from './adapter'
-export { isLaunchVerified, isPublishedForHome, validateCatalog, validateGame } from './validate'
+export {
+  collectCatalogContentQualityIssues,
+  isLaunchVerified,
+  isPublishedForHome,
+  validateCatalog,
+  validateCatalogSeo,
+  validateGame,
+  validateGameSeoIndexability,
+} from './validate'

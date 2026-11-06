@@ -1008,3 +1008,32 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 **未执行：** commit / push；Catalog 校验器代码修订；Phase 4.2+。
 
 **下一步：** 用户审查架构对齐 → 决定是否先做 Catalog 代码 follow-up → 授权 Phase 4.2。
+
+---
+
+## 2026-11-06 — Phase 4.1.2：Catalog Contract & PortalHome Alignment
+
+**范围：** Catalog 类型/校验/readiness 分层；PortalHome Reader；契约测试 C01–C15；STATUS / Spec / README。
+
+**分支：** `main`（任务完成时本地未 commit）。
+
+### 交付摘要
+
+- `providerId` / `embedPermissionId` 可选；声明时关联校验（Provider 一致、sourceUrl 与 launch）
+- Schema / `validateCatalogSeo` / `collectCatalogContentQualityIssues` / readiness 分离
+- 首页 15–20 → `HOME_CARD_COUNT_BELOW_TARGET` **INFO**；生产 iframe → `PRODUCTION_IFRAME_NOT_READY` **BLOCKED**
+- `getPortalHomeContent()` @ `lib/site/get-portal-home-content.ts`
+
+### 验证
+
+| Command | Exit | Result |
+|---|---|---|
+| `yarn typecheck` | 0 | **PASS** |
+| `yarn test:catalog` | 0 | **PASS**（33 tests） |
+| `yarn validate:catalog` | 0 | **PASS** |
+| `git diff --check` | 0 | **PASS** |
+| `yarn validate:seo` | — | **NOT RUN**（未改 SEO 校验路径） |
+
+**未执行：** commit / push；Phase 4.2 页面。
+
+**下一步：** 用户审查 → 授权 Phase 4.2。

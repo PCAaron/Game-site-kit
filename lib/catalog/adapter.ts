@@ -7,7 +7,12 @@ import {
   type CatalogVerificationReport,
   type VerifiedLaunchConfig,
 } from './types'
-import { isLaunchVerified, isPublishedForHome, validateCatalog } from './validate'
+import {
+  collectCatalogContentQualityIssues,
+  isLaunchVerified,
+  isPublishedForHome,
+  validateCatalog,
+} from './validate'
 
 export function getBallgamesCatalog(): Catalog {
   return ballgamesCatalog
@@ -27,6 +32,9 @@ export function getProductionHomeCatalog(catalog: Catalog = ballgamesCatalog): C
 }
 
 export function findEmbedPermission(game: CatalogGame, catalog: Catalog) {
+  if (!game.embedPermissionId) {
+    return undefined
+  }
   return catalog.embedPermissions.find((permission) => permission.id === game.embedPermissionId)
 }
 
@@ -62,41 +70,36 @@ export function buildCatalogVerificationReport(
   if (publishedHome.length < PRODUCTION_HOME_CARD_TARGET.min) {
     issues.push({
       code: 'HOME_CARD_COUNT_BELOW_TARGET',
-      severity: 'BLOCKED',
-      message: `Production home catalog has ${publishedHome.length} verified published row(s); product target is ${PRODUCTION_HOME_CARD_TARGET.min}–${PRODUCTION_HOME_CARD_TARGET.max}. Missing rows stay draft until URL/Provider/embed are manually verified.`,
+      severity: 'INFO',
+      message: `Production home catalog has ${publishedHome.length} verified published row(s); UI design target is ${PRODUCTION_HOME_CARD_TARGET.min}–${PRODUCTION_HOME_CARD_TARGET.max}. Show all eligible rows; do not fabricate catalog data to meet the target.`,
     })
   }
+
+  issues.push(...collectCatalogContentQualityIssues(catalog))
 
   const unpublished = catalog.games.filter((game) => game.publicationStatus !== 'published')
   if (unpublished.length > 0) {
     issues.push({
       code: 'UNVERIFIED_GAMES_REMAIN',
-      severity: 'MANUAL REVIEW',
-      message: `${unpublished.length} catalog row(s) remain draft/archived pending launch URL, provider, and embed verification: ${unpublished.map((game) => game.slug).join(', ')}`,
+      severity: 'WARNING',
+      message: `${unpublished.length} catalog row(s) remain draft/archived pending launch URL verification: ${unpublished.map((game) => game.slug).join(', ')}`,
     })
   }
 
-  const unknownEmbeds = catalog.embedPermissions.filter(
-    (permission) => permission.status !== 'granted'
+  const iframeGames = catalog.games.filter(
+    (game) =>
+      isLaunchVerified(game.launch) &&
+      (game.launch.mode === 'iframe-official' || game.launch.mode === 'iframe-provider')
   )
-  if (unknownEmbeds.length > 0) {
+  const embedNotProductionReady = iframeGames.some(
+    (game) => !isProductionEmbedAllowed(game, catalog)
+  )
+  if (embedNotProductionReady) {
     issues.push({
-      code: 'EMBED_PERMISSION_NOT_GRANTED',
+      code: 'PRODUCTION_IFRAME_NOT_READY',
       severity: 'BLOCKED',
       message:
-        'No production iframe may be enabled until EmbedPermission.status is granted with documented evidence and CSP frame-src is verified. unknown is not granted.',
-    })
-  }
-
-  const unverifiedCsp = catalog.embedPermissions.filter(
-    (permission) => permission.cspFrameSrcVerified !== true
-  )
-  if (unverifiedCsp.length > 0) {
-    issues.push({
-      code: 'CSP_FRAME_SRC_NOT_VERIFIED',
-      severity: 'BLOCKED',
-      message:
-        'CSP frame-src has not been verified on a production deployment. Phase 4.1 does not claim embed production readiness.',
+        'Production iframe is not enabled: requires EmbedPermission.status granted, matching sourceUrl, and deployment CSP frame-src verification. unknown/requested/denied are not granted. external-link and catalog reads are unaffected.',
     })
   }
 

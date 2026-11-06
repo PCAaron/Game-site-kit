@@ -137,12 +137,14 @@ export interface CatalogGame {
   id: string
   slug: string
   title: string
-  providerId: string
+  /** Optional; when declared must resolve to a Provider in the same Catalog. */
+  providerId?: string
   launch: LaunchConfig
   publicationStatus: PublicationStatus
   showOnHome: boolean
   homeSort: number
-  embedPermissionId: string
+  /** Optional; when declared must resolve and associate correctly. Not required for external-link. */
+  embedPermissionId?: string
   cardAction: CardAction
   availability?: Availability
   thumbnail?: Thumbnail
@@ -155,7 +157,8 @@ export interface Catalog {
   games: CatalogGame[]
 }
 
-export type CatalogIssueSeverity = 'BLOCKED' | 'MANUAL REVIEW'
+/** Readiness / quality severities — not the same as schema `CatalogError`. */
+export type CatalogIssueSeverity = 'INFO' | 'WARNING' | 'MANUAL REVIEW' | 'BLOCKED'
 
 export interface CatalogVerificationIssue {
   code: string

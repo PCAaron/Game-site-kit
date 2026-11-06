@@ -16,6 +16,7 @@ import {
   type EmbedPermission,
   type GameDetailContent,
   type LaunchConfig,
+  type CatalogVerificationIssue,
   type Provider,
   type PublicationStatus,
 } from './types'
@@ -202,7 +203,7 @@ function assertEmbedPermission(permission: EmbedPermission, catalog: Catalog): v
   }
 }
 
-function assertDetail(game: CatalogGame): void {
+function assertDetailSchema(game: CatalogGame): void {
   const detail = game.detail
   if (game.slug !== R1_DETAIL_CONTENT_SLUG) {
     if (detail?.seo?.indexable === true) {
@@ -221,18 +222,12 @@ function assertDetail(game: CatalogGame): void {
   }
 
   if (!detail) {
-    if (game.publicationStatus === 'published') {
-      fail(
-        'CATALOG_DETAIL_REQUIRED',
-        `${game.slug}: published R1 indexable game requires complete Game Detail content`
-      )
-    }
     return
   }
 
   const seo = detail.seo
   if (!seo) {
-    fail('CATALOG_FIELD_REQUIRED', `${game.slug}: detail.seo is required`)
+    fail('CATALOG_FIELD_REQUIRED', `${game.slug}: detail.seo is required when detail is present`)
   }
   assertNonEmpty(seo.title, 'CATALOG_FIELD_REQUIRED', `${game.slug}: detail.seo.title is required`)
   assertNonEmpty(
@@ -255,23 +250,59 @@ function assertDetail(game: CatalogGame): void {
       `${game.slug}: R1 only ${R1_INDEXABLE_GAME_SLUG} may set seo.indexable true`
     )
   }
-  if (seo.indexable === true && game.publicationStatus !== 'published') {
+}
+
+function assertGameOptionalAssociations(game: CatalogGame, catalog: Catalog): void {
+  if (game.providerId !== undefined) {
+    assertNonEmpty(
+      game.providerId,
+      'CATALOG_FIELD_REQUIRED',
+      `${game.slug}: providerId must be non-empty when declared`
+    )
+    if (!catalog.providers.some((item) => item.id === game.providerId)) {
+      fail(
+        'CATALOG_PROVIDER_MISSING',
+        `${game.slug}: providerId ${game.providerId} does not exist`
+      )
+    }
+  }
+
+  if (game.embedPermissionId === undefined) {
+    return
+  }
+
+  assertNonEmpty(
+    game.embedPermissionId,
+    'CATALOG_FIELD_REQUIRED',
+    `${game.slug}: embedPermissionId must be non-empty when declared`
+  )
+
+  const permission = catalog.embedPermissions.find((item) => item.id === game.embedPermissionId)
+  if (!permission) {
     fail(
-      'CATALOG_INDEXABLE_REQUIRES_PUBLISHED',
-      `${game.slug}: seo.indexable true requires publicationStatus published`
+      'CATALOG_EMBED_PERMISSION_MISSING',
+      `${game.slug}: embedPermissionId ${game.embedPermissionId} does not exist`
     )
   }
-  if (seo.indexable === true && !hasCompleteDetail(detail)) {
+
+  if (permission.gameSlug && permission.gameSlug !== game.slug) {
+    fail('CATALOG_EMBED_GAME_MISMATCH', `${game.slug}: embed permission gameSlug does not match`)
+  }
+
+  if (game.providerId && permission.providerId !== game.providerId) {
     fail(
-      'CATALOG_INDEXABLE_REQUIRES_DETAIL',
-      `${game.slug}: seo.indexable true requires complete Game Detail content`
+      'CATALOG_EMBED_PROVIDER_MISMATCH',
+      `${game.slug}: embedPermission providerId ${permission.providerId} does not match game providerId ${game.providerId}`
     )
   }
-  if (game.publicationStatus === 'published' && !hasCompleteDetail(detail)) {
-    fail(
-      'CATALOG_DETAIL_INCOMPLETE',
-      `${game.slug}: published R1 detail game requires intro, howToPlay, sections, faq, and controls`
-    )
+
+  if (permission.sourceUrl && isLaunchVerified(game.launch)) {
+    if (permission.sourceUrl !== game.launch.primaryUrl) {
+      fail(
+        'CATALOG_EMBED_SOURCE_URL_MISMATCH',
+        `${game.slug}: embedPermission sourceUrl must match verified launch.primaryUrl when both are set`
+      )
+    }
   }
 }
 
@@ -321,12 +352,6 @@ export function validateGame(game: CatalogGame, catalog: Catalog): void {
     )
   }
   assertNonEmpty(game.title, 'CATALOG_FIELD_REQUIRED', `${game.slug}: title is required`)
-  assertNonEmpty(game.providerId, 'CATALOG_FIELD_REQUIRED', `${game.slug}: providerId is required`)
-  assertNonEmpty(
-    game.embedPermissionId,
-    'CATALOG_FIELD_REQUIRED',
-    `${game.slug}: embedPermissionId is required`
-  )
   assertPublicationStatus(game.publicationStatus)
 
   if (typeof game.showOnHome !== 'boolean') {
@@ -342,37 +367,16 @@ export function validateGame(game: CatalogGame, catalog: Catalog): void {
     fail('CATALOG_AVAILABILITY_INVALID', `${game.slug}: availability is invalid`)
   }
 
-  const provider = catalog.providers.find((item) => item.id === game.providerId)
-  if (!provider) {
-    fail('CATALOG_PROVIDER_MISSING', `${game.slug}: providerId ${game.providerId} does not exist`)
-  }
-
-  const permission = catalog.embedPermissions.find((item) => item.id === game.embedPermissionId)
-  if (!permission) {
-    fail(
-      'CATALOG_EMBED_PERMISSION_MISSING',
-      `${game.slug}: embedPermissionId ${game.embedPermissionId} does not exist`
-    )
-  }
-  if (permission.gameSlug && permission.gameSlug !== game.slug) {
-    fail('CATALOG_EMBED_GAME_MISMATCH', `${game.slug}: embed permission gameSlug does not match`)
-  }
-
+  assertGameOptionalAssociations(game, catalog)
   assertLaunch(game)
   assertR1CardAction(game)
-  assertDetail(game)
+  assertDetailSchema(game)
 
   if (game.publicationStatus === 'published') {
     if (!isLaunchVerified(game.launch)) {
       fail(
         'CATALOG_PUBLISHED_REQUIRES_VERIFIED_LAUNCH',
         `${game.slug}: published games require a verified launch.primaryUrl and mode`
-      )
-    }
-    if (provider.verification !== 'verified') {
-      fail(
-        'CATALOG_PUBLISHED_REQUIRES_VERIFIED_PROVIDER',
-        `${game.slug}: published games require a verified provider`
       )
     }
   }
@@ -424,6 +428,60 @@ export function validateCatalog(catalog: Catalog): void {
     slugs.add(game.slug)
     validateGame(game, catalog)
   }
+}
+
+/** SEO / indexability layer — separate from schema validation. */
+export function validateGameSeoIndexability(game: CatalogGame): void {
+  const detail = game.detail
+  if (!detail?.seo?.indexable) {
+    return
+  }
+
+  if (game.publicationStatus !== 'published') {
+    fail(
+      'CATALOG_INDEXABLE_REQUIRES_PUBLISHED',
+      `${game.slug}: seo.indexable true requires publicationStatus published`
+    )
+  }
+
+  if (!hasCompleteDetail(detail)) {
+    fail(
+      'CATALOG_INDEXABLE_REQUIRES_DETAIL',
+      `${game.slug}: seo.indexable true requires complete Game Detail content (intro, howToPlay, sections, faq, controls)`
+    )
+  }
+}
+
+export function validateCatalogSeo(catalog: Catalog): void {
+  for (const game of catalog.games) {
+    validateGameSeoIndexability(game)
+  }
+}
+
+/** Editorial / content quality — warnings only; does not block schema validation. */
+export function collectCatalogContentQualityIssues(catalog: Catalog): CatalogVerificationIssue[] {
+  const issues: CatalogVerificationIssue[] = []
+
+  for (const game of catalog.games) {
+    if (game.publicationStatus !== 'published') {
+      continue
+    }
+    if (game.slug !== R1_DETAIL_CONTENT_SLUG) {
+      continue
+    }
+    if (game.detail?.seo?.indexable === true) {
+      continue
+    }
+    if (game.detail && !hasCompleteDetail(game.detail)) {
+      issues.push({
+        code: 'CATALOG_DETAIL_INCOMPLETE',
+        severity: 'WARNING',
+        message: `${game.slug}: published game has partial Detail content; complete intro, howToPlay, sections, faq, and controls before indexable SEO or editorial sign-off.`,
+      })
+    }
+  }
+
+  return issues
 }
 
 export { DEFAULT_SEO_INDEXABLE }

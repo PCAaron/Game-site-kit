@@ -59,12 +59,10 @@ function draftLauncherGame(input: { slug: string; title: string; homeSort: numbe
     id: input.slug,
     slug: input.slug,
     title: input.title,
-    providerId: 'pending-verification',
     launch: { verification: 'unverified' },
     publicationStatus: 'draft',
     showOnHome: false,
     homeSort: input.homeSort,
-    embedPermissionId: 'embed-pending-unverified',
     cardAction: 'launcher-select',
     availability: 'unknown',
   }

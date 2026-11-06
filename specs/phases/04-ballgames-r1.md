@@ -101,7 +101,7 @@
 | 区域               | 位置                                           | Phase 4 职责                                                                      |
 | ------------------ | ---------------------------------------------- | --------------------------------------------------------------------------------- |
 | SiteInstance       | `lib/site/instances/ballgames.ts`              | 保持；必要时仅增 **有消费者** 的字段                                              |
-| PortalHome fixture | `ballgamesPortalHomeContentFixture`            | 迁移为 **真实 PortalHome 内容源**；published + indexable 在首页上线批次启用       |
+| PortalHome 内容 | `lib/site/instances/ballgames.ts`（数据）+ **`getPortalHomeContent()`**（读取入口） | Phase 4.2 页面消费 Reader；published + indexable 在首页上线批次启用 |
 | URL helpers        | `lib/urls/site-url.ts`                         | 消费方扩展到页面/组件/内容                                                        |
 | Sitemap            | `app/sitemap.ts` → `buildProductionSitemap`    | 注册 portal + game descriptors；exact-two                                         |
 | Eligibility        | `lib/seo/sitemap-eligibility.ts`               | 接入 Game Detail descriptor                                                       |

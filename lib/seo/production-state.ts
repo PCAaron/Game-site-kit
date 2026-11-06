@@ -1,4 +1,4 @@
-import { ballgamesPortalHomeContentFixture } from '../site/instances/ballgames'
+import { getBallgamesPortalHomeContent } from '../site/get-portal-home-content'
 import type { SiteInstance } from '../site/types'
 import type { PortalSitemapPageDescriptor } from './page-descriptors'
 import { isAppRoutePath } from './routes'
@@ -11,7 +11,7 @@ export function getProductionPortalDescriptors(): PortalSitemapPageDescriptor[] 
       pageType: 'portal_home',
       routePath: '/',
       routeExists: isAppRoutePath('/'),
-      content: ballgamesPortalHomeContentFixture,
+      content: getBallgamesPortalHomeContent(),
     },
   ]
 }
