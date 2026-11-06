@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 
 import {
@@ -478,4 +480,11 @@ test('C15 PortalHome reader is separate from Catalog adapter', () => {
   validateCatalog(catalog)
   assert.notEqual(portal.seo.title, catalog.games[0]?.title)
   assert.equal(typeof portal.seo.title, 'string')
+})
+
+test('C16 validate-seo entry shape: schema then catalog SEO gate', () => {
+  const path = fileURLToPath(new URL('./validate-seo-entry.ts', import.meta.url))
+  const source = readFileSync(path, 'utf8')
+  assert.ok(source.includes('validateCatalog('))
+  assert.ok(source.includes('validateCatalogSeo('))
 })

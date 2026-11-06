@@ -65,6 +65,7 @@ Editorial 完整度 → **WARNING**；不阻止 Catalog 读取或 launch。
 |---|---|
 | `yarn test:catalog` | schema + 契约测试 |
 | `yarn validate:catalog` | `validateCatalog` + JSON readiness 报告 |
+| `yarn validate:seo` | Phase 3 SEO 契约检查 + **`validateCatalog` + `validateCatalogSeo`**（`indexable === true` 时的 Detail 完整度门禁） |
 
 ## Embed 与生产门禁
 

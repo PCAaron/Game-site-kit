@@ -4,7 +4,7 @@ import { validatePortalHomeContent } from './validate-portal-home-content'
 
 /**
  * R1 ballgames PortalHome content source (`lib/site/instances/ballgames.ts`).
- * Page routes and SEO scripts should use this reader — not deep-import the fixture.
+ * 生产路径与 SEO 管线应使用本 Reader；`ballgamesPortalHomeContentFixture` 仅保留在实例模块内供本文件与**显式标注的测试**使用，不经 `lib/site/index` 暴露。
  */
 export function getBallgamesPortalHomeContent(): PortalHomeContent {
   const content = ballgamesPortalHomeContentFixture

@@ -1,14 +1,18 @@
+/**
+ * Phase 3 Batch 1 — site URL / PortalHome 契约测试。
+ * `ballgamesPortalHomeContentFixture` 仅供本测试文件构造用例，非生产读取路径。
+ */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import {
   SiteConfigError,
-  ballgamesPortalHomeContentFixture,
   ballgamesSiteInstance,
   resolvePortalHomeOgImage,
   validatePortalHomeContent,
   validateSiteInstance,
 } from '../lib/site/index'
+import { ballgamesPortalHomeContentFixture } from '../lib/site/instances/ballgames'
 import { gameUrl, siteUrl } from '../lib/urls/site-url'
 
 test('siteUrl root returns canonicalOrigin without trailing slash', () => {

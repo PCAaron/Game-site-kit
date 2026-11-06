@@ -1037,3 +1037,33 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 **未执行：** commit / push；Phase 4.2 页面。
 
 **下一步：** 用户审查 → 授权 Phase 4.2。
+
+---
+
+## 2026-11-06 — Phase 4.1.3：Validation & Documentation Closure
+
+**范围：** Catalog SEO 专项接入 `yarn validate:seo`；SEO 脚本经 `getPortalHomeContent()` 消费 PortalHome；`lib/site/index` 不再导出 `ballgamesPortalHomeContentFixture`（测试从 `lib/site/instances/ballgames` 引用）；`04.1` Spec / ADR 0002 / STATUS 同步；`hosted` 与 iframe 分类文档修正。
+
+**分支：** `main`
+
+### 变更文件（摘要）
+
+- `scripts/validate-seo-entry.ts` — `validateCatalog` + `validateCatalogSeo`；Portal 元数据检查改用 Reader
+- `lib/site/index.ts`、`lib/site/get-portal-home-content.ts` — 导出边界与说明
+- `scripts/batch1-test-entry.ts`、`scripts/batch2-test-entry.ts` — fixture 导入路径
+- `scripts/catalog-test-entry.ts` — C16：静态断言 `validate-seo-entry` 含 Catalog SEO 调用
+- `specs/phases/04.1-catalog-architecture-alignment.md`、`specs/phases/04-ballgames-r1.md`、`docs/agent/decisions/0002-portal-content-and-catalog-boundary.md`、`lib/catalog/README.md`、`docs/agent/STATUS.md`
+
+### 验证
+
+| Command | Exit | Result |
+|---|---|---|
+| `yarn typecheck` | 0 | **PASS** |
+| `yarn test:catalog` | 0 | **PASS**（34 tests） |
+| `yarn validate:catalog` | 0 | **PASS**（readiness JSON + schema exit 0） |
+| `yarn validate:seo` | 0 | **PASS**（contract；含 `validateCatalog` + `validateCatalogSeo`） |
+| `git diff --check` | 0 | **PASS** |
+
+**未执行：** commit / push（用户未要求）；Phase 4.2 页面。
+
+**结论：** Phase **4.1 / 4.1.2 / 4.1.3** 文档与验证收口 **DONE**；Phase **4.2 NOT STARTED**。

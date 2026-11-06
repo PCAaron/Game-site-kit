@@ -1,7 +1,12 @@
+/**
+ * Phase 3 Batch 2 — SEO / sitemap / JSON-LD 契约测试。
+ * `ballgamesPortalHomeContentFixture` 仅供本文件构造 descriptor，非生产 Reader 路径。
+ */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { SiteConfigError, ballgamesPortalHomeContentFixture, ballgamesSiteInstance } from '../lib/site/index'
+import { SiteConfigError, ballgamesSiteInstance } from '../lib/site/index'
+import { ballgamesPortalHomeContentFixture } from '../lib/site/instances/ballgames'
 import {
   buildPortalHomeJsonLdBlocks,
   buildLegacyTemplateMetadata,

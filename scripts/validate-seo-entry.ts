@@ -1,16 +1,15 @@
 /**
  * Phase 3 deterministic SEO validation (contract + optional export artifacts).
+ * Phase 4.1.3：在同管线中执行 Catalog schema + `validateCatalogSeo`（仅 `seo.indexable === true` 的游戏受完整 Detail 门禁）。
  * Bundled by scripts/validate-seo.mjs
  */
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 
-import {
-  SiteConfigError,
-  ballgamesPortalHomeContentFixture,
-  ballgamesSiteInstance,
-} from '../lib/site/index'
+import { getBallgamesCatalog, validateCatalog, validateCatalogSeo } from '../lib/catalog/index'
+import { getPortalHomeContent } from '../lib/site/get-portal-home-content'
+import { SiteConfigError, ballgamesSiteInstance } from '../lib/site/index'
 import {
   buildPortalHomeJsonLdBlocks,
   buildProductionSitemap,
@@ -30,6 +29,12 @@ import { gameUrl, siteUrl } from '../lib/urls/site-url'
 
 const STARTER_DOMAIN = 'tailwind-nextjs-starter-blog.vercel.app'
 const failures: string[] = []
+
+function runCatalogSeoGate(): void {
+  const catalog = getBallgamesCatalog()
+  validateCatalog(catalog)
+  validateCatalogSeo(catalog)
+}
 
 function check(name: string, fn: () => void): void {
   try {
@@ -76,8 +81,14 @@ check('canonical path strict validation', () => {
   assert.throws(() => siteUrl('/blog%5Cpost'), SiteConfigError)
 })
 
+// --- Catalog + Catalog SEO（与 schema / Production Gate 分离）---
+check('catalog schema + SEO indexability gate', () => {
+  runCatalogSeoGate()
+})
+
 // --- Metadata ---
 check('portal home requires explicit title', () => {
+  const portal = getPortalHomeContent()
   assert.throws(
     () =>
       resolvePortalHomePageSeo(
@@ -86,8 +97,8 @@ check('portal home requires explicit title', () => {
           routePath: '/',
           routeExists: true,
           content: {
-            ...ballgamesPortalHomeContentFixture,
-            seo: { ...ballgamesPortalHomeContentFixture.seo, title: '' },
+            ...portal,
+            seo: { ...portal.seo, title: '' },
           },
         },
         ballgamesSiteInstance
@@ -102,7 +113,7 @@ check('canonical equals openGraph url', () => {
       pageType: 'portal_home',
       routePath: '/',
       routeExists: true,
-      content: ballgamesPortalHomeContentFixture,
+      content: getPortalHomeContent(),
     },
     ballgamesSiteInstance
   )
@@ -115,7 +126,7 @@ check('og image socialBanner fallback only', () => {
       pageType: 'portal_home',
       routePath: '/',
       routeExists: true,
-      content: ballgamesPortalHomeContentFixture,
+      content: getPortalHomeContent(),
     },
     ballgamesSiteInstance
   )

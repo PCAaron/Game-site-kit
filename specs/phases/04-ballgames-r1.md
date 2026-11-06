@@ -1,7 +1,7 @@
 # Phase 4 — ballgames.io R1 Implementation
 
 - **阶段编号：** 4
-- **状态：** **Phase 4.1 — Catalog / Data Contract（schema 已落地；4.1 架构对齐文档 DONE）**（业务页面 **NOT STARTED**）
+- **状态：** **Phase 4.1 — Catalog / Data Contract（schema 已落地；4.1 / 4.1.2 / 4.1.3 DONE）** — 业务页面（**Phase 4.2**）**NOT STARTED**
 - **Phase 4.1 架构对齐：** [`04.1-catalog-architecture-alignment.md`](04.1-catalog-architecture-alignment.md)
 - **Archetype：** `game-portal`
 - **首实例：** ballgames.io

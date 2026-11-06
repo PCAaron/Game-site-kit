@@ -79,7 +79,7 @@
 
 - 需要 adapter、schema 校验和跨记录唯一性检查（已实现于 `lib/catalog/validate.ts`）。
 - 合并 Game 记录仍需明确 Detail 发布态继承 Catalog 单一 `publicationStatus`（R1 已统一）。
-- Provider / EmbedPermission 可选化要求校验器与文档同步（**代码对齐进行中** — 见 Phase 4.1 对齐报告）。
+- Provider / EmbedPermission 可选关联与条件校验已落在 `lib/catalog/validate.ts` 与 Phase 4.1 对齐文档（**Phase 4.1.2 DONE**）；PortalHome 经 `getPortalHomeContent()` 与 Catalog 分离。
 
 ## Related Specs
 
