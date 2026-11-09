@@ -5,7 +5,8 @@
 - **Current Git HEAD（文档对齐任务）：** 见 WORKLOG 2026-11-06 条目
 - **Last substantive Phase 4.0 revision:** `87adf9866c8f8bb6f9eb4898b8618ced8d8abf49`
 - **Phase 3 Code Validation Baseline：** `f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9`
-- **Last updated:** 2026-11-06
+- **Last updated:** 2026-11-09
+- **Specs 治理：** [`specs-governance-review.md`](reports/specs-governance-review.md)（2026-11-09）；Phase 4.x 批次权威 [`04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) **§13**
 - **Current reviewed branch:** `main`
 - **Catalog 实现基线 commit：** `4ea8e14cb0c3a048029b5cbeca8efa626db91d3d`（`feat(catalog): add Phase 4.1 data contract and validation`）
 
@@ -45,7 +46,7 @@ DEC-003-A–C **Applied**；DEC-003-D **Partial**；DEC-003-E **F1**；DEC-003-F
 ## Recommended next action
 
 1. 用户确认 Phase 4.1.3 交付与验证记录（WORKLOG）。
-2. 授权后进入 **Phase 4.2** 页面实现（Portal Home / Game Detail UI）。
+2. 授权后进入 **Phase 4.2 — Route / Metadata Integration**（[`04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) §13；读取清单见 [`specs/README.md`](../../specs/README.md)）：`app/[slug]`、`isAppRoutePath`、`getProductionPortalDescriptors`、metadata resolver、`generateStaticParams`；静态详情路由 **仅** `hockey-bros`。**不含** 首页 UI、GameCard/Grid、PlayFrame/Launcher、详情正文、production sitemap/JSON-LD（属 4.3–4.6）。
 3. **不要**在未授权时自动开 Phase 4.2。
 
 ## Last verified checks

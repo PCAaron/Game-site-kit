@@ -104,6 +104,7 @@ SEO 是**系统级能力**：搜索意图 → 页面类型 → URL/canonical →
 | 文档 | 用途 |
 |---|---|
 | [`AGENTS.md`](../AGENTS.md) | Agent 入口与执行规则 |
+| [`specs/README.md`](README.md) | Specs 索引、优先级、Phase 4.2 最小读取清单 |
 | [`specs/architecture/01-system-overview.md`](architecture/01-system-overview.md) | 逻辑架构与能力状态 |
 | [`specs/phases/`](../specs/phases/) | 分阶段任务 Spec |
 | [`docs/agent/STATUS.md`](../docs/agent/STATUS.md) | 当前阶段与阻塞项 |

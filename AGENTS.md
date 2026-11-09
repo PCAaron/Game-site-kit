@@ -28,8 +28,8 @@
 ## 如何定位阶段 Spec（Phase Spec）
 
 1. 从 STATUS 的 **Current phase** 与用户任务描述确认阶段编号。
-2. 打开 [`specs/phases/`](specs/phases/) 下对应文件（命名：`NN-*.md`）。
-3. 若目录中尚无该阶段文件，以 SEO 指南「第四部分」同名 Phase 为准，并用 [`specs/templates/agent-task-template.md`](specs/templates/agent-task-template.md) 起草任务 Spec，**勿**跳过章程与 STATUS。
+2. 打开 [`specs/phases/`](specs/phases/) 下对应文件（命名：`NN-*.md`）。**Phase 4** 的子批次（4.2–4.7）以 [`specs/phases/04-ballgames-r1.md`](specs/phases/04-ballgames-r1.md) **§13** 为权威，勿与本文 Phase 表或其他文档中的「4.2」章节编号混淆。
+3. 若目录中尚无该阶段文件，以 SEO 指南「第四部分」同名 Phase 为准，并用 [`specs/templates/agent-task-template.md`](specs/templates/agent-task-template.md) 起草任务 Spec，**勿**跳过章程与 STATUS。Spec 索引与按需阅读见 [`specs/README.md`](specs/README.md)。
 
 | Phase | Spec 文件 | 说明 |
 |---|---|---|

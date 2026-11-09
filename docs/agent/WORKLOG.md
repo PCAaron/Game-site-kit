@@ -1067,3 +1067,24 @@ Prettier 分类证据：使用当前仓库 Prettier 配置与 API 对 `aa8e1db5c
 **未执行：** commit / push（用户未要求）；Phase 4.2 页面。
 
 **结论：** Phase **4.1 / 4.1.2 / 4.1.3** 文档与验证收口 **DONE**；Phase **4.2 NOT STARTED**。
+
+---
+
+## 2026-11-09 — Specs 治理审计落盘与 P0 文档补丁
+
+**范围：** 只读 Specs 治理审计；落盘报告；修补 Phase **4.2** 定义不一致（CON-01）。**未**实施 Phase 4.2 代码、**未**迁移 Specs 目录。
+
+### 交付
+
+- [`docs/agent/reports/specs-governance-review.md`](reports/specs-governance-review.md)
+- [`specs/README.md`](../../specs/README.md) — 索引、优先级、Phase 4.2 最小读取清单
+- P0 补丁：`docs/agent/STATUS.md`（Recommended next action）、`specs/phases/04.1-catalog-architecture-alignment.md`（4.2 状态表与 §11）、`AGENTS.md`（Phase 4 §13 权威）、`specs/00-project-charter.md`（索引链）
+
+### 验证
+
+| Check | Result |
+|---|---|
+| 文档-only 变更 | **PASS**（无代码/脚本修改） |
+| `yarn typecheck` / `validate:*` | **NOT RUN**（本轮无代码变更） |
+
+**结论：** Phase 4.2 批次定义与主 Spec §13 对齐；Agent 入口见 `specs/README.md`。**Phase 4.2 实现仍 NOT STARTED**（须用户授权）。

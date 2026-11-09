@@ -24,7 +24,7 @@
 
 | Release | 实例 Spec | 实现状态 |
 |---|---|---|
-| **R1** | §5–§8 | **not started**（Kit Phase 4） |
+| **R1** | §5–§8 | Catalog/Reader **DONE**（Phase 4.1）；**页面 UI 未开始**（4.3+） |
 | **R2** | §9（5–6 bros 内页） | 仅文档 |
 | **R3** | §9（分类页 + 控规模） | 仅文档 |
 
@@ -40,4 +40,4 @@
 
 - **Phase 2.2（Kit）：** Instance-to-Kit 契约对齐（2026-11-02）
 - **ballgames-specs-v1：** v1.1 + Phase 2.2 修订
-- **实现：** **not started**
+- **实现：** Catalog + validation **DONE**（4.1.3）；**Route/UI（4.2+）NOT STARTED**
