@@ -20,10 +20,7 @@ import {
   type GameDetailContent,
 } from '../lib/catalog/index'
 import { gameUrl, siteUrl } from '../lib/urls/site-url'
-import {
-  getBallgamesPortalHomeContent,
-  getPortalHomeContent,
-} from '../lib/site/index'
+import { getBallgamesPortalHomeContent, getPortalHomeContent } from '../lib/site/index'
 
 /** Test-only fixture. Not production catalog data and not a verified publish set. */
 const CATALOG_TEST_FIXTURE_MARK = 'CATALOG_TEST_FIXTURE_NOT_PRODUCTION'

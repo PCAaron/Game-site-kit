@@ -8,14 +8,20 @@ import { test } from 'node:test'
 import { SiteConfigError, ballgamesSiteInstance } from '../lib/site/index'
 import { ballgamesPortalHomeContentFixture } from '../lib/site/instances/ballgames'
 import {
+  buildGameDetailPageDescriptor,
   buildPortalHomeJsonLdBlocks,
   buildLegacyTemplateMetadata,
   buildProductionSitemap,
   buildR1ExactTwoContractFixtures,
   buildSitemapEntriesFromDescriptors,
   buildSiteRootMetadata,
+  findProductionRoutableGame,
+  getProductionPortalDescriptors,
+  getProductionRoutableGameSlugs,
+  isAppRoutePath,
   isSitemapCandidate,
   LEGACY_PAGE_ROBOTS,
+  resolveGameDetailPageSeo,
   resolvePortalHomePageSeo,
   serializeJsonLd,
   parseSitemapUrlsetXml,
@@ -25,6 +31,8 @@ import {
   validateSitemapXmlUrls,
   parseExportHtmlHead,
 } from '../lib/seo/index'
+import { getBallgamesCatalog } from '../lib/catalog/adapter'
+import { hockeyBrosDetail } from '../lib/catalog/instances/hockey-bros-detail'
 import { resolvedSeoToMetadata } from '../lib/seo/metadata'
 import { siteUrl } from '../lib/urls/site-url'
 
@@ -73,9 +81,10 @@ test('og image falls back only to socialBanner', () => {
   assert.ok(meta.openGraph?.images)
 })
 
-test('production sitemap excludes draft portal and missing hockey-bros route', () => {
+test('production sitemap excludes draft portal but includes published indexable game when routed', () => {
   const entries = buildProductionSitemap(ballgamesSiteInstance)
-  assert.equal(entries.length, 0)
+  assert.equal(entries.length, 1)
+  assert.equal(entries[0].url, 'https://ballgames.io/hockey-bros')
 })
 
 test('contract fixture yields exact-two URLs when routes exist', () => {
@@ -142,12 +151,17 @@ test('portal indexable metadata is independent of legacy robots', () => {
   assert.notDeepEqual(meta.robots, LEGACY_PAGE_ROBOTS)
 })
 
-test('parseSitemapUrlsetXml validates empty production-shaped document', () => {
+test('parseSitemapUrlsetXml validates empty urlset document', () => {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </urlset>`
   const parsed = parseSitemapUrlsetXml(xml)
   assert.deepEqual(parsed.urls, [])
+})
+
+test('validateProductionSitemapXml matches serialized production entries', () => {
+  const entries = buildProductionSitemap(ballgamesSiteInstance)
+  const xml = serializeSitemapUrlsetXml(entries)
   validateProductionSitemapXml(xml, ballgamesSiteInstance)
 })
 
@@ -185,7 +199,9 @@ test('parseSitemapUrlsetXml rejects malformed XML structure', () => {
   throws(
     `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://ballgames.io</loc>`
   )
-  throws(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
+  throws(
+    `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
+  )
   throws(
     `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`
   )
@@ -196,7 +212,9 @@ test('parseSitemapUrlsetXml rejects malformed XML structure', () => {
   throws(
     `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><evil/><loc>https://ballgames.io</loc></url></urlset>`
   )
-  throws(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>foo&bar</loc></url></urlset>`)
+  throws(
+    `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>foo&bar</loc></url></urlset>`
+  )
 })
 
 test('parseSitemapUrlsetXml strict structure: attributes and optional fields', () => {
@@ -241,7 +259,10 @@ test('parseSitemapUrlsetXml priority and lastmod value boundaries', () => {
   const urlOpen = `<url><loc>https://ballgames.io</loc>`
   const urlClose = `</url>`
   const throws = (inner: string) =>
-    assert.throws(() => parseSitemapUrlsetXml(`${head}${urlOpen}${inner}${urlClose}${tail}`), SitemapXmlValidationError)
+    assert.throws(
+      () => parseSitemapUrlsetXml(`${head}${urlOpen}${inner}${urlClose}${tail}`),
+      SitemapXmlValidationError
+    )
   const accepts = (inner: string) => {
     const parsed = parseSitemapUrlsetXml(`${head}${urlOpen}${inner}${urlClose}${tail}`)
     assert.deepEqual(parsed.urls, ['https://ballgames.io'])
@@ -310,6 +331,50 @@ test('validateSitemapXmlUrls rejects illegal loc URLs', () => {
         ballgamesSiteInstance
       ),
     SitemapXmlValidationError
+  )
+})
+
+test('Phase 4.2 R01–R04: isAppRoutePath portal vs blog vs unknown game', () => {
+  assert.equal(isAppRoutePath('/'), true)
+  assert.equal(isAppRoutePath('/hockey-bros'), true)
+  assert.equal(isAppRoutePath('/blog'), false)
+  assert.equal(isAppRoutePath('/blog/example-post'), false)
+  assert.equal(isAppRoutePath('/soccer-bros'), false)
+  assert.equal(isAppRoutePath('/not-a-game'), false)
+})
+
+test('Phase 4.2 R05–R06: production game descriptor and static params slugs', () => {
+  const game = findProductionRoutableGame('hockey-bros')
+  assert.ok(game)
+  const descriptor = buildGameDetailPageDescriptor(game!)
+  assert.equal(descriptor?.pageType, 'game_detail')
+  assert.equal(descriptor?.routeExists, true)
+  const slugs = getProductionRoutableGameSlugs()
+  assert.deepEqual(slugs, ['hockey-bros'])
+})
+
+test('Phase 4.2 R07: unknown slug is not routable from catalog', () => {
+  assert.equal(findProductionRoutableGame('unknown-slug'), undefined)
+})
+
+test('Phase 4.2 M01–M05: game detail metadata from catalog SEO', () => {
+  const game = findProductionRoutableGame('hockey-bros')!
+  const descriptor = buildGameDetailPageDescriptor(game)!
+  const resolved = resolveGameDetailPageSeo(descriptor, ballgamesSiteInstance)
+  assert.equal(resolved.title, hockeyBrosDetail.seo.title)
+  assert.equal(resolved.description, hockeyBrosDetail.seo.description)
+  assert.equal(resolved.canonical, 'https://ballgames.io/hockey-bros')
+  assert.equal(findProductionRoutableGame('soccer-bros'), undefined)
+})
+
+test('Phase 4.2 production descriptors include game detail from adapter', () => {
+  const descriptors = getProductionPortalDescriptors()
+  const gameDescriptors = descriptors.filter((d) => d.pageType === 'game_detail')
+  assert.equal(gameDescriptors.length, 1)
+  assert.equal(gameDescriptors[0].slug, 'hockey-bros')
+  assert.equal(
+    getBallgamesCatalog().games.some((g) => g.slug === 'hockey-bros'),
+    true
   )
 })
 

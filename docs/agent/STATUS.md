@@ -1,6 +1,6 @@
 # Agent Project Status
 
-- **Current phase:** Phase 4.1.3 — Validation & Documentation Closure（**DONE**）；Phase 4.2 **NOT STARTED**
+- **Current phase:** Phase 4.2 — Route / Metadata Integration（**DONE**）；Phase 4.3 **NOT STARTED**
 - **Baseline commit:** `723499bf9e590b398ed888cffc834a9c54274d00`（`v2.4.0-9-g723499b`）
 - **Current Git HEAD（文档对齐任务）：** 见 WORKLOG 2026-11-06 条目
 - **Last substantive Phase 4.0 revision:** `87adf9866c8f8bb6f9eb4898b8618ced8d8abf49`
@@ -14,7 +14,7 @@
 
 | Phase | 名称                     | 状态                                                                                     | 证据                                                                                                              |
 | ----- | ------------------------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 4     | ballgames R1 页面        | **4.0 DONE** / **4.1 + 4.1.2 + 4.1.3 DONE** / 4.2+ **NOT STARTED** | [`04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) · [`04.1-catalog-architecture-alignment.md`](../../specs/phases/04.1-catalog-architecture-alignment.md) · [`lib/catalog/`](../../lib/catalog/) |
+| 4     | ballgames R1 页面        | **4.0–4.2 DONE** / 4.3+ **NOT STARTED** | [`04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) · [`04.1-catalog-architecture-alignment.md`](../../specs/phases/04.1-catalog-architecture-alignment.md) · `app/[slug]` · [`lib/seo/production-game-routes.ts`](../../lib/seo/production-game-routes.ts) |
 
 ## Phase 4.0 / 4.1 摘要
 
@@ -28,8 +28,9 @@
 | PortalHome Reader      | **`getPortalHomeContent()`** @ `lib/site/get-portal-home-content.ts` |
 | 生产首页行数           | **1** / 15–20 **设计目标**（Info；非 schema Error）                                                   |
 | 生产 iframe            | **未就绪**（embed `unknown`；CSP 未验证 — **生产门禁**，非 Catalog 读取阻塞）                         |
-| Phase 4 业务页面       | **NOT STARTED**（4.2+）                                                                               |
-| Phase 4.1 系列冻结     | **FROZEN**（4.1 / 4.1.2 / 4.1.3 已收口；后续变更须走 ADR 或新子阶段，**未**启动 4.2） |
+| Phase 4.2 路由 / Metadata | **DONE** — `app/[slug]`、`/hockey-bros` SSG、`isAppRoutePath`、production descriptors、`resolveGameDetailPageSeo` |
+| Phase 4.3+ 业务 UI     | **NOT STARTED**                                                                                       |
+| Phase 4.1 系列冻结     | **FROZEN**（4.1.x 公共 Adapter 未改；4.2 仅消费）                                                    |
 
 ## ADR 0003（摘要）
 
@@ -45,11 +46,13 @@ DEC-003-A–C **Applied**；DEC-003-D **Partial**；DEC-003-E **F1**；DEC-003-F
 
 ## Recommended next action
 
-1. 用户确认 Phase 4.1.3 交付与验证记录（WORKLOG）。
-2. 授权后进入 **Phase 4.2 — Route / Metadata Integration**（[`04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) §13；读取清单见 [`specs/README.md`](../../specs/README.md)）：`app/[slug]`、`isAppRoutePath`、`getProductionPortalDescriptors`、metadata resolver、`generateStaticParams`；静态详情路由 **仅** `hockey-bros`。**不含** 首页 UI、GameCard/Grid、PlayFrame/Launcher、详情正文、production sitemap/JSON-LD（属 4.3–4.6）。
-3. **不要**在未授权时自动开 Phase 4.2。
+1. 用户确认 Phase 4.2 交付与 WORKLOG 验证记录。
+2. 授权后进入 **Phase 4.3 — Homepage / PlayFrame**（GameCard、GameGrid、PlayFrame、Launcher；**非** 4.2 已完成的 metadata 壳）。
+3. **不要**在未授权时自动开 Phase 4.3 / 4.4 详情 UI。
 
 ## Last verified checks
+
+**Phase 4.2（2026-11-09）：** `yarn typecheck`、`yarn test:batch1`、`yarn test:batch2`（26 tests）、`yarn test:catalog`、`yarn validate:catalog`、`yarn validate:seo`、`yarn build`、`git diff --check` — 见 WORKLOG 条目。
 
 **Phase 4.1.3（2026-11-06）：** `yarn typecheck`、`yarn test:catalog`、`yarn validate:catalog`、`yarn validate:seo`、`git diff --check` — 见 WORKLOG 条目。
 

@@ -11,8 +11,16 @@ export type {
   ResolvedPageSEO,
 } from './page-descriptors'
 export { buildProductionSitemap, getProductionPortalDescriptors } from './production-state'
+export {
+  buildGameDetailPageDescriptor,
+  findProductionRoutableGame,
+  getProductionRoutableGameSlugs,
+  getProductionRoutableGames,
+  isCatalogGameRoutableAsDetail,
+  isProductionGameDetailRoutePath,
+} from './production-game-routes'
 export { buildR1ExactTwoContractFixtures } from './fixtures'
-export { resolvePortalHomePageSeo } from './resolve-page-seo'
+export { resolveGameDetailPageSeo, resolvePortalHomePageSeo } from './resolve-page-seo'
 export { isAppRoutePath, normalizeRoutePath } from './routes'
 export { buildSitemapEntriesFromDescriptors, isSitemapCandidate } from './sitemap-eligibility'
 export { assertExportHtmlHeadMatches, parseExportHtmlHead } from './validate-export-html-meta'

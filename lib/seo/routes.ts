@@ -1,7 +1,7 @@
 /**
- * Known static app routes for route-existence checks (Phase 4 adds game detail paths).
+ * Production portal route existence (Phase 4.2). Legacy Blog/About/Projects routes are not portal app routes.
  */
-const STATIC_APP_ROUTES = new Set(['/', '/blog', '/about', '/projects', '/tags'])
+import { isProductionGameDetailRoutePath } from './production-game-routes'
 
 export function normalizeRoutePath(routePath: string): string {
   if (!routePath || routePath === '/') return '/'
@@ -10,9 +10,6 @@ export function normalizeRoutePath(routePath: string): string {
 
 export function isAppRoutePath(routePath: string): boolean {
   const path = normalizeRoutePath(routePath)
-  if (path === '/hockey-bros') return false
-  if (STATIC_APP_ROUTES.has(path)) return true
-  if (/^\/blog\/[^/]+/.test(path)) return true
-  if (/^\/tags\/[^/]+/.test(path)) return true
-  return false
+  if (path === '/') return true
+  return isProductionGameDetailRoutePath(path)
 }

@@ -260,10 +260,7 @@ function assertGameOptionalAssociations(game: CatalogGame, catalog: Catalog): vo
       `${game.slug}: providerId must be non-empty when declared`
     )
     if (!catalog.providers.some((item) => item.id === game.providerId)) {
-      fail(
-        'CATALOG_PROVIDER_MISSING',
-        `${game.slug}: providerId ${game.providerId} does not exist`
-      )
+      fail('CATALOG_PROVIDER_MISSING', `${game.slug}: providerId ${game.providerId} does not exist`)
     }
   }
 

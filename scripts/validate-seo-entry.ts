@@ -141,12 +141,16 @@ check('site root metadata origin', () => {
 })
 
 // --- Sitemap (structured XML + eligibility) ---
-check('production sitemap XML matches eligibility (empty when draft portal)', () => {
-  const entries = buildProductionSitemap(ballgamesSiteInstance)
-  const xml = serializeSitemapUrlsetXml(entries)
-  validateProductionSitemapXml(xml, ballgamesSiteInstance)
-  assert.equal(entries.length, 0)
-})
+check(
+  'production sitemap XML matches eligibility (draft portal excluded; routed game included)',
+  () => {
+    const entries = buildProductionSitemap(ballgamesSiteInstance)
+    const xml = serializeSitemapUrlsetXml(entries)
+    validateProductionSitemapXml(xml, ballgamesSiteInstance)
+    assert.equal(entries.length, 1)
+    assert.equal(entries[0].url, 'https://ballgames.io/hockey-bros')
+  }
+)
 
 check('contract exact-two sitemap XML matches fixture eligibility', () => {
   const { portal, game } = buildR1ExactTwoContractFixtures()

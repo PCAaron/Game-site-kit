@@ -4,6 +4,34 @@
 
 ---
 
+## 2026-11-09 — Phase 4.2：Route / Metadata Integration
+
+**范围：** `app/[slug]/page.tsx`、`lib/seo/routes.ts`、`production-game-routes.ts`、`production-state.ts`、`resolve-page-seo.ts`（Game Detail）、Batch 2 契约测试；**不含** 首页 UI、PlayFrame、详情正文、页面 JSON-LD、exact-two export 终验。
+
+**分支：** `main`（工作区未提交）
+
+### 交付
+
+- 生产可路由游戏 slug 门禁（Catalog Adapter：`published` + `navigate-to-detail` + `detail.seo`）
+- `/hockey-bros` App Route 识别、`GameDetailPageDescriptor`、`resolveGameDetailPageSeo` + `generateMetadata`
+- `generateStaticParams` 仅 `hockey-bros`；`dynamicParams = false`
+- `getProductionPortalDescriptors()` 接入 Catalog 游戏行
+
+### 验证
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `yarn typecheck` | 0 | PASS |
+| `yarn test:batch1` | 0 | PASS（10） |
+| `yarn test:batch2` | 0 | PASS（**26**） |
+| `yarn test:catalog` | 0 | PASS（34） |
+| `yarn validate:catalog` | 0 | PASS |
+| `yarn validate:seo` | 0 | PASS |
+| `yarn build` | 0 | PASS（SSG `/[slug]` → `/hockey-bros`） |
+| `git diff --check` | 0 | PASS |
+
+---
+
 ## 2026-11-03 — Phase 3 Batch 0：Static Export 与 URL 技术探针
 
 **范围：** DEC-003-E 实测探针；**未**修改正式 `next.config.js`、部署 workflow、Phase 3 业务实现、ADR 状态。

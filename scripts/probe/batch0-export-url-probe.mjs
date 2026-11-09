@@ -10,10 +10,7 @@ import crypto from 'node:crypto'
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const nextConfigPath = path.join(projectRoot, 'next.config.js')
-const evidenceRoot = path.join(
-  projectRoot,
-  'docs/agent/reports/batch0-evidence'
-)
+const evidenceRoot = path.join(projectRoot, 'docs/agent/reports/batch0-evidence')
 const nextWrapper = path.join(projectRoot, 'scripts/next-with-init-cwd.mjs')
 
 function sha256(filePath) {
@@ -29,10 +26,7 @@ function writeNextConfig(content) {
 }
 
 function patchTrailingSlash(content, value) {
-  return content.replace(
-    /trailingSlash:\s*(true|false)/,
-    `trailingSlash: ${value}`
-  )
+  return content.replace(/trailingSlash:\s*(true|false)/, `trailingSlash: ${value}`)
 }
 
 function runBuild(envExtra) {
@@ -84,13 +78,7 @@ function listOutTree(outDir, maxFiles = 80) {
 }
 
 function pickProbeFiles(outDir) {
-  const candidates = [
-    'index.html',
-    'blog/index.html',
-    'blog.html',
-    'sitemap.xml',
-    'robots.txt',
-  ]
+  const candidates = ['index.html', 'blog/index.html', 'blog.html', 'sitemap.xml', 'robots.txt']
   const found = {}
   for (const rel of candidates) {
     const abs = path.join(outDir, rel)
@@ -103,12 +91,8 @@ function pickProbeFiles(outDir) {
 
 function extractSignals(htmlOrXml) {
   if (!htmlOrXml) return {}
-  const canonical = htmlOrXml.match(
-    /<link[^>]+rel=["']canonical["'][^>]*>/i
-  )?.[0]
-  const ogUrl = htmlOrXml.match(
-    /<meta[^>]+property=["']og:url["'][^>]*>/i
-  )?.[0]
+  const canonical = htmlOrXml.match(/<link[^>]+rel=["']canonical["'][^>]*>/i)?.[0]
+  const ogUrl = htmlOrXml.match(/<meta[^>]+property=["']og:url["'][^>]*>/i)?.[0]
   const hrefSamples = [...htmlOrXml.matchAll(/href=["']([^"']+)["']/gi)]
     .map((m) => m[1])
     .filter((h) => h.startsWith('/') || h.startsWith('http'))
@@ -119,11 +103,7 @@ function extractSignals(htmlOrXml) {
 function saveScenarioEvidence(id, payload) {
   const dir = path.join(evidenceRoot, id)
   fs.mkdirSync(dir, { recursive: true })
-  fs.writeFileSync(
-    path.join(dir, 'summary.json'),
-    JSON.stringify(payload, null, 2),
-    'utf8'
-  )
+  fs.writeFileSync(path.join(dir, 'summary.json'), JSON.stringify(payload, null, 2), 'utf8')
   if (payload.probeFiles) {
     for (const [name, content] of Object.entries(payload.probeFiles)) {
       fs.writeFileSync(path.join(dir, name.replace(/\//g, '__')), content, 'utf8')
