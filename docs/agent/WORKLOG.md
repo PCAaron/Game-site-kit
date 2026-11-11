@@ -39,7 +39,7 @@
 | `git diff --check` | 0 | PASS |
 | `$env:EXPORT=1; yarn build` + `yarn validate:seo --export-dir=out` | 0 | PASS（`hockey-bros.html` title/canonical/robots） |
 
-**Commit：** `33e381b`（`fix(seo): Phase 4.2.1 title absolute and R1 detail route gate`）· **父提交（审查基线）：** `97fec3de1db2b31bbed9a012ee1497dc5604062d`
+**Commit：** `5937b18`（`fix(seo): Phase 4.2.1 title absolute and R1 detail route gate`）· **父提交（审查基线）：** `97fec3de1db2b31bbed9a012ee1497dc5604062d`
 
 ### 遗留（非阻塞）
 

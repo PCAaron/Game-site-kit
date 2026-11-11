@@ -1,7 +1,7 @@
 # Agent Project Status
 
 - **Current phase:** Phase 4.2 — Route / Metadata Integration（**DONE**）；Phase 4.2.1 定点修复（**DONE**，见 WORKLOG 2026-11-11）；Phase 4.3 **NOT STARTED**
-- **Baseline commit（审查基线）：** `97fec3de1db2b31bbed9a012ee1497dc5604062d`；**Phase 4.2.1 HEAD：** `33e381b`
+- **Baseline commit（审查基线）：** `97fec3de1db2b31bbed9a012ee1497dc5604062d`；**Phase 4.2.1 HEAD：** `5937b18`
 - **Last substantive Phase 4.0 revision:** `87adf9866c8f8bb6f9eb4898b8618ced8d8abf49`
 - **Phase 3 Code Validation Baseline：** `f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9`
 - **Last updated:** 2026-11-11
