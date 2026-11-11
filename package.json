@@ -10,6 +10,7 @@
     "test:batch1": "node scripts/batch1-url-tests.mjs",
     "test:batch2": "node scripts/batch2-url-tests.mjs",
     "test:catalog": "node scripts/catalog-tests.mjs",
+    "test:phase4.3": "node scripts/phase4.3-tests.mjs",
     "validate:seo": "node scripts/validate-seo.mjs",
     "validate:catalog": "node scripts/validate-catalog.mjs",
     "serve": "next start",

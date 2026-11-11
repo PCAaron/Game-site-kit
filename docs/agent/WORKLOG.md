@@ -4,6 +4,38 @@
 
 ---
 
+## 2026-11-11 — Phase 4.3：Homepage / PlayFrame
+
+**范围：** 首页 Portal UI、`GameCard` / `GameGrid` / `PlayFrame` / `Launcher`、`lib/portal/play-presentation`、Phase 4.3 测试与 export SEO 预期更新；**不含** Phase 4.4 详情正文、生产 indexable、生产 iframe 放行。
+
+**分支：** `main` · **基线：** `7d3ef1146a4edaa8a72467e59fe9452fc2b39be6`
+
+### 交付摘要
+
+- `app/page.tsx` 消费 `getPortalHomeContent()` + `getProductionHomeCatalog()`，移除 Blog 首页数据源。
+- 首页 metadata 经 `resolvePortalHomePageSeo` / `resolvedSeoToMetadata`（仍为 `noindex`）。
+- 生产 embed 未获批时 PlayFrame **external-only** + 新标签链接（ADR 0004）。
+
+### 验证
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `yarn typecheck` | 0 | PASS |
+| `yarn test:batch1` | 0 | PASS |
+| `yarn test:batch2` | 0 | PASS |
+| `yarn test:catalog` | 0 | PASS |
+| `yarn test:phase4.3` | 0 | PASS（15） |
+| `yarn validate:catalog` | 0 | PASS |
+| `yarn validate:seo` | 0 | PASS |
+| `yarn build` | 0 | PASS |
+| Static export + `validate:seo --export-dir=out` | 0 | PASS |
+
+**报告：** [`reports/phase4.3-homepage-playframe.md`](reports/phase4.3-homepage-playframe.md)
+
+**Commit：** 未创建（待用户授权）
+
+---
+
 ## 2026-11-11 — Phase 4.2.1：Targeted Fixes & Validation Closure
 
 **范围：** SEO Title `absolute`（P1-01）、R1 生产详情路由 allowlist（P1-02）、Batch 2 / `validate:seo` 补强（P2-01）、STATUS / Spec 状态漂移修正（P2-02）；**不含** Phase 4.3+。

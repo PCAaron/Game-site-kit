@@ -247,6 +247,20 @@ if (exportDir) {
     assert.ok(!robots.includes(STARTER_DOMAIN))
   })
 
+  const portalHomeResolved = resolvePortalHomePageSeo(
+    {
+      pageType: 'portal_home',
+      routePath: '/',
+      routeExists: true,
+      content: getPortalHomeContent(),
+    },
+    site
+  )
+  const portalHomeMeta = resolvedSeoToMetadata(portalHomeResolved, site)
+  const portalHomeRobots = portalHomeResolved.indexable
+    ? 'index, follow'
+    : `${LEGACY_PAGE_ROBOTS.index ? 'index' : 'noindex'}, follow`
+
   const exportHtmlPages: Array<{
     file: string
     label: string
@@ -255,17 +269,19 @@ if (exportDir) {
   }> = [
     {
       file: 'index.html',
-      label: '/ (legacy shell)',
+      label: '/ (portal home)',
       required: true,
       expectation: {
-        title: site.metadata.title,
-        description: site.metadata.description,
-        robots: legacyRobots,
-        canonical: siteUrl(undefined, site),
+        title: typeof portalHomeMeta.title === 'object' && portalHomeMeta.title && 'absolute' in portalHomeMeta.title
+          ? portalHomeMeta.title.absolute
+          : portalHomeResolved.title,
+        description: portalHomeResolved.description,
+        robots: portalHomeRobots,
+        canonical: portalHomeResolved.canonical,
         openGraph: {
-          title: site.metadata.title,
-          description: site.metadata.description,
-          url: siteUrl(undefined, site),
+          title: portalHomeResolved.title,
+          description: portalHomeResolved.description,
+          url: portalHomeResolved.openGraphUrl,
           site_name: site.metadata.title,
           type: 'website',
         },
