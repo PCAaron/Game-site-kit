@@ -8,15 +8,19 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { getBallgamesCatalog, validateCatalog, validateCatalogSeo } from '../lib/catalog/index'
+import { hockeyBrosDetail } from '../lib/catalog/instances/hockey-bros-detail'
 import { getPortalHomeContent } from '../lib/site/get-portal-home-content'
 import { SiteConfigError, ballgamesSiteInstance } from '../lib/site/index'
 import {
+  buildGameDetailPageDescriptor,
   buildPortalHomeJsonLdBlocks,
   buildProductionSitemap,
   buildR1ExactTwoContractFixtures,
   buildSitemapEntriesFromDescriptors,
   buildSiteRootMetadata,
+  findProductionRoutableGame,
   isSitemapCandidate,
+  resolveGameDetailPageSeo,
   resolvePortalHomePageSeo,
   serializeJsonLd,
   serializeSitemapUrlsetXml,
@@ -346,10 +350,38 @@ if (exportDir) {
     )
   })
 
-  check('export BLOCKED: hockey-bros (Phase 4 route not implemented)', () => {
-    const blocked = path.join(abs, 'hockey-bros.html')
-    assert.ok(!fs.existsSync(blocked), 'must not export /hockey-bros before Phase 4')
-    assert.ok(!fs.existsSync(path.join(abs, 'hockey-bros', 'index.html')))
+  check('export hockey-bros game detail HTML head (Phase 4.2)', () => {
+    const detailHtml = path.join(abs, 'hockey-bros.html')
+    assert.ok(fs.existsSync(detailHtml), 'missing export HTML: hockey-bros.html (run build with EXPORT=1)')
+    const html = fs.readFileSync(detailHtml, 'utf8')
+    assert.ok(!html.includes(STARTER_DOMAIN))
+    const game = findProductionRoutableGame('hockey-bros')
+    assert.ok(game)
+    const descriptor = buildGameDetailPageDescriptor(game!)
+    assert.ok(descriptor)
+    const resolved = resolveGameDetailPageSeo(descriptor!, ballgamesSiteInstance)
+    assert.equal(resolved.title, hockeyBrosDetail.seo.title)
+    assertExportHtmlHeadMatches(
+      html,
+      {
+        title: hockeyBrosDetail.seo.title,
+        description: hockeyBrosDetail.seo.description,
+        canonical: siteUrl('/hockey-bros', site),
+        robots: 'index, follow',
+        openGraph: {
+          title: hockeyBrosDetail.seo.title,
+          description: hockeyBrosDetail.seo.description,
+          url: siteUrl('/hockey-bros', site),
+          site_name: site.metadata.title,
+          type: 'website',
+        },
+      },
+      'hockey-bros.html'
+    )
+    assert.ok(
+      !html.includes('BallGames.io | BallGames.io'),
+      'title must not duplicate site branding'
+    )
   })
 
   check('flat export blog.html when trailingSlash false', () => {

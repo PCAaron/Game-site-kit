@@ -1,5 +1,5 @@
 import { getBallgamesCatalog } from '../catalog/adapter'
-import type { CatalogGame } from '../catalog/types'
+import { R1_DETAIL_CONTENT_SLUG, type CatalogGame } from '../catalog/types'
 import type { GameDetailPageDescriptor } from './page-descriptors'
 
 function normalizePath(routePath: string): string {
@@ -8,8 +8,8 @@ function normalizePath(routePath: string): string {
 }
 
 /**
- * R1 game detail routes: published catalog rows with navigate-to-detail and Game Detail content.
- * Launcher-only / draft rows are excluded from static generation and route-exists checks.
+ * Catalog capability: published row with navigate-to-detail and Game Detail SEO payload.
+ * Does not imply the instance has approved a production detail route for the slug.
  */
 export function isCatalogGameRoutableAsDetail(game: CatalogGame): boolean {
   if (game.publicationStatus !== 'published') return false
@@ -18,8 +18,20 @@ export function isCatalogGameRoutableAsDetail(game: CatalogGame): boolean {
   return true
 }
 
+/** R1 instance-approved game detail slugs (reuses catalog R1_DETAIL_CONTENT_SLUG). */
+export function isR1ApprovedGameDetailRouteSlug(slug: string): boolean {
+  return slug === R1_DETAIL_CONTENT_SLUG
+}
+
+/**
+ * Production game detail route: catalog detail capability + current R1 route allowlist.
+ */
+export function isProductionRoutableGameDetail(game: CatalogGame): boolean {
+  return isCatalogGameRoutableAsDetail(game) && isR1ApprovedGameDetailRouteSlug(game.slug)
+}
+
 export function getProductionRoutableGames(catalog = getBallgamesCatalog()): CatalogGame[] {
-  return catalog.games.filter(isCatalogGameRoutableAsDetail)
+  return catalog.games.filter(isProductionRoutableGameDetail)
 }
 
 export function getProductionRoutableGameSlugs(catalog = getBallgamesCatalog()): string[] {
@@ -44,7 +56,7 @@ export function isProductionGameDetailRoutePath(routePath: string): boolean {
 export function buildGameDetailPageDescriptor(
   game: CatalogGame
 ): GameDetailPageDescriptor | undefined {
-  if (!isCatalogGameRoutableAsDetail(game) || !game.detail) {
+  if (!isProductionRoutableGameDetail(game) || !game.detail) {
     return undefined
   }
   const routePath = `/${game.slug}`

@@ -45,7 +45,8 @@ export function resolvedSeoToMetadata(resolved: ResolvedPageSEO, site: SiteInsta
       : []
 
   return {
-    title: resolved.title,
+    // Contract titles already include branding; absolute bypasses root layout title.template.
+    title: { absolute: resolved.title },
     description: resolved.description,
     alternates: {
       canonical: resolved.canonical,

@@ -1,11 +1,10 @@
 # Agent Project Status
 
-- **Current phase:** Phase 4.2 — Route / Metadata Integration（**DONE**）；Phase 4.3 **NOT STARTED**
-- **Baseline commit:** `723499bf9e590b398ed888cffc834a9c54274d00`（`v2.4.0-9-g723499b`）
-- **Current Git HEAD（文档对齐任务）：** 见 WORKLOG 2026-11-06 条目
+- **Current phase:** Phase 4.2 — Route / Metadata Integration（**DONE**）；Phase 4.2.1 定点修复（**DONE**，见 WORKLOG 2026-11-11）；Phase 4.3 **NOT STARTED**
+- **Baseline commit（审查基线）：** `97fec3de1db2b31bbed9a012ee1497dc5604062d`；**Phase 4.2.1 HEAD：** `33e381b`
 - **Last substantive Phase 4.0 revision:** `87adf9866c8f8bb6f9eb4898b8618ced8d8abf49`
 - **Phase 3 Code Validation Baseline：** `f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9`
-- **Last updated:** 2026-11-09
+- **Last updated:** 2026-11-11
 - **Specs 治理：** [`specs-governance-review.md`](reports/specs-governance-review.md)（2026-11-09）；Phase 4.x 批次权威 [`04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) **§13**
 - **Current reviewed branch:** `main`
 - **Catalog 实现基线 commit：** `4ea8e14cb0c3a048029b5cbeca8efa626db91d3d`（`feat(catalog): add Phase 4.1 data contract and validation`）
@@ -28,7 +27,7 @@
 | PortalHome Reader      | **`getPortalHomeContent()`** @ `lib/site/get-portal-home-content.ts` |
 | 生产首页行数           | **1** / 15–20 **设计目标**（Info；非 schema Error）                                                   |
 | 生产 iframe            | **未就绪**（embed `unknown`；CSP 未验证 — **生产门禁**，非 Catalog 读取阻塞）                         |
-| Phase 4.2 路由 / Metadata | **DONE** — `app/[slug]`、`/hockey-bros` SSG、`isAppRoutePath`、production descriptors、`resolveGameDetailPageSeo` |
+| Phase 4.2 路由 / Metadata | **DONE** — `app/[slug]`、`/hockey-bros` SSG、`isAppRoutePath`、production descriptors、`resolveGameDetailPageSeo`；**4.2.1** `title.absolute`、R1 详情路由 allowlist（`R1_DETAIL_CONTENT_SLUG`） |
 | Phase 4.3+ 业务 UI     | **NOT STARTED**                                                                                       |
 | Phase 4.1 系列冻结     | **FROZEN**（4.1.x 公共 Adapter 未改；4.2 仅消费）                                                    |
 
@@ -46,13 +45,15 @@ DEC-003-A–C **Applied**；DEC-003-D **Partial**；DEC-003-E **F1**；DEC-003-F
 
 ## Recommended next action
 
-1. 用户确认 Phase 4.2 交付与 WORKLOG 验证记录。
+1. 用户确认 Phase 4.2.1 交付与 WORKLOG 验证记录。
 2. 授权后进入 **Phase 4.3 — Homepage / PlayFrame**（GameCard、GameGrid、PlayFrame、Launcher；**非** 4.2 已完成的 metadata 壳）。
 3. **不要**在未授权时自动开 Phase 4.3 / 4.4 详情 UI。
 
 ## Last verified checks
 
-**Phase 4.2（2026-11-09）：** `yarn typecheck`、`yarn test:batch1`、`yarn test:batch2`（26 tests）、`yarn test:catalog`、`yarn validate:catalog`、`yarn validate:seo`、`yarn build`、`git diff --check` — 见 WORKLOG 条目。
+**Phase 4.2.1（2026-11-11）：** 见 WORKLOG 2026-11-11 条目（含 `validate:seo --export-dir=out` 若已跑 static export）。
+
+**Phase 4.2（2026-11-09）：** 见 WORKLOG 2026-11-09 条目。
 
 **Phase 4.1.3（2026-11-06）：** `yarn typecheck`、`yarn test:catalog`、`yarn validate:catalog`、`yarn validate:seo`、`git diff --check` — 见 WORKLOG 条目。
 

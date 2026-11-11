@@ -17,6 +17,8 @@ export {
   getProductionRoutableGameSlugs,
   getProductionRoutableGames,
   isCatalogGameRoutableAsDetail,
+  isProductionRoutableGameDetail,
+  isR1ApprovedGameDetailRouteSlug,
   isProductionGameDetailRoutePath,
 } from './production-game-routes'
 export { buildR1ExactTwoContractFixtures } from './fixtures'

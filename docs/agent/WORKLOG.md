@@ -4,6 +4,50 @@
 
 ---
 
+## 2026-11-11 — Phase 4.2.1：Targeted Fixes & Validation Closure
+
+**范围：** SEO Title `absolute`（P1-01）、R1 生产详情路由 allowlist（P1-02）、Batch 2 / `validate:seo` 补强（P2-01）、STATUS / Spec 状态漂移修正（P2-02）；**不含** Phase 4.3+。
+
+**分支：** `main` · **基线（审查）：** `97fec3de1db2b31bbed9a012ee1497dc5604062d`
+
+### 问题与修复
+
+| ID | 问题 | 修复 |
+| --- | --- | --- |
+| P1-01 | `resolvedSeoToMetadata` 字符串 title 被 root `title.template` 重复追加品牌 | `title: { absolute: resolved.title }` |
+| P1-02 | 生产路由仅依赖 Catalog 能力，未区分 R1 批准范围 | `isProductionRoutableGameDetail` + `R1_DETAIL_CONTENT_SLUG` |
+| P2-01 | export 仍 BLOCK `hockey-bros.html` | `validate-seo` 在 `--export-dir` 下校验 Hockey Bros head |
+| P2-02 | `04-ballgames-r1.md` 仍将 4.2 NOT STARTED | 顶部与 Entry 表最小修正 |
+
+### 修改文件
+
+- `lib/seo/metadata.ts`、`lib/seo/production-game-routes.ts`、`lib/seo/index.ts`
+- `scripts/batch2-test-entry.ts`、`scripts/validate-seo-entry.ts`
+- `docs/agent/STATUS.md`、`docs/agent/WORKLOG.md`、`specs/phases/04-ballgames-r1.md`
+
+### 验证
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `yarn typecheck` | 0 | PASS |
+| `yarn test:batch1` | 0 | PASS（10） |
+| `yarn test:batch2` | 0 | PASS（**30**，含 4.2.1 用例） |
+| `yarn test:catalog` | 0 | PASS（34） |
+| `yarn validate:catalog` | 0 | PASS |
+| `yarn validate:seo` | 0 | PASS（contract） |
+| `yarn build` | 0 | PASS（SSG `/[slug]` → `/hockey-bros`） |
+| `git diff --check` | 0 | PASS |
+| `$env:EXPORT=1; yarn build` + `yarn validate:seo --export-dir=out` | 0 | PASS（`hockey-bros.html` title/canonical/robots） |
+
+**Commit：** `33e381b`（`fix(seo): Phase 4.2.1 title absolute and R1 detail route gate`）· **父提交（审查基线）：** `97fec3de1db2b31bbed9a012ee1497dc5604062d`
+
+### 遗留（非阻塞）
+
+- Phase 4.6：Cloudflare live HTTP、全站 export 终验仍 **NOT VERIFIED**
+- Portal Home `published` + indexable 切换 → Phase 4.5
+
+---
+
 ## 2026-11-09 — Phase 4.2：Route / Metadata Integration
 
 **范围：** `app/[slug]/page.tsx`、`lib/seo/routes.ts`、`production-game-routes.ts`、`production-state.ts`、`resolve-page-seo.ts`（Game Detail）、Batch 2 契约测试；**不含** 首页 UI、PlayFrame、详情正文、页面 JSON-LD、exact-two export 终验。

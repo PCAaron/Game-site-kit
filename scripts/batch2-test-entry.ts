@@ -33,7 +33,13 @@ import {
 } from '../lib/seo/index'
 import { getBallgamesCatalog } from '../lib/catalog/adapter'
 import { hockeyBrosDetail } from '../lib/catalog/instances/hockey-bros-detail'
+import { createGameSeo, type Catalog, type CatalogGame } from '../lib/catalog/types'
 import { resolvedSeoToMetadata } from '../lib/seo/metadata'
+import {
+  getProductionRoutableGames,
+  isCatalogGameRoutableAsDetail,
+  isProductionRoutableGameDetail,
+} from '../lib/seo/production-game-routes'
 import { siteUrl } from '../lib/urls/site-url'
 
 test('resolvePortalHomePageSeo uses content title and matching canonical/og url', () => {
@@ -376,6 +382,92 @@ test('Phase 4.2 production descriptors include game detail from adapter', () => 
     getBallgamesCatalog().games.some((g) => g.slug === 'hockey-bros'),
     true
   )
+})
+
+/** Mirrors root layout `title.template` applying to string child titles (Next.js Metadata API). */
+function documentTitleWithSiteTemplate(meta: { title?: unknown }, siteTitle: string): string {
+  const t = meta.title
+  if (t && typeof t === 'object' && 'absolute' in t && typeof (t as { absolute: string }).absolute === 'string') {
+    return (t as { absolute: string }).absolute
+  }
+  if (typeof t === 'string') {
+    return `${t} | ${siteTitle}`
+  }
+  throw new Error('unsupported metadata title shape in test')
+}
+
+function minimalDetailFixtureGame(overrides: Partial<CatalogGame>): CatalogGame {
+  return {
+    id: 'fixture-game',
+    slug: 'soccer-bros',
+    title: 'Soccer Bros',
+    launch: { verification: 'verified', mode: 'external-link', primaryUrl: 'https://example.com/' },
+    publicationStatus: 'published',
+    showOnHome: false,
+    homeSort: 99,
+    cardAction: 'navigate-to-detail',
+    detail: {
+      seo: createGameSeo({ title: 'Soccer', description: 'Soccer fixture detail for routing tests' }),
+      intro: 'intro',
+      howToPlay: 'how',
+      sections: [{ heading: 'H', body: 'b' }],
+      faq: [{ q: 'q', a: 'a' }],
+      controls: [{ label: 'Move', keys: 'WASD' }],
+    },
+    ...overrides,
+  }
+}
+
+test('Phase 4.2.1 P1-01: resolvedSeoToMetadata uses absolute title (no template duplication)', () => {
+  const game = findProductionRoutableGame('hockey-bros')!
+  const descriptor = buildGameDetailPageDescriptor(game)!
+  const resolved = resolveGameDetailPageSeo(descriptor, ballgamesSiteInstance)
+  const meta = resolvedSeoToMetadata(resolved, ballgamesSiteInstance)
+  assert.ok(meta.title && typeof meta.title === 'object' && 'absolute' in meta.title)
+  assert.equal((meta.title as { absolute: string }).absolute, hockeyBrosDetail.seo.title)
+  const docTitle = documentTitleWithSiteTemplate(meta, ballgamesSiteInstance.metadata.title)
+  assert.equal(docTitle, hockeyBrosDetail.seo.title)
+  assert.ok(!docTitle.endsWith('| BallGames.io | BallGames.io'))
+})
+
+test('Phase 4.2.1: legacy blog metadata still uses string title for layout template', () => {
+  const meta = buildLegacyTemplateMetadata({
+    title: 'Blog',
+    canonicalPath: '/blog',
+    site: ballgamesSiteInstance,
+  })
+  assert.equal(meta.title, 'Blog')
+  assert.equal(documentTitleWithSiteTemplate(meta, ballgamesSiteInstance.metadata.title), 'Blog | BallGames.io')
+})
+
+test('Phase 4.2.1 P1-02: R1 allowlist excludes unpublished-approved fixture slug', () => {
+  const catalog: Catalog = {
+    providers: [],
+    embedPermissions: [],
+    games: [
+      minimalDetailFixtureGame({ slug: 'soccer-bros', publicationStatus: 'published' }),
+      minimalDetailFixtureGame({
+        slug: 'hockey-bros',
+        id: 'hockey-bros-draft',
+        publicationStatus: 'draft',
+      }),
+    ],
+  }
+  const soccer = catalog.games[0]
+  const hockeyDraft = catalog.games[1]
+  assert.equal(isCatalogGameRoutableAsDetail(soccer), true)
+  assert.equal(isProductionRoutableGameDetail(soccer), false)
+  assert.equal(isCatalogGameRoutableAsDetail(hockeyDraft), false)
+  assert.equal(getProductionRoutableGames(catalog).length, 0)
+})
+
+test('Phase 4.2.1 P1-02: launcher-only game never production-routable', () => {
+  const game = minimalDetailFixtureGame({
+    slug: 'basket-bros',
+    cardAction: 'launcher-select',
+  })
+  assert.equal(isCatalogGameRoutableAsDetail(game), false)
+  assert.equal(isProductionRoutableGameDetail(game), false)
 })
 
 test('validateSitemapXmlUrls rejects duplicate loc across url entries', () => {

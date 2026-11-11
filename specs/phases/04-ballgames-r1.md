@@ -1,7 +1,7 @@
 # Phase 4 — ballgames.io R1 Implementation
 
 - **阶段编号：** 4
-- **状态：** **Phase 4.1 — Catalog / Data Contract（schema 已落地；4.1 / 4.1.2 / 4.1.3 DONE）** — 业务页面（**Phase 4.2**）**NOT STARTED**
+- **状态：** **Phase 4.0–4.2 DONE**（含 4.2.1 定点修复）；**Phase 4.3+ NOT STARTED**
 - **Phase 4.1 架构对齐：** [`04.1-catalog-architecture-alignment.md`](04.1-catalog-architecture-alignment.md)
 - **Archetype：** `game-portal`
 - **首实例：** ballgames.io
@@ -37,7 +37,7 @@
 | ADR 0003 DEC-003-A–F         | **Applied**                 | SiteInstance、PortalHomeContent 类型、Blog sitemap 隔离、legacy robots                                                    |
 | ballgames R1 产品 Spec       | **Frozen**                  | §1–§8 v1.1 + Phase 2.2                                                                                                    |
 | Phase 4 用户授权             | **Satisfied**               | 本 Kickoff 任务                                                                                                           |
-| `/hockey-bros` 路由          | **NOT STARTED**             | Phase 4.1+                                                                                                                |
+| `/hockey-bros` 路由          | **DONE（Phase 4.2）**       | `app/[slug]` + R1 详情路由 allowlist；完整正文 UI 仍为 4.4                                                      |
 | Production exact-two sitemap | **NOT STARTED**             | 依赖 published + indexable + route exists                                                                                 |
 | Embed 许可书面证据           | **BLOCKED — MANUAL REVIEW** | 不阻塞 Spec/内容模型/占位 UI；阻塞 **生产 iframe 启用**                                                                   |
 | GitHub Pages CI              | **NOT VERIFIED**            | **非 Phase 4 gate**（见 §2）                                                                                              |
