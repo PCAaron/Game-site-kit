@@ -18,7 +18,9 @@ export function GameDetailTemplate({ game, catalog }: GameDetailTemplateProps) {
     throw new Error(`GameDetailTemplate: missing detail content for ${game.slug}`)
   }
 
-  const relatedGames = getProductionRelatedCatalogGames(catalog)
+  const relatedGames = getProductionRelatedCatalogGames(catalog, {
+    excludeSlug: game.slug,
+  })
 
   return (
     <div className="space-y-10 pt-6 pb-12 md:pt-8 md:pb-16">
@@ -35,7 +37,7 @@ export function GameDetailTemplate({ game, catalog }: GameDetailTemplateProps) {
       <div className="space-y-12">
         <GameDetailContent detail={detail} />
         <GameFaq items={detail.faq} />
-        <RelatedGamesWithScroll games={relatedGames} />
+        {relatedGames.length > 0 ? <RelatedGamesWithScroll games={relatedGames} /> : null}
       </div>
     </div>
   )

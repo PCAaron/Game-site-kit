@@ -18,6 +18,8 @@ import {
   getBallgamesCatalog,
   getProductionHomeCatalog,
   getProductionRelatedCatalogGames,
+  type Catalog,
+  type CatalogGame,
 } from '../lib/catalog/index'
 import { hockeyBrosDetail } from '../lib/catalog/instances/hockey-bros-detail'
 import { parseDetailBody } from '../lib/portal/parse-detail-body'
@@ -34,6 +36,43 @@ afterEach(() => {
 
 const hockeyGame = findProductionRoutableGame('hockey-bros')
 assert.ok(hockeyGame?.detail)
+
+const PHASE44_TEST_FIXTURE_MARK = 'PHASE44_TEST_FIXTURE_NOT_PRODUCTION'
+
+function minimalPublishedGame(
+  overrides: Partial<CatalogGame> & Pick<CatalogGame, 'id' | 'slug' | 'title' | 'cardAction'>
+): CatalogGame {
+  return {
+    publicationStatus: 'published',
+    showOnHome: true,
+    homeSort: 0,
+    availability: 'available',
+    launch: {
+      verification: 'verified',
+      mode: 'external-link',
+      primaryUrl: `https://ballgames.io/${PHASE44_TEST_FIXTURE_MARK}/${overrides.slug}`,
+    },
+    thumbnail: undefined,
+    seo: { indexable: false },
+    embedPermissionId: undefined,
+    providerId: undefined,
+    relatedGameIds: [],
+    ...overrides,
+  } as CatalogGame
+}
+
+const relatedPeerGame = minimalPublishedGame({
+  id: 'phase44-related-peer',
+  slug: 'phase44-related-peer',
+  title: 'Phase 44 Related Peer',
+  cardAction: 'launcher-select',
+  homeSort: 50,
+})
+
+const multiRelatedCatalog: Catalog = {
+  ...ballgamesCatalog,
+  games: [...ballgamesCatalog.games, relatedPeerGame],
+}
 
 test('D01 GameDetailTemplate renders hockey-bros detail shell', () => {
   render(<GameDetailTemplate game={hockeyGame!} catalog={getBallgamesCatalog()} />)
@@ -133,12 +172,12 @@ test('D12 RelatedGames cards are buttons even for navigate-to-detail', () => {
   assert.equal(screen.queryByRole('link', { name: hockeyGame!.title }), null)
 })
 
-test('D13 RelatedGames click scrolls play area into view', () => {
+test('D13 RelatedGames click scrolls play area into view when related is non-empty', () => {
   const scrollIntoView = mock.fn()
-  HTMLElement.prototype.scrollIntoView = scrollIntoView
-  render(<GameDetailTemplate game={hockeyGame!} catalog={getBallgamesCatalog()} />)
-  document.getElementById('detail-play-area')!.scrollIntoView = scrollIntoView
-  fireEvent.click(screen.getByRole('button', { name: 'Hockey Bros' }))
+  render(<GameDetailTemplate game={hockeyGame!} catalog={multiRelatedCatalog} />)
+  const playArea = document.getElementById('detail-play-area')!
+  playArea.scrollIntoView = scrollIntoView
+  fireEvent.click(screen.getByRole('button', { name: relatedPeerGame.title }))
   assert.equal(scrollIntoView.mock.callCount(), 1)
   assert.deepEqual(scrollIntoView.mock.calls[0]?.arguments[0], {
     behavior: 'smooth',
@@ -158,16 +197,10 @@ test('D14 scroll helper does not change window location', () => {
 })
 
 test('D15 Related click does not add iframe', () => {
-  render(<GameDetailTemplate game={hockeyGame!} catalog={getBallgamesCatalog()} />)
+  render(<GameDetailTemplate game={hockeyGame!} catalog={multiRelatedCatalog} />)
   assert.equal(document.querySelectorAll('iframe').length, 0)
-  fireEvent.click(screen.getByRole('button', { name: 'Hockey Bros' }))
+  fireEvent.click(screen.getByRole('button', { name: relatedPeerGame.title }))
   assert.equal(document.querySelectorAll('iframe').length, 0)
-})
-
-test('D16 home context GameCard still renders detail link', () => {
-  render(<GameCard game={hockeyGame!} displayContext="home" />)
-  const link = screen.getByRole('link', { name: 'Hockey Bros' })
-  assert.equal(link.getAttribute('href'), 'https://ballgames.io/hockey-bros')
 })
 
 test('D17 draft games never enter production related catalog', () => {
@@ -183,13 +216,12 @@ test('D17 draft games never enter production related catalog', () => {
 })
 
 test('D18 related catalog count reflects real data only', () => {
-  const related = getProductionRelatedCatalogGames()
-  const home = getProductionHomeCatalog()
-  assert.deepEqual(
-    related.map((g) => g.slug),
-    home.map((g) => g.slug)
-  )
-  assert.ok(related.length < 12, 'INFO: related count below design target without fabrication')
+  const catalog = getBallgamesCatalog()
+  const home = getProductionHomeCatalog(catalog)
+  const related = getProductionRelatedCatalogGames(catalog, { excludeSlug: 'hockey-bros' })
+  assert.equal(related.length, 0)
+  assert.equal(home.length, 1)
+  assert.ok(home.length < 12, 'INFO: related count below design target without fabrication')
 })
 
 test('D19 detail route page still uses SEO resolver and template', () => {
@@ -206,4 +238,112 @@ test('D20 parseDetailBody preserves list semantics for bros series', () => {
   const list = blocks.find((b) => b.type === 'list')
   assert.ok(list && list.type === 'list')
   assert.equal(list.items.length, 5)
+})
+
+test('D21 excludeSlug removes current game from production related list', () => {
+  const related = getProductionRelatedCatalogGames(multiRelatedCatalog, {
+    excludeSlug: 'hockey-bros',
+  })
+  assert.ok(!related.some((g) => g.slug === 'hockey-bros'))
+  assert.ok(related.some((g) => g.slug === relatedPeerGame.slug))
+})
+
+test('D22 R1 detail hides Related section when no peers remain', () => {
+  render(<GameDetailTemplate game={hockeyGame!} catalog={getBallgamesCatalog()} />)
+  assert.equal(screen.queryByRole('heading', { name: 'Related Games' }), null)
+  assert.equal(document.querySelectorAll('[aria-labelledby="related-games-heading"]').length, 0)
+  assert.ok(document.getElementById('detail-play-area'))
+  assert.ok(screen.getByRole('heading', { name: 'How to Play' }))
+  assert.equal(screen.getAllByRole('heading', { level: 1 }).length, 1)
+  assert.ok(screen.getByRole('navigation', { name: 'Breadcrumb' }))
+  assert.equal(hockeyBrosDetail.faq.length, 7)
+  assert.equal(document.querySelectorAll('details').length, 7)
+})
+
+test('D23 non-empty Related excludes current game and uses buttons only', () => {
+  render(<GameDetailTemplate game={hockeyGame!} catalog={multiRelatedCatalog} />)
+  assert.ok(screen.getByRole('heading', { name: 'Related Games' }))
+  assert.equal(screen.queryByRole('button', { name: hockeyGame!.title }), null)
+  const buttons = screen.getAllByRole('button', { name: relatedPeerGame.title })
+  assert.equal(buttons.length, 1)
+  assert.equal(screen.queryByRole('link', { name: relatedPeerGame.title }), null)
+  assert.match(relatedPeerGame.slug, /^phase44-/, PHASE44_TEST_FIXTURE_MARK)
+})
+
+test('D24 Related click scrolls #detail-play-area without navigation', () => {
+  const scrollIntoView = mock.fn()
+  const originalHref = window.location.href
+  render(<GameDetailTemplate game={hockeyGame!} catalog={multiRelatedCatalog} />)
+  const playArea = document.getElementById('detail-play-area')!
+  playArea.scrollIntoView = scrollIntoView
+  fireEvent.click(screen.getByRole('button', { name: relatedPeerGame.title }))
+  assert.equal(scrollIntoView.mock.callCount(), 1)
+  assert.equal(playArea.id, 'detail-play-area')
+  assert.equal(window.location.href, originalHref)
+  assert.equal(window.location.hash, '')
+  assert.equal(document.querySelectorAll('iframe').length, 0)
+})
+
+test('D25 scrollDetailPlayAreaIntoView honors prefers-reduced-motion', () => {
+  const el = document.createElement('section')
+  el.id = 'detail-play-area'
+  const scrollIntoView = mock.fn()
+  el.scrollIntoView = scrollIntoView
+  document.body.appendChild(el)
+
+  const originalMatchMedia = window.matchMedia
+  window.matchMedia = ((query: string) =>
+    ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false,
+    }) as MediaQueryList) as typeof window.matchMedia
+
+  scrollDetailPlayAreaIntoView()
+  assert.deepEqual(scrollIntoView.mock.calls[0]?.arguments[0], { behavior: 'auto', block: 'start' })
+
+  window.matchMedia = ((query: string) =>
+    ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false,
+    }) as MediaQueryList) as typeof window.matchMedia
+
+  scrollDetailPlayAreaIntoView()
+  assert.deepEqual(scrollIntoView.mock.calls[1]?.arguments[0], {
+    behavior: 'smooth',
+    block: 'start',
+  })
+
+  window.matchMedia = originalMatchMedia
+  document.body.removeChild(el)
+})
+
+test('D26 home GameCard behaviors unchanged by Related policy', () => {
+  render(<GameCard game={hockeyGame!} displayContext="home" />)
+  const homeLink = screen.getByRole('link', { name: 'Hockey Bros' })
+  assert.equal(homeLink.getAttribute('href'), 'https://ballgames.io/hockey-bros')
+
+  const launcherGame = minimalPublishedGame({
+    id: 'phase44-launcher',
+    slug: 'phase44-launcher',
+    title: 'Phase 44 Launcher',
+    cardAction: 'launcher-select',
+    homeSort: 60,
+  })
+  const onSelect = mock.fn()
+  cleanup()
+  render(<GameCard game={launcherGame} displayContext="home" onLauncherSelect={onSelect} />)
+  fireEvent.click(screen.getByRole('button', { name: launcherGame.title }))
+  assert.equal(onSelect.mock.callCount(), 1)
 })

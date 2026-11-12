@@ -6,7 +6,10 @@
 |---|---|
 | Branch | `main` |
 | 任务基线 SHA | `703118f9cf9f8bf5afc895d57cea7a5d46232405` |
-| 实施完成后 HEAD（未提交） | `703118f9cf9f8bf5afc895d57cea7a5d46232405` |
+| 实施完成后 HEAD（报告生成时未提交） | `703118f9cf9f8bf5afc895d57cea7a5d46232405` |
+| **main 已提交（Phase 4.4）** | `91c2e695da762898f4b1f265bc6979713b928c10` |
+| 后续独立审查 | **CONDITIONAL PASS** |
+| 定点收口 | **Phase 4.4.1** → [`phase4.4.1-closeout.md`](phase4.4.1-closeout.md) |
 | Scope | Phase 4.4 — `/hockey-bros` 完整详情 UI；**不含** Phase 4.5+ |
 
 ## B. 文件变更
@@ -68,7 +71,8 @@ resolvePlayPresentation(game, catalog)
 | 项 | 说明 |
 |---|---|
 | 数据源 | `getProductionRelatedCatalogGames()` = 生产首页网格门禁 |
-| 数量 | **1** 张（仅 Hockey Bros）— **INFO**，未伪造 12–16 目标 |
+| 数量（4.4 原始） | **1** 张（仅 Hockey Bros）— **INFO**，未伪造 12–16 目标 |
+| 4.4.1 策略 | 排除当前 slug；R1 仅 1 条生产行时 **0** 张、整区隐藏 |
 | 全部为 button | `GameGrid displayContext="related"` 覆盖 `navigate-to-detail` |
 | 滚动目标 | `#detail-play-area` `scrollIntoView`（尊重 `prefers-reduced-motion`） |
 | URL / iframe | 不 `pushState`、不改 hash、不切换 PlayFrame src（generation 固定 0） |

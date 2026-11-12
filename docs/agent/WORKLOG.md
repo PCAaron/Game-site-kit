@@ -4,6 +4,47 @@
 
 ---
 
+## 2026-11-12 — Phase 4.4.1：Related 自引用收口
+
+**范围：** `GameDetailTemplate` 使用 `excludeSlug`；空 Related 不渲染；修订 D13/D15/D18；新增 D21–D26；Agent 文档同步。**不含** Phase 4.5。
+
+**分支：** `main` · **审查基线：** `91c2e695da762898f4b1f265bc6979713b928c10` · **执行前 HEAD：** 同 · **状态：** 工作区已改、待用户 commit
+
+### RelatedGames 决策
+
+- `getProductionRelatedCatalogGames(catalog, { excludeSlug: game.slug })`。
+- R1 仅 1 条 `published` + `showOnHome` → Related **0** 张、整区隐藏。
+- 测试 Catalog 使用 `phase44-*` slug 夹具，不写入正式实例。
+
+### 修改文件
+
+- `components/portal/GameDetailTemplate.tsx`
+- `scripts/phase4.4-component-tests.tsx`
+- `docs/agent/STATUS.md`、`WORKLOG.md`、`reports/phase4.4-hockey-bros-detail.md`、`reports/phase4.4.1-closeout.md`
+
+### 验证
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `yarn typecheck` | 0 | PASS |
+| `yarn test:batch1` / `batch2` / `catalog` / `phase4.3` | 0 | PASS |
+| `yarn test:phase4.4` | 0 | PASS（25） |
+| `yarn validate:catalog` / `validate:seo` | 0 | PASS |
+| `validate:seo --export-dir=out` | 0 | PASS |
+| `yarn build`（EXPORT） | — | NOT RUN（dev 锁 `.next`） |
+
+报告：[`phase4.4.1-closeout.md`](reports/phase4.4.1-closeout.md)
+
+### 人工验收（保留）
+
+- 响应式视觉、生产 iframe/CSP、Related 数量 vs 12–16 设计目标（INFO）。
+
+### 建议下一步
+
+- 用户 commit 4.4.1 后授权 **Phase 4.5 — Content / SEO Integration**。
+
+---
+
 ## 2026-11-12 — Phase 4.4：Hockey Bros Detail UI
 
 **范围：** `/hockey-bros` 详情模板、面包屑、PlayFrame 复用、正文/FAQ、RelatedGames button + `scrollIntoView`、广告静态壳、D01–D20 测试；**不含** Phase 4.5。
