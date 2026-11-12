@@ -43,6 +43,7 @@ export {
   findEmbedPermission,
   getBallgamesCatalog,
   getProductionHomeCatalog,
+  getProductionRelatedCatalogGames,
   isProductionEmbedAllowed,
 } from './adapter'
 export {

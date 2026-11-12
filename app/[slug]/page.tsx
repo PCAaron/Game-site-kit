@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import { GameDetailTemplate } from '@/components/portal/GameDetailTemplate'
+import { getBallgamesCatalog } from '@/lib/catalog'
 import { getSiteInstance } from '@/lib/site/get-site-instance'
 import {
   buildGameDetailPageDescriptor,
@@ -42,23 +44,11 @@ export default async function GameDetailRoutePage(props: { params: Promise<{ slu
     notFound()
   }
 
+  const catalog = getBallgamesCatalog()
+
   return (
     <main className="divide-y divide-gray-200 dark:divide-gray-700">
-      <MinimalGameDetailShell title={game.title} slug={game.slug} />
+      <GameDetailTemplate game={game} catalog={catalog} />
     </main>
-  )
-}
-
-/** Phase 4.2 minimal shell — full Game Detail UI is Phase 4.4. */
-function MinimalGameDetailShell({ title, slug }: { title: string; slug: string }) {
-  return (
-    <div className="space-y-2 pt-6 pb-8 md:pt-8 md:pb-10">
-      <h1 className="text-3xl leading-9 font-extrabold tracking-tight text-gray-900 sm:text-4xl sm:leading-10 md:text-5xl md:leading-14 dark:text-gray-100">
-        {title}
-      </h1>
-      <p className="text-sm text-gray-500 dark:text-gray-400" data-route-slug={slug}>
-        Game detail route (Phase 4.2 — metadata and catalog wiring only).
-      </p>
-    </div>
   )
 }

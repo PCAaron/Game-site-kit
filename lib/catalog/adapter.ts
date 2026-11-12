@@ -31,6 +31,21 @@ export function getProductionHomeCatalog(catalog: Catalog = ballgamesCatalog): C
   return catalog.games.filter(isPublishedForHome).sort((a, b) => a.homeSort - b.homeSort)
 }
 
+/**
+ * Production-eligible related grid rows: same gate as the home grid (no draft fabrication).
+ * Optionally exclude the current detail slug when the spec treats self as non-related.
+ */
+export function getProductionRelatedCatalogGames(
+  catalog: Catalog = ballgamesCatalog,
+  options?: { excludeSlug?: string }
+): CatalogGame[] {
+  const games = getProductionHomeCatalog(catalog)
+  if (!options?.excludeSlug) {
+    return games
+  }
+  return games.filter((game) => game.slug !== options.excludeSlug)
+}
+
 export function findEmbedPermission(game: CatalogGame, catalog: Catalog) {
   if (!game.embedPermissionId) {
     return undefined

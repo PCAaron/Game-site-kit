@@ -48,10 +48,12 @@ The game launched on 1 August 2026, which makes it the newest thing the studio h
 
 And it is a browser game that does not feel like a compromise: the load time is short, the frame is stable, and you are in a match quickly after clicking play.
 
-Hockey Bros unblocked, on a school laptop
+### Hockey Bros unblocked, on a school laptop
+
 School Chromebooks cannot install anything, and neither can most work laptops — which is exactly the case a browser game is built for. The network filters anything that looks like a game portal, and half the results are pages that took the game down long ago. What we can tell you is where the block actually sits. The game is served from the studio's own domain rather than from a game portal, so a filter that blocks sites by category may still let it through. If it does not, refreshing will not change anything — the block is on the network, not in your browser. A normal connection with the ad blocker switched off covers the most common cause we have seen.
 
-Why it is worth a tab
+### Why it is worth a tab
+
 What separates it from the other browser hockey games is how directly it responds. Every input lands immediately — no queue, no animation you have to sit through, no cooldown on the check. When you lose the puck it is because you were out of position, not because the game decided to play a two-second tackle you could not cancel. That is what makes the short matches work: you always know why you lost, so you always want one more.`,
     },
     {

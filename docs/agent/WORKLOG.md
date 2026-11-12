@@ -4,6 +4,37 @@
 
 ---
 
+## 2026-11-12 — Phase 4.4：Hockey Bros Detail UI
+
+**范围：** `/hockey-bros` 详情模板、面包屑、PlayFrame 复用、正文/FAQ、RelatedGames button + `scrollIntoView`、广告静态壳、D01–D20 测试；**不含** Phase 4.5。
+
+**分支：** `main` · **基线：** `703118f9cf9f8bf5afc895d57cea7a5d46232405` · **状态：** 工作区已改、**未 commit**
+
+### 摘要
+
+- 替换 Phase 4.2 `MinimalGameDetailShell` 为 `GameDetailTemplate` 全家桶。
+- `GameCard` / `GameGrid` 增加 `displayContext=related`；首页 Link 行为回归通过。
+- Related 数据仅 `getProductionRelatedCatalogGames()`（当前 1 条）；未伪造 draft。
+- 生产 iframe 仍 **external-only**（ADR 0004）。
+
+### 验证
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `yarn typecheck` | 0 | PASS |
+| `yarn test:batch1` | 0 | PASS |
+| `yarn test:batch2` | 0 | PASS |
+| `yarn test:catalog` | 0 | PASS |
+| `yarn test:phase4.3` | 0 | PASS |
+| `yarn test:phase4.4` | 0 | PASS（20） |
+| `yarn validate:catalog` | 0 | PASS |
+| `yarn validate:seo` | 0 | PASS |
+| `yarn build` + static export | 0 | PASS（`out/hockey-bros.html`） |
+
+报告：[`phase4.4-hockey-bros-detail.md`](reports/phase4.4-hockey-bros-detail.md)
+
+---
+
 ## 2026-11-12 — Phase 4.3.1：PlayFrame / 测试 / 首页文案定点修复
 
 **范围：** `PlayFrame` 8s timeout 与 generation、`PortalHome` 冻结 H1/副标题、Phase 4.3 真实组件测试（T01–T07）、文档状态与 Git 对齐；**不含** Phase 4.4。

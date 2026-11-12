@@ -1,13 +1,20 @@
 import type { CatalogGame } from '@/lib/catalog/types'
 
-import { GameCard } from './GameCard'
+import { GameCard, type GameCardDisplayContext } from './GameCard'
 
 export interface GameGridProps {
   games: CatalogGame[]
   onLauncherSelect?: (game: CatalogGame) => void
+  displayContext?: GameCardDisplayContext
+  onRelatedActivate?: (game: CatalogGame) => void
 }
 
-export function GameGrid({ games, onLauncherSelect }: GameGridProps) {
+export function GameGrid({
+  games,
+  onLauncherSelect,
+  displayContext = 'home',
+  onRelatedActivate,
+}: GameGridProps) {
   if (games.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center text-sm text-gray-600 dark:border-gray-600 dark:bg-gray-900/40 dark:text-gray-400">
@@ -21,7 +28,12 @@ export function GameGrid({ games, onLauncherSelect }: GameGridProps) {
     <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {games.map((game) => (
         <li key={game.id}>
-          <GameCard game={game} onLauncherSelect={onLauncherSelect} />
+          <GameCard
+            game={game}
+            onLauncherSelect={onLauncherSelect}
+            displayContext={displayContext}
+            onRelatedActivate={onRelatedActivate}
+          />
         </li>
       ))}
     </ul>

@@ -6,12 +6,21 @@ import type { CatalogGame } from '@/lib/catalog/types'
 import { gameUrl } from '@/lib/urls/site-url'
 import Link from '@/components/Link'
 
+export type GameCardDisplayContext = 'home' | 'related'
+
 export interface GameCardProps {
   game: CatalogGame
   onLauncherSelect?: (game: CatalogGame) => void
+  displayContext?: GameCardDisplayContext
+  onRelatedActivate?: (game: CatalogGame) => void
 }
 
-export function GameCard({ game, onLauncherSelect }: GameCardProps) {
+export function GameCard({
+  game,
+  onLauncherSelect,
+  displayContext = 'home',
+  onRelatedActivate,
+}: GameCardProps) {
   const thumb = game.thumbnail
 
   return (
@@ -36,21 +45,23 @@ export function GameCard({ game, onLauncherSelect }: GameCardProps) {
         )}
       </div>
       <div className="p-3">
-        {game.cardAction === 'navigate-to-detail' ? (
+        {displayContext === 'related' || game.cardAction === 'launcher-select' ? (
+          <button
+            type="button"
+            className="text-primary-600 hover:text-primary-700 focus-visible:ring-primary-500 dark:text-primary-400 w-full text-left text-base font-semibold focus:outline-none focus-visible:ring-2"
+            onClick={() =>
+              displayContext === 'related' ? onRelatedActivate?.(game) : onLauncherSelect?.(game)
+            }
+          >
+            {game.title}
+          </button>
+        ) : (
           <Link
             href={gameUrl(game.slug)}
             className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 text-base font-semibold"
           >
             {game.title}
           </Link>
-        ) : (
-          <button
-            type="button"
-            className="text-primary-600 hover:text-primary-700 focus-visible:ring-primary-500 dark:text-primary-400 w-full text-left text-base font-semibold focus:outline-none focus-visible:ring-2"
-            onClick={() => onLauncherSelect?.(game)}
-          >
-            {game.title}
-          </button>
         )}
       </div>
     </article>
