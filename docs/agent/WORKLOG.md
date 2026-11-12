@@ -4,11 +4,11 @@
 
 ---
 
-## 2026-11-12 — Phase 4.4.1：Related 自引用收口
+## 2026-11-12 — Phase 4.4.1：Related 自引用收口 + 构建验收
 
-**范围：** `GameDetailTemplate` 使用 `excludeSlug`；空 Related 不渲染；修订 D13/D15/D18；新增 D21–D26；Agent 文档同步。**不含** Phase 4.5。
+**范围：** `GameDetailTemplate` 使用 `excludeSlug`；空 Related 不渲染；修订 D13/D15/D18；新增 D21–D26；Agent 文档同步；在 `60ee012d` 上重建静态 `out/` 并跑 SEO 契约。**不含** Phase 4.5。
 
-**分支：** `main` · **审查基线：** `91c2e695da762898f4b1f265bc6979713b928c10` · **执行前 HEAD：** 同 · **状态：** 工作区已改、待用户 commit
+**分支：** `main` · **审查基线 / HEAD：** `60ee012d8704245db2494261ac1e5e74b579d30f`（已推送 `origin/main`）· **状态：** **DONE**（代码已上 `main`；导出验收本日完成）
 
 ### RelatedGames 决策
 
@@ -30,10 +30,21 @@
 | `yarn test:batch1` / `batch2` / `catalog` / `phase4.3` | 0 | PASS |
 | `yarn test:phase4.4` | 0 | PASS（25） |
 | `yarn validate:catalog` / `validate:seo` | 0 | PASS |
-| `validate:seo --export-dir=out` | 0 | PASS |
-| `yarn build`（EXPORT） | — | NOT RUN（dev 锁 `.next`） |
+| `validate:seo --export-dir=out`（旧 `out/`） | 0 | PASS |
+| 预检：无 dev `:3000`；删 `.next` | — | PASS |
+| `EXPORT=1 UNOPTIMIZED=1 yarn build`（Node 22.14.0） | 0 | PASS — `out/index.html`、`out/hockey-bros.html` |
+| `validate:seo --export-dir=out`（新 `out/`） | 0 | PASS |
+
+**`_document` 历史失败：** 并行 `yarn dev` + 脏 `.next` → `PageNotFoundError`；停 dev 并清 `.next` 后未复现。
 
 报告：[`phase4.4.1-closeout.md`](reports/phase4.4.1-closeout.md)
+
+### 阶段结论
+
+- **4.4.1 代码/测试：** PASS  
+- **4.4.1 导出门禁：** PASS  
+- **R1 生产上线：** BLOCKED（iframe、4.5+ SEO）  
+- **总体：** CONDITIONAL PASS
 
 ### 人工验收（保留）
 
@@ -41,7 +52,7 @@
 
 ### 建议下一步
 
-- 用户 commit 4.4.1 后授权 **Phase 4.5 — Content / SEO Integration**。
+- 授权 **Phase 4.5 — Content / SEO Integration**（勿提前 exact-two / 页面 JSON-LD）。
 
 ---
 

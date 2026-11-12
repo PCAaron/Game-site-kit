@@ -1,11 +1,11 @@
 # Agent Project Status
 
-- **Current phase：** Phase 4.2 / 4.2.1（**DONE**）；Phase 4.3 / 4.3.1（**DONE — `main`**）；**Phase 4.4（DONE — `main` `91c2e69`）**；**Phase 4.4.1 Related 收口（实现完成 — 工作区待提交）**；Phase 4.5+ **NOT STARTED**
+- **Current phase：** Phase 4.2 / 4.2.1（**DONE**）；Phase 4.3 / 4.3.1（**DONE — `main`**）；Phase 4.4（**DONE — `main`**）；**Phase 4.4.1 Related 收口 + 构建验收（DONE — `main` `60ee012d`）**；Phase 4.5+ **NOT STARTED**
 - **Baseline commit（审查基线）：** `7d3ef1146a4edaa8a72467e59fe9452fc2b39be6`
 - **Phase 4.3 基线 commit：** `c73884296ffb644fe7cdf7a28428229edd3505ae`（**已推送 `main`**）
 - **Last substantive Phase 4.0 revision:** `87adf9866c8f8bb6f9eb4898b8618ced8d8abf49`
 - **Phase 3 Code Validation Baseline：** `f2ea1b2ecfc5259270f9c27ba5873607b82f8c1d9`
-- **Last updated:** 2026-11-12（Phase 4.4）
+- **Last updated:** 2026-11-12（Phase 4.4.1 构建收口）
 - **Specs 治理：** [`specs-governance-review.md`](reports/specs-governance-review.md)（2026-11-09）；Phase 4.x 批次权威 [`04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) **§13**
 - **Current reviewed branch:** `main`
 - **Catalog 实现基线 commit：** `4ea8e14cb0c3a048029b5cbeca8efa626db91d3d`（`feat(catalog): add Phase 4.1 data contract and validation`）
@@ -32,7 +32,7 @@
 | Phase 4.3 首页 / Launcher | **DONE** — `app/page.tsx` + `components/portal/*`；生产 iframe **仍 BLOCKED**（embed unknown） |
 | Phase 4.3.1 PlayFrame / 测试 / H1 | **实现完成** — 8s timeout 与 `loaded-event` 分离、generation ref、组件测试 T01–T07、冻结 H1/副标题 |
 | Phase 4.4 Hockey Bros 详情 UI | **DONE — `main`** `91c2e695da762898f4b1f265bc6979713b928c10`；独立审查 **CONDITIONAL PASS** |
-| Phase 4.4.1 Related 自引用收口 | **实现完成（工作区）** — `excludeSlug` + 空 Related 隐藏；D21–D26 |
+| Phase 4.4.1 Related 自引用收口 | **DONE — `main`** `60ee012d8704245db2494261ac1e5e74b579d30f` — `excludeSlug`、D21–D26；静态导出 + `validate:seo` 验收 **PASS** |
 | Phase 4.5+             | **NOT STARTED**                                                                                       |
 | Phase 4.1 系列冻结     | **FROZEN**（4.1.x 公共 Adapter 未改；4.2 仅消费）                                                    |
 
@@ -50,13 +50,12 @@ DEC-003-A–C **Applied**；DEC-003-D **Partial**；DEC-003-E **F1**；DEC-003-F
 
 ## Recommended next action
 
-1. 审阅 Phase 4.4.1 报告 [`phase4.4.1-closeout.md`](reports/phase4.4.1-closeout.md) 并决定是否 `git commit` 4.4.1。
-2. 验收通过后授权 **Phase 4.5 — Content / SEO Integration**。
-3. **不要**在未授权时开启生产 iframe 放行或提前 exact-two / 页面 JSON-LD 收口。
+1. 授权 **Phase 4.5 — Content / SEO Integration**（4.4.1 代码与导出门禁已在 `60ee012d` 验收）。
+2. **不要**在未授权时开启生产 iframe 放行或提前 exact-two / 页面 JSON-LD 收口。
 
 ## Last verified checks
 
-**Phase 4.4.1（2026-11-12，Node 20.19.5）：** `yarn typecheck`、batch1/2、catalog、phase4.3、**phase4.4（25）**、`validate:catalog`、`validate:seo` — exit 0；`validate:seo --export-dir=out`（沿用既有 `out/`）、`git diff --check`、prettier check — 见 [`phase4.4.1-closeout.md`](reports/phase4.4.1-closeout.md)。**`yarn build`（EXPORT=1）** 本环境因 dev 占用 `.next` **NOT RUN** — 需停 dev 后重跑。
+**Phase 4.4.1 构建收口（2026-11-12，`60ee012d`，Node v22.14.0 / Yarn 3.6.1）：** 无 Next dev（`:3000` 未监听）；预删 `.next` 后 `EXPORT=1 UNOPTIMIZED=1 yarn build` **exit 0**（61 SSG + export）；`out/index.html`（57 941 B）、`out/hockey-bros.html`（85 670 B）；`yarn validate:seo --export-dir=out` **exit 0**。单元/契约门禁见 [`phase4.4.1-closeout.md`](reports/phase4.4.1-closeout.md) §F。
 
 **Phase 4.4（`91c2e69`）：** 见 [`phase4.4-hockey-bros-detail.md`](reports/phase4.4-hockey-bros-detail.md)。
 
