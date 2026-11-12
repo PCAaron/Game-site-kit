@@ -4,6 +4,32 @@
 
 ---
 
+## 2026-11-12 — Phase 4.5：Content / SEO Integration
+
+**范围：** Portal Home 正文/FAQ、索引放行、页面 JSON-LD、production sitemap exact-two、P45 测试、静态导出冒烟。**不含** Phase 4.6+。
+
+**分支：** `main` · **审查基线：** `6b54c66` · **HEAD：** 未提交（实现完成）
+
+### 要点
+
+- `ballgamesPortalHomeContent`：`published` + `indexable: true`；导语 + 5×H2 + 8 FAQ（事实审慎改写）。
+- `PortalHome` 渲染 SEO 区块；`JsonLd` + `buildPortalHomeJsonLdBlocks` / `buildGameDetailJsonLdBlocks`。
+- `validate-seo` 生产 sitemap 断言更新为 exact-two。
+
+### 验证
+
+| Command | Exit |
+| --- | --- |
+| `yarn typecheck` | 0 |
+| `yarn test:batch1` / `batch2` / `catalog` / `phase4.3` / `phase4.4` / `phase4.5` | 0 |
+| `yarn validate:catalog` / `validate:seo` | 0 |
+| `EXPORT=1 UNOPTIMIZED=1 yarn build` | 0 |
+| `yarn validate:seo --export-dir=out` | 0 |
+
+报告：[`phase4.5-content-seo-integration.md`](reports/phase4.5-content-seo-integration.md) · 结论：**PASS WITH MANUAL REVIEW**（五 H2 词数低于 Spec 目标；Organization 省略）。
+
+---
+
 ## 2026-11-12 — Phase 4.4.1：Related 自引用收口 + 构建验收
 
 **范围：** `GameDetailTemplate` 使用 `excludeSlug`；空 Related 不渲染；修订 D13/D15/D18；新增 D21–D26；Agent 文档同步；在 `60ee012d` 上重建静态 `out/` 并跑 SEO 契约。**不含** Phase 4.5。

@@ -36,7 +36,13 @@ export {
 export { SitemapXmlValidationError } from './validate-sitemap-xml'
 export {
   assertNoForbiddenJsonLdFields,
+  buildBreadcrumbListJsonLd,
+  buildFaqPageJsonLd,
+  buildGameDetailJsonLdBlocks,
   buildPortalHomeJsonLdBlocks,
+  buildVideoGameJsonLd,
   buildWebSiteJsonLd,
   serializeJsonLd,
+  serializeJsonLdForHtml,
 } from './structured-data'
+export type { JsonLdObject } from './structured-data'

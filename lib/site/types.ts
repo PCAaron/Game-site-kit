@@ -20,6 +20,16 @@ export interface SiteInstance {
   }
 }
 
+export interface ContentSection {
+  heading: string
+  paragraphs: string[]
+}
+
+export interface ContentFaq {
+  q: string
+  a: string
+}
+
 export interface PortalHomeContent {
   publicationStatus: PublicationStatus
   seo: {
@@ -28,6 +38,12 @@ export interface PortalHomeContent {
     indexable: boolean
     ogImage?: string
   }
+  /** SEO intro (after launcher grid). Required when published && indexable. */
+  intro?: string
+  /** Five H2 blocks in frozen order. Required when published && indexable. */
+  sections?: ContentSection[]
+  /** Eight FAQ items; UI and FAQPage JSON-LD share this source. */
+  faq?: ContentFaq[]
   updatedAt?: string
 }
 

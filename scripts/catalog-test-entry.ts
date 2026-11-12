@@ -466,8 +466,8 @@ test('C13 home game without provider remains eligible', () => {
 
 test('C14 PortalHome content is readable via site reader', () => {
   const content = getBallgamesPortalHomeContent()
-  assert.equal(content.publicationStatus, 'draft')
-  assert.equal(content.seo.indexable, false)
+  assert.equal(content.publicationStatus, 'published')
+  assert.equal(content.seo.indexable, true)
   assert.equal(getPortalHomeContent().seo.title, content.seo.title)
 })
 

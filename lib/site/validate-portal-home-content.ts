@@ -1,3 +1,4 @@
+import { assertPortalHomeEditorialContract } from './portal-home-editorial-contract'
 import { SiteConfigError, type PortalHomeContent, type SiteInstance } from './types'
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)?$/
@@ -36,6 +37,8 @@ export function validatePortalHomeContent(content: PortalHomeContent): void {
       'updatedAt must be a valid ISO-8601 date or date-time when provided'
     )
   }
+
+  assertPortalHomeEditorialContract(content)
 }
 
 /** Resolves OG image only; never fills missing title/description from SiteInstance. */

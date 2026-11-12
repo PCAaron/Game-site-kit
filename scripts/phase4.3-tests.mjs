@@ -44,9 +44,7 @@ await esbuild.build({
   plugins: [tsconfigPathsPlugin],
 })
 
-const registerDom = pathToFileURL(
-  path.join(projectRoot, 'scripts/phase4.3-register-dom.mjs')
-).href
+const registerDom = pathToFileURL(path.join(projectRoot, 'scripts/phase4.3-register-dom.mjs')).href
 const result = spawnSync(process.execPath, ['--import', registerDom, '--test', outfile], {
   cwd: projectRoot,
   stdio: 'inherit',

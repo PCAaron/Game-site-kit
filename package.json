@@ -12,6 +12,7 @@
     "test:catalog": "node scripts/catalog-tests.mjs",
     "test:phase4.3": "node scripts/phase4.3-tests.mjs",
     "test:phase4.4": "node scripts/phase4.4-tests.mjs",
+    "test:phase4.5": "node scripts/phase4.5-tests.mjs",
     "validate:seo": "node scripts/validate-seo.mjs",
     "validate:catalog": "node scripts/validate-catalog.mjs",
     "serve": "next start",

@@ -87,10 +87,11 @@ test('og image falls back only to socialBanner', () => {
   assert.ok(meta.openGraph?.images)
 })
 
-test('production sitemap excludes draft portal but includes published indexable game when routed', () => {
+test('production sitemap exact-two (published portal + hockey-bros)', () => {
   const entries = buildProductionSitemap(ballgamesSiteInstance)
-  assert.equal(entries.length, 1)
-  assert.equal(entries[0].url, 'https://ballgames.io/hockey-bros')
+  assert.equal(entries.length, 2)
+  const urls = entries.map((e) => e.url).sort()
+  assert.deepEqual(urls, ['https://ballgames.io', 'https://ballgames.io/hockey-bros'].sort())
 })
 
 test('contract fixture yields exact-two URLs when routes exist', () => {
@@ -387,7 +388,12 @@ test('Phase 4.2 production descriptors include game detail from adapter', () => 
 /** Mirrors root layout `title.template` applying to string child titles (Next.js Metadata API). */
 function documentTitleWithSiteTemplate(meta: { title?: unknown }, siteTitle: string): string {
   const t = meta.title
-  if (t && typeof t === 'object' && 'absolute' in t && typeof (t as { absolute: string }).absolute === 'string') {
+  if (
+    t &&
+    typeof t === 'object' &&
+    'absolute' in t &&
+    typeof (t as { absolute: string }).absolute === 'string'
+  ) {
     return (t as { absolute: string }).absolute
   }
   if (typeof t === 'string') {
@@ -407,7 +413,10 @@ function minimalDetailFixtureGame(overrides: Partial<CatalogGame>): CatalogGame 
     homeSort: 99,
     cardAction: 'navigate-to-detail',
     detail: {
-      seo: createGameSeo({ title: 'Soccer', description: 'Soccer fixture detail for routing tests' }),
+      seo: createGameSeo({
+        title: 'Soccer',
+        description: 'Soccer fixture detail for routing tests',
+      }),
       intro: 'intro',
       howToPlay: 'how',
       sections: [{ heading: 'H', body: 'b' }],
@@ -437,7 +446,10 @@ test('Phase 4.2.1: legacy blog metadata still uses string title for layout templ
     site: ballgamesSiteInstance,
   })
   assert.equal(meta.title, 'Blog')
-  assert.equal(documentTitleWithSiteTemplate(meta, ballgamesSiteInstance.metadata.title), 'Blog | BallGames.io')
+  assert.equal(
+    documentTitleWithSiteTemplate(meta, ballgamesSiteInstance.metadata.title),
+    'Blog | BallGames.io'
+  )
 })
 
 test('Phase 4.2.1 P1-02: R1 allowlist excludes unpublished-approved fixture slug', () => {

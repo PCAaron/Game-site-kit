@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import { JsonLd } from '@/components/seo/JsonLd'
 import { GameDetailTemplate } from '@/components/portal/GameDetailTemplate'
 import { getBallgamesCatalog } from '@/lib/catalog'
 import { getSiteInstance } from '@/lib/site/get-site-instance'
 import {
+  buildGameDetailJsonLdBlocks,
   buildGameDetailPageDescriptor,
   findProductionRoutableGame,
   getProductionRoutableGameSlugs,
@@ -45,9 +47,12 @@ export default async function GameDetailRoutePage(props: { params: Promise<{ slu
   }
 
   const catalog = getBallgamesCatalog()
+  const site = getSiteInstance()
+  const jsonLdBlocks = buildGameDetailJsonLdBlocks({ game, site })
 
   return (
     <main className="divide-y divide-gray-200 dark:divide-gray-700">
+      <JsonLd blocks={jsonLdBlocks} />
       <GameDetailTemplate game={game} catalog={catalog} />
     </main>
   )

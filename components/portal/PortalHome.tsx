@@ -2,6 +2,9 @@ import type { Catalog, CatalogGame } from '@/lib/catalog/types'
 import type { PortalHomeContent } from '@/lib/site/types'
 
 import { Launcher } from './Launcher'
+import { PortalHomeFaq } from './PortalHomeFaq'
+import { PortalHomeIntro } from './PortalHomeIntro'
+import { PortalHomeSeoSections } from './PortalHomeSeoSections'
 
 /** Frozen copy — ballgames-specs-v1 §5.2 (not SEO description). */
 export const PORTAL_HOME_FROZEN_H1 = 'Ball Games'
@@ -14,7 +17,10 @@ export interface PortalHomeProps {
   catalog: Catalog
 }
 
-export function PortalHome({ portal: _portal, homeGames, catalog }: PortalHomeProps) {
+export function PortalHome({ portal, homeGames, catalog }: PortalHomeProps) {
+  const hasEditorial =
+    Boolean(portal.intro?.trim()) && Boolean(portal.sections?.length) && Boolean(portal.faq?.length)
+
   return (
     <div className="divide-y divide-gray-200 dark:divide-gray-700">
       <section className="space-y-4 pt-6 pb-10 md:pt-8">
@@ -28,6 +34,13 @@ export function PortalHome({ portal: _portal, homeGames, catalog }: PortalHomePr
       <section className="py-10">
         <Launcher homeGames={homeGames} catalog={catalog} />
       </section>
+      {hasEditorial ? (
+        <>
+          <PortalHomeIntro intro={portal.intro!} />
+          <PortalHomeSeoSections sections={portal.sections!} />
+          <PortalHomeFaq items={portal.faq!} />
+        </>
+      ) : null}
     </div>
   )
 }

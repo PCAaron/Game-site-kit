@@ -1,3 +1,4 @@
+import { minimalPortalHomeEditorialForTests } from '../site/portal-home-editorial-contract'
 import type { PortalHomeContent } from '../site/types'
 import type { GameDetailPageDescriptor, PortalHomePageDescriptor } from './page-descriptors'
 
@@ -15,6 +16,7 @@ export function buildR1ExactTwoContractFixtures(): {
       indexable: true,
     },
     updatedAt: '2026-01-15',
+    ...minimalPortalHomeEditorialForTests(),
   }
 
   return {

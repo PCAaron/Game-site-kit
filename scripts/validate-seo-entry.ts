@@ -145,16 +145,14 @@ check('site root metadata origin', () => {
 })
 
 // --- Sitemap (structured XML + eligibility) ---
-check(
-  'production sitemap XML matches eligibility (draft portal excluded; routed game included)',
-  () => {
-    const entries = buildProductionSitemap(ballgamesSiteInstance)
-    const xml = serializeSitemapUrlsetXml(entries)
-    validateProductionSitemapXml(xml, ballgamesSiteInstance)
-    assert.equal(entries.length, 1)
-    assert.equal(entries[0].url, 'https://ballgames.io/hockey-bros')
-  }
-)
+check('production sitemap XML exact-two (portal + hockey-bros)', () => {
+  const entries = buildProductionSitemap(ballgamesSiteInstance)
+  const xml = serializeSitemapUrlsetXml(entries)
+  validateProductionSitemapXml(xml, ballgamesSiteInstance)
+  assert.equal(entries.length, 2)
+  const urls = entries.map((e) => e.url).sort()
+  assert.deepEqual(urls, ['https://ballgames.io', 'https://ballgames.io/hockey-bros'].sort())
+})
 
 check('contract exact-two sitemap XML matches fixture eligibility', () => {
   const { portal, game } = buildR1ExactTwoContractFixtures()
@@ -272,9 +270,12 @@ if (exportDir) {
       label: '/ (portal home)',
       required: true,
       expectation: {
-        title: typeof portalHomeMeta.title === 'object' && portalHomeMeta.title && 'absolute' in portalHomeMeta.title
-          ? portalHomeMeta.title.absolute
-          : portalHomeResolved.title,
+        title:
+          typeof portalHomeMeta.title === 'object' &&
+          portalHomeMeta.title &&
+          'absolute' in portalHomeMeta.title
+            ? portalHomeMeta.title.absolute
+            : portalHomeResolved.title,
         description: portalHomeResolved.description,
         robots: portalHomeRobots,
         canonical: portalHomeResolved.canonical,
@@ -368,7 +369,10 @@ if (exportDir) {
 
   check('export hockey-bros game detail HTML head (Phase 4.2)', () => {
     const detailHtml = path.join(abs, 'hockey-bros.html')
-    assert.ok(fs.existsSync(detailHtml), 'missing export HTML: hockey-bros.html (run build with EXPORT=1)')
+    assert.ok(
+      fs.existsSync(detailHtml),
+      'missing export HTML: hockey-bros.html (run build with EXPORT=1)'
+    )
     const html = fs.readFileSync(detailHtml, 'utf8')
     assert.ok(!html.includes(STARTER_DOMAIN))
     const game = findProductionRoutableGame('hockey-bros')

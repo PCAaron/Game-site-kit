@@ -108,9 +108,9 @@ test('H12 external-only presentation keeps primary URL for new tab', () => {
   assert.equal(presentation.primaryUrl, 'https://www.hockeybros.io/')
 })
 
-test('H13 portal home SEO remains noindex in metadata', () => {
+test('H13 portal home SEO is indexable when published (Phase 4.5)', () => {
   const portal = getPortalHomeContent()
-  assert.equal(portal.seo.indexable, false)
+  assert.equal(portal.seo.indexable, true)
   const resolved = resolvePortalHomePageSeo(
     {
       pageType: 'portal_home',
@@ -121,13 +121,14 @@ test('H13 portal home SEO remains noindex in metadata', () => {
     ballgamesSiteInstance
   )
   const meta = resolvedSeoToMetadata(resolved, ballgamesSiteInstance)
-  assert.deepEqual(meta.robots, { index: false, follow: true })
+  assert.deepEqual(meta.robots, { index: true, follow: true })
 })
 
-test('H14 production sitemap still exact eligible set (draft portal excluded)', () => {
+test('H14 production sitemap exact-two eligible set', () => {
   const entries = buildProductionSitemap(ballgamesSiteInstance)
-  assert.equal(entries.length, 1)
-  assert.equal(entries[0].url, 'https://ballgames.io/hockey-bros')
+  assert.equal(entries.length, 2)
+  const urls = entries.map((e) => e.url).sort()
+  assert.deepEqual(urls, ['https://ballgames.io', 'https://ballgames.io/hockey-bros'].sort())
   assert.equal(
     getProductionPortalDescriptors().filter((d) => d.pageType === 'portal_home').length,
     1

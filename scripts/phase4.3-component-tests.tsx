@@ -30,7 +30,9 @@ import { DEFAULT_PLAY_TIMEOUT_MS, type PlayPresentation } from '../lib/portal/pl
 import { ballgamesCatalog } from '../lib/catalog/index'
 import { gameUrl } from '../lib/urls/site-url'
 
-function minimalPublishedGame(overrides: Partial<CatalogGame> & Pick<CatalogGame, 'id' | 'slug' | 'title' | 'cardAction'>): CatalogGame {
+function minimalPublishedGame(
+  overrides: Partial<CatalogGame> & Pick<CatalogGame, 'id' | 'slug' | 'title' | 'cardAction'>
+): CatalogGame {
   return {
     publicationStatus: 'published',
     showOnHome: true,
