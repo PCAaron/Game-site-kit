@@ -8,7 +8,7 @@
 
 **范围：** `PlayFrame` 8s timeout 与 generation、`PortalHome` 冻结 H1/副标题、Phase 4.3 真实组件测试（T01–T07）、文档状态与 Git 对齐；**不含** Phase 4.4。
 
-**分支：** `main` · **Phase 4.3 基线（已推 main）：** `c73884296ffb644fe7cdf7a28428229edd3505ae` · **4.3.1 工作区：** 未提交
+**分支：** `main` · **Phase 4.3 基线（已推 main）：** `c73884296ffb644fe7cdf7a28428229edd3505ae` · **4.3.1 commit：** `b1a3f33`（已推送 `origin/main`）
 
 ### 修复摘要
 
@@ -32,7 +32,7 @@
 | Static export + `validate:seo --export-dir=out` | 0 | PASS |
 | `git diff --check` | 0 | PASS |
 
-**Commit：** 未创建（待用户授权）
+**Commit：** `b1a3f33` — `fix(phase4.3.1): harden PlayFrame timeout and add RTL component tests`（已 push）
 
 ---
 

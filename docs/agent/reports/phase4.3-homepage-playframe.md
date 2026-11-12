@@ -6,7 +6,7 @@
 |---|---|
 | Branch | `main` |
 | Phase 4.3 基线 Commit | `c73884296ffb644fe7cdf7a28428229edd3505ae`（**已推送 `main`**） |
-| Phase 4.3.1 工作区 | **未提交**（2026-11-12 定点修复） |
+| Phase 4.3.1 Commit | `b1a3f33`（**已推送 `main`**，2026-11-12 定点修复） |
 | Scope | Phase 4.3 — Portal Home UI、GameCard / GameGrid、PlayFrame、Launcher；**4.3.1** — timeout/generation/测试/H1 |
 
 ## B. 修改清单

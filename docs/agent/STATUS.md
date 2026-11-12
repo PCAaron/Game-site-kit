@@ -1,6 +1,6 @@
 # Agent Project Status
 
-- **Current phase：** Phase 4.2 / 4.2.1（**DONE**）；Phase 4.3 Homepage / PlayFrame（**DONE — on `main`**）；**Phase 4.3.1 定点修复（实现完成 — 未提交）**；Phase 4.4+ **NOT STARTED**
+- **Current phase：** Phase 4.2 / 4.2.1（**DONE**）；Phase 4.3 Homepage / PlayFrame（**DONE — on `main`**）；**Phase 4.3.1（DONE — `b1a3f33` on `main`）**；Phase 4.4+ **NOT STARTED**
 - **Baseline commit（审查基线）：** `7d3ef1146a4edaa8a72467e59fe9452fc2b39be6`
 - **Phase 4.3 基线 commit：** `c73884296ffb644fe7cdf7a28428229edd3505ae`（**已推送 `main`**）
 - **Last substantive Phase 4.0 revision:** `87adf9866c8f8bb6f9eb4898b8618ced8d8abf49`
@@ -14,7 +14,7 @@
 
 | Phase | 名称                     | 状态                                                                                     | 证据                                                                                                              |
 | ----- | ------------------------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 4     | ballgames R1 页面        | **4.0–4.3 DONE（已推 main）** / **4.3.1 实现完成（待提交）** / 4.4+ **NOT STARTED** | [`04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) · [`phase4.3-homepage-playframe.md`](reports/phase4.3-homepage-playframe.md) |
+| 4     | ballgames R1 页面        | **4.0–4.3.1 DONE（`main`）** / 4.4+ **NOT STARTED** | [`04-ballgames-r1.md`](../../specs/phases/04-ballgames-r1.md) · [`phase4.3-homepage-playframe.md`](reports/phase4.3-homepage-playframe.md) |
 
 ## Phase 4.0 / 4.1 摘要
 
