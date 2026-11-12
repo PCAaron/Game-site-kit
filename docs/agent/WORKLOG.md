@@ -4,11 +4,34 @@
 
 ---
 
+## 2026-11-12 — Phase 4.5.1：Spec 一致性定点收口
+
+**范围：** 对照 `ballgames-specs-v1` 审查首页/详情实现；词数实测；embed 文案冲突登记；P45-21–24；`tsconfig.tsbuildinfo` 治理；Agent 报告。**未**扩写正文、**未**启动 4.6。
+
+**分支：** `main` · **HEAD 基线：** `386a8b763912d79854b7a860da0571517736e39c`（4.5 已在 main）· **工作区：** 测试/词数脚本、`.gitignore`、取消跟踪 `tsbuildinfo`
+
+### 要点
+
+- Spec 矩阵：H2/导语/结构 **PASS**；五 H2 词数 **682 vs ~950** → `SPEC WORD TARGET DIFFERENCE — MANUAL REVIEW`。
+- **SAFETY_CONFLICT：** 冻结导语 §5.4「同 tab 内运行」与生产 `external-only`（embed `unknown`）→ **BLOCKED — EDITORIAL APPROVAL**；未改冻结文案。
+- `tsconfig.tsbuildinfo` → `.gitignore` + `git rm --cached`。
+
+### 验证（Node 22.14.0）
+
+| Command | Exit |
+| --- | --- |
+| `yarn typecheck` + batch/phase tests + validators | 0 |
+| `EXPORT=1 UNOPTIMIZED=1 yarn build` + `validate:seo --export-dir=out` | 0 |
+
+报告：[`phase4.5.1-spec-consistency-closeout.md`](reports/phase4.5.1-spec-consistency-closeout.md) · 结论：**PASS WITH MANUAL REVIEW**
+
+---
+
 ## 2026-11-12 — Phase 4.5：Content / SEO Integration
 
 **范围：** Portal Home 正文/FAQ、索引放行、页面 JSON-LD、production sitemap exact-two、P45 测试、静态导出冒烟。**不含** Phase 4.6+。
 
-**分支：** `main` · **审查基线：** `6b54c66` · **HEAD：** 未提交（实现完成）
+**分支：** `main` · **审查基线：** `6b54c66` · **最终 commit：** `386a8b7`（已推送 main）
 
 ### 要点
 
