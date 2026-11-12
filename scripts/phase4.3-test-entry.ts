@@ -1,3 +1,5 @@
+import './phase4.3-component-tests'
+
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
@@ -70,15 +72,6 @@ test('H05 navigate-to-detail uses gameUrl helper path', () => {
   const hockey = getProductionHomeCatalog()[0]
   assert.equal(hockey.cardAction, 'navigate-to-detail')
   assert.equal(gameUrl(hockey.slug), 'https://ballgames.io/hockey-bros')
-  const gameCardSrc = readProjectFile('components/portal/GameCard.tsx')
-  assert.match(gameCardSrc, /gameUrl\(game\.slug\)/)
-  assert.match(gameCardSrc, /navigate-to-detail/)
-})
-
-test('H06 launcher-select cards wire through Launcher handler', () => {
-  const launcherSrc = readProjectFile('components/portal/Launcher.tsx')
-  assert.match(launcherSrc, /launcher-select/)
-  assert.match(launcherSrc, /onLauncherSelect/)
 })
 
 test('H07 unverified launch cannot produce iframe presentation', () => {
@@ -102,14 +95,6 @@ test('H09 play presentation timeout default is 8000ms', () => {
   const hockey = getProductionHomeCatalog()[0]
   const presentation = resolvePlayPresentation(hockey, ballgamesCatalog)
   assert.equal(presentation.timeoutMs, 8000)
-  const playFrameSrc = readProjectFile('components/portal/PlayFrame.tsx')
-  assert.match(playFrameSrc, /timeout/)
-})
-
-test('H10 Launcher increments generation on select', () => {
-  const launcherSrc = readProjectFile('components/portal/Launcher.tsx')
-  assert.match(launcherSrc, /setLoadGeneration/)
-  assert.match(launcherSrc, /loadGeneration/)
 })
 
 test('H11 stale iframe load events are ignored', () => {

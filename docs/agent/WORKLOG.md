@@ -4,6 +4,38 @@
 
 ---
 
+## 2026-11-12 — Phase 4.3.1：PlayFrame / 测试 / 首页文案定点修复
+
+**范围：** `PlayFrame` 8s timeout 与 generation、`PortalHome` 冻结 H1/副标题、Phase 4.3 真实组件测试（T01–T07）、文档状态与 Git 对齐；**不含** Phase 4.4。
+
+**分支：** `main` · **Phase 4.3 基线（已推 main）：** `c73884296ffb644fe7cdf7a28428229edd3505ae` · **4.3.1 工作区：** 未提交
+
+### 修复摘要
+
+- **P1-01 / P2-01：** `loaded-event` 不再取消 8s 计时；`loaded-event` / `loading` 在超时前未 `ready` 时进入 `timeout`；`activeGenerationRef` 防陈旧 onLoad/timeout。
+- **P1-02：** `@testing-library/react` + happy-dom；`test:phase4.3` 增至 22 条（含 T01–T07）。
+- **P2-02：** H1 `Ball Games` + §5.2 冻结副标题（独立 `<p>`）。
+- **P2-03：** STATUS / 本报告更新；Phase 4.3 标记为已推 `main`。
+
+### 验证
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `yarn typecheck` | 0 | PASS |
+| `yarn test:batch1` | 0 | PASS（10） |
+| `yarn test:batch2` | 0 | PASS（30） |
+| `yarn test:catalog` | 0 | PASS（34） |
+| `yarn test:phase4.3` | 0 | PASS（22） |
+| `yarn validate:catalog` | 0 | PASS |
+| `yarn validate:seo` | 0 | PASS |
+| `yarn build` | 0 | PASS |
+| Static export + `validate:seo --export-dir=out` | 0 | PASS |
+| `git diff --check` | 0 | PASS |
+
+**Commit：** 未创建（待用户授权）
+
+---
+
 ## 2026-11-11 — Phase 4.3：Homepage / PlayFrame
 
 **范围：** 首页 Portal UI、`GameCard` / `GameGrid` / `PlayFrame` / `Launcher`、`lib/portal/play-presentation`、Phase 4.3 测试与 export SEO 预期更新；**不含** Phase 4.4 详情正文、生产 indexable、生产 iframe 放行。

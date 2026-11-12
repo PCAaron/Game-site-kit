@@ -5,9 +5,9 @@
 | 项 | 值 |
 |---|---|
 | Branch | `main` |
-| Base Commit | `7d3ef1146a4edaa8a72467e59fe9452fc2b39be6` |
-| 完成后的 Commit | **未提交**（工作区变更） |
-| Scope | Phase 4.3 — Portal Home UI、GameCard / GameGrid、PlayFrame、Launcher |
+| Phase 4.3 基线 Commit | `c73884296ffb644fe7cdf7a28428229edd3505ae`（**已推送 `main`**） |
+| Phase 4.3.1 工作区 | **未提交**（2026-11-12 定点修复） |
+| Scope | Phase 4.3 — Portal Home UI、GameCard / GameGrid、PlayFrame、Launcher；**4.3.1** — timeout/generation/测试/H1 |
 
 ## B. 修改清单
 
@@ -30,10 +30,10 @@
 
 | 组件 | 状态 | 说明 |
 |---|---|---|
-| PortalHome | PASS | Hero（唯一 H1）+ 描述文案来自 `getPortalHomeContent()` |
+| PortalHome | PASS（4.3.1） | 唯一 H1 **Ball Games** + §5.2 冻结副标题 `<p>`（非 `seo.description`） |
 | GameCard | PASS | `navigate-to-detail` → `gameUrl(slug)`；`launcher-select` → button |
 | GameGrid | PASS | `getProductionHomeCatalog` 排序；0/1/N 条与空状态 |
-| PlayFrame | PASS | `external-only`（当前生产数据）；门禁满足时渲染 iframe + 8s 兜底 |
+| PlayFrame | PASS（4.3.1） | `load` ≠ `ready`；8s 后 `loaded-event` 仍可 `timeout`；generation ref；外链常驻 |
 | Launcher | PASS | 默认选中首个 verified 行；切换递增 `loadGeneration` |
 
 ## D. 数据流验证
@@ -55,7 +55,7 @@ getBallgamesCatalog()
 | `yarn test:batch1` | 0 | PASS（10） |
 | `yarn test:batch2` | 0 | PASS（30） |
 | `yarn test:catalog` | 0 | PASS（34） |
-| `yarn test:phase4.3` | 0 | PASS（15） |
+| `yarn test:phase4.3` | 0 | PASS（22，含 T01–T07 组件测试） |
 | `yarn validate:catalog` | 0 | PASS |
 | `yarn validate:seo` | 0 | PASS（contract） |
 | `yarn build` | 0 | PASS |

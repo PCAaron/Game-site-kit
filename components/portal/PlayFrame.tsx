@@ -1,18 +1,31 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import type { PlayPresentation } from '@/lib/portal/play-presentation'
 import { shouldAcceptIframeLoadEvent } from '@/lib/portal/play-presentation'
 
-export type PlayFrameUiState = 'idle' | 'loading' | 'loaded-event' | 'timeout' | 'external-only'
+export type PlayFrameUiState =
+  | 'idle'
+  | 'loading'
+  | 'loaded-event'
+  | 'ready'
+  | 'timeout'
+  | 'external-only'
 
 export interface PlayFrameProps {
   presentation: PlayPresentation
   loadGeneration: number
 }
 
+function isUnconfirmedPlayState(state: PlayFrameUiState): boolean {
+  return state === 'loading' || state === 'loaded-event'
+}
+
 export function PlayFrame({ presentation, loadGeneration }: PlayFrameProps) {
+  const activeGenerationRef = useRef(loadGeneration)
+  activeGenerationRef.current = loadGeneration
+
   const [uiState, setUiState] = useState<PlayFrameUiState>(() =>
     presentation.mode === 'production-iframe' ? 'loading' : 'external-only'
   )
@@ -30,10 +43,7 @@ export function PlayFrame({ presentation, loadGeneration }: PlayFrameProps) {
     } as import('react').CSSProperties
   }, [presentation.embedLayout])
 
-  const [mountedGeneration, setMountedGeneration] = useState(loadGeneration)
-
   useEffect(() => {
-    setMountedGeneration(loadGeneration)
     if (presentation.mode !== 'production-iframe' || !presentation.primaryUrl) {
       setUiState('external-only')
       return
@@ -41,19 +51,37 @@ export function PlayFrame({ presentation, loadGeneration }: PlayFrameProps) {
 
     setUiState('loading')
     const generationAtStart = loadGeneration
-    const timer = window.setTimeout(() => {
+
+    const timer = setTimeout(() => {
+      if (activeGenerationRef.current !== generationAtStart) return
       setUiState((current) => {
-        if (generationAtStart !== loadGeneration) return current
-        return current === 'loading' ? 'timeout' : current
+        if (current === 'ready' || current === 'external-only' || current === 'timeout') {
+          return current
+        }
+        if (isUnconfirmedPlayState(current)) {
+          return 'timeout'
+        }
+        return current
       })
     }, presentation.timeoutMs)
 
     return () => {
-      window.clearTimeout(timer)
+      clearTimeout(timer)
     }
   }, [presentation, loadGeneration])
 
   const externalUrl = presentation.primaryUrl
+  const iframeGeneration = loadGeneration
+
+  const handleIframeLoad = () => {
+    if (!shouldAcceptIframeLoadEvent(iframeGeneration, activeGenerationRef.current)) return
+    setUiState((current) => (current === 'loading' ? 'loaded-event' : current))
+  }
+
+  const handleIframeError = () => {
+    if (!shouldAcceptIframeLoadEvent(iframeGeneration, activeGenerationRef.current)) return
+    setUiState((current) => (current === 'loading' ? 'loaded-event' : current))
+  }
 
   return (
     <section className="mx-auto w-full space-y-3" style={layoutStyle} aria-label="Game play area">
@@ -69,10 +97,8 @@ export function PlayFrame({ presentation, loadGeneration }: PlayFrameProps) {
               src={presentation.primaryUrl}
               title={`Play ${presentation.gameTitle}`}
               className="absolute inset-0 h-full w-full border-0"
-              onLoad={() => {
-                if (!shouldAcceptIframeLoadEvent(mountedGeneration, loadGeneration)) return
-                setUiState((current) => (current === 'loading' ? 'loaded-event' : current))
-              }}
+              onLoad={handleIframeLoad}
+              onError={handleIframeError}
             />
           </div>
           {uiState === 'loading' ? (

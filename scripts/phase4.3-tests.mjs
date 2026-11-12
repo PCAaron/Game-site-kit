@@ -5,21 +5,49 @@ import * as esbuild from 'esbuild'
 import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const outfile = path.join(projectRoot, 'scripts/.phase4.3-tests.mjs')
 
-esbuild.buildSync({
+const tsconfigPathsPlugin = {
+  name: 'tsconfig-paths',
+  setup(build) {
+    build.onResolve({ filter: /^@\// }, (args) => {
+      const subpath = args.path.slice(2)
+      const base = path.join(projectRoot, subpath)
+      const candidates = [base, `${base}.ts`, `${base}.tsx`, path.join(base, 'index.ts')]
+      for (const candidate of candidates) {
+        if (fs.existsSync(candidate)) {
+          return { path: candidate }
+        }
+      }
+      return { path: base }
+    })
+  },
+}
+
+await esbuild.build({
   entryPoints: [path.join(projectRoot, 'scripts/phase4.3-test-entry.ts')],
   bundle: true,
   platform: 'node',
   format: 'esm',
   outfile,
   logLevel: 'silent',
+  jsx: 'automatic',
+  loader: { '.tsx': 'tsx' },
+  packages: 'external',
+  alias: {
+    'next/image': path.join(projectRoot, 'scripts/test-stubs/next-image.tsx'),
+    'next/link': path.join(projectRoot, 'scripts/test-stubs/next-link.tsx'),
+  },
+  plugins: [tsconfigPathsPlugin],
 })
 
-const result = spawnSync(process.execPath, ['--test', outfile], {
+const registerDom = pathToFileURL(
+  path.join(projectRoot, 'scripts/phase4.3-register-dom.mjs')
+).href
+const result = spawnSync(process.execPath, ['--import', registerDom, '--test', outfile], {
   cwd: projectRoot,
   stdio: 'inherit',
 })
