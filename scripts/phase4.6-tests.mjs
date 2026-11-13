@@ -11,10 +11,18 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 const outfile = path.join(projectRoot, 'scripts/.phase4.6-tests.mjs')
 const exportDir = process.argv.find((a) => a.startsWith('--export-dir='))?.split('=')[1] ?? 'out'
 
-const hardcoded = spawnSync(process.execPath, ['scripts/phase4.6-hardcoded-paths.mjs'], {
-  cwd: projectRoot,
-  stdio: 'inherit',
-})
+const hardcodedTests = spawnSync(
+  process.execPath,
+  ['--test', 'scripts/phase4.6-hardcoded-paths.test.mjs'],
+  { cwd: projectRoot, stdio: 'inherit' }
+)
+if (hardcodedTests.status !== 0) process.exit(hardcodedTests.status ?? 1)
+
+const hardcoded = spawnSync(
+  process.execPath,
+  ['scripts/phase4.6-hardcoded-paths.mjs'],
+  { cwd: projectRoot, stdio: 'inherit' }
+)
 if (hardcoded.status !== 0) process.exit(hardcoded.status ?? 1)
 
 await esbuild.build({

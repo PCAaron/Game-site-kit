@@ -17,9 +17,7 @@ import { ballgamesSiteInstance } from '../lib/site/index'
 import { PORTAL_HOME_SECTION_HEADINGS } from '../lib/site/portal-home-editorial-contract'
 import {
   assertNoForbiddenJsonLdFields,
-  buildGameDetailJsonLdBlocks,
   buildGameDetailPageDescriptor,
-  buildPortalHomeJsonLdBlocks,
   findProductionRoutableGame,
   serializeSitemapUrlsetXml,
 } from '../lib/seo/index'
@@ -62,10 +60,111 @@ function parseJsonLdScripts(html: string): Record<string, unknown>[] {
       if (child.type === 'text' && 'value' in child) raw += child.value
     })
     const parsed = JSON.parse(raw.trim()) as Record<string, unknown> | Record<string, unknown>[]
-    if (Array.isArray(parsed)) blocks.push(...parsed)
-    else blocks.push(parsed)
+    const roots = Array.isArray(parsed) ? parsed : [parsed]
+    for (const root of roots) {
+      blocks.push(root)
+      const graph = root['@graph']
+      if (Array.isArray(graph)) {
+        for (const item of graph) {
+          if (item && typeof item === 'object' && !Array.isArray(item)) {
+            blocks.push(item as Record<string, unknown>)
+          }
+        }
+      }
+    }
   })
   return blocks
+}
+
+function jsonLdTopLevelTypes(blocks: Record<string, unknown>[]): string[] {
+  return blocks
+    .map((b) => b['@type'])
+    .filter((t): t is string => typeof t === 'string')
+}
+
+function assertExactJsonLdTypeMultiset(blocks: Record<string, unknown>[], expected: string[]) {
+  const types = jsonLdTopLevelTypes(blocks)
+  assert.equal(
+    types.length,
+    expected.length,
+    `JSON-LD type count ${types.length} !== ${expected.length}; got ${types.join(', ')}`
+  )
+  assert.deepEqual([...types].sort(), [...expected].sort())
+}
+
+function assertAllParsedJsonLdForbiddenFree(blocks: Record<string, unknown>[]) {
+  for (const block of blocks) {
+    assertNoForbiddenJsonLdFields(block)
+  }
+}
+
+function elementClassTokens(el: Element): Set<string> {
+  const raw = el.properties?.className
+  const parts = Array.isArray(raw) ? raw.map(String) : String(raw ?? '').split(/\s+/).filter(Boolean)
+  return new Set(parts)
+}
+
+function elementTextContent(el: Element): string {
+  let text = ''
+  visit(el, (child) => {
+    if (child.type === 'text' && 'value' in child) text += child.value
+  })
+  return normalizeWs(text)
+}
+
+function extractPortalSeoBodyFromExportHtml(html: string): { intro: string; sectionParagraphs: string[] } {
+  const tree = fromHtmlIsomorphic(html, { fragment: false }) as Root
+  let intro = ''
+  let seoSection: Element | undefined
+  visit(tree, (node) => {
+    if (node.type !== 'element') return
+    const el = node as Element
+    if (el.tagName !== 'section') return
+    const classes = elementClassTokens(el)
+    const aria = String(el.properties?.['aria-label'] ?? '')
+    if (classes.has('max-w-3xl') && classes.has('py-10') && !classes.has('space-y-10') && !aria) {
+      const hasH2 = Boolean(
+        (() => {
+          let found = false
+          visit(el, (c) => {
+            if (c.type === 'element' && (c as Element).tagName === 'h2') found = true
+          })
+          return found
+        })()
+      )
+      if (!hasH2 && !intro) intro = elementTextContent(el)
+    }
+    if (classes.has('max-w-3xl') && classes.has('space-y-10') && classes.has('py-10')) {
+      seoSection = el
+    }
+  })
+
+  assert.ok(intro.trim().length > 0, 'export HTML missing portal intro section')
+  assert.ok(seoSection, 'export HTML missing portal SEO sections block')
+
+  const h2Order: string[] = []
+  const sectionParagraphs: string[] = []
+  visit(seoSection!, (node) => {
+    if (node.type !== 'element') return
+    const el = node as Element
+    if (el.tagName === 'h2') h2Order.push(elementTextContent(el))
+    if (el.tagName === 'p') sectionParagraphs.push(elementTextContent(el))
+  })
+
+  assert.deepEqual(h2Order, [...PORTAL_HOME_SECTION_HEADINGS])
+  assert.ok(sectionParagraphs.length >= PORTAL_HOME_SECTION_HEADINGS.length)
+
+  return { intro, sectionParagraphs }
+}
+
+function assertSeoBodyExcludesHockeyBrosPhrase(html: string) {
+  const { intro, sectionParagraphs } = extractPortalSeoBodyFromExportHtml(html)
+  const seoBody = [intro, ...sectionParagraphs].join(' ').toLowerCase()
+  assert.equal(
+    seoBody.includes('hockey bros'),
+    false,
+    'SEO body block (export intro + 5×H2 paragraphs) must exclude "hockey bros"'
+  )
 }
 
 function normalizeWs(text: string): string {
@@ -224,11 +323,8 @@ test('P46-07 legacy export pages remain noindex follow', () => {
 test('P46-08 homepage JSON-LD types and FAQ parity', () => {
   const html = readExport('index.html')
   const blocks = parseJsonLdScripts(html)
-  const types = blocks.map((b) => b['@type']).sort()
-  assert.ok(types.includes('WebSite'))
-  assert.ok(types.includes('ItemList'))
-  assert.ok(types.includes('FAQPage'))
-  assert.equal(types.includes('Organization'), false)
+  assertExactJsonLdTypeMultiset(blocks, ['WebSite', 'ItemList', 'FAQPage'])
+  assertAllParsedJsonLdForbiddenFree(blocks)
 
   const webSite = blocks.find((b) => b['@type'] === 'WebSite')!
   assert.equal(webSite.name, 'BallGames.io')
@@ -240,15 +336,6 @@ test('P46-08 homepage JSON-LD types and FAQ parity', () => {
   assert.equal(elements.length, 1)
   assert.equal(elements[0].name, 'Hockey Bros')
   assert.equal(elements[0].url, gameUrl('hockey-bros'))
-
-  const portal = getPortalHomeContent()
-  const { portal: descriptor, game } = buildR1ExactTwoContractFixtures()
-  const expectedBlocks = buildPortalHomeJsonLdBlocks({
-    portal: { ...descriptor, content: portal },
-    qualifiedGameDetail: game,
-    site: ballgamesSiteInstance,
-  })
-  for (const block of expectedBlocks) assertNoForbiddenJsonLdFields(block)
 
   const faqBlock = blocks.find((b) => b['@type'] === 'FAQPage')!
   const entities = faqBlock.mainEntity as Array<{ name: string; acceptedAnswer: { text: string } }>
@@ -265,16 +352,12 @@ test('P46-08 homepage JSON-LD types and FAQ parity', () => {
 test('P46-09 detail JSON-LD types breadcrumb and FAQ parity', () => {
   const html = readExport('hockey-bros.html')
   const blocks = parseJsonLdScripts(html)
-  const types = blocks.map((b) => b['@type']).sort()
-  assert.ok(types.includes('VideoGame'))
-  assert.ok(types.includes('FAQPage'))
-  assert.ok(types.includes('BreadcrumbList'))
+  assertExactJsonLdTypeMultiset(blocks, ['VideoGame', 'FAQPage', 'BreadcrumbList'])
+  assertAllParsedJsonLdForbiddenFree(blocks)
 
   const game = findProductionRoutableGame('hockey-bros')!
   const descriptor = buildGameDetailPageDescriptor(game)
   assert.ok(descriptor)
-  const expected = buildGameDetailJsonLdBlocks({ game, site: ballgamesSiteInstance })
-  for (const block of expected) assertNoForbiddenJsonLdFields(block)
 
   const video = blocks.find((b) => b['@type'] === 'VideoGame')!
   assert.equal(video.name, game.title)
@@ -308,11 +391,7 @@ test('P46-10 homepage structure H1 H2 and SEO phrase gate', () => {
   assert.equal(h1s.length, 1)
   const h2s = headingTexts(html, 2)
   assert.deepEqual(h2s, [...PORTAL_HOME_SECTION_HEADINGS])
-  const portal = getPortalHomeContent()
-  const seoBody = [portal.intro ?? '', ...(portal.sections ?? []).flatMap((s) => s.paragraphs)]
-    .join(' ')
-    .toLowerCase()
-  assert.equal(seoBody.includes('hockey bros'), false, 'SEO body block (intro + 5×H2) must exclude hockey bros')
+  assertSeoBodyExcludesHockeyBrosPhrase(html)
 })
 
 test('P46-11 detail page single H1', () => {
@@ -336,4 +415,118 @@ test('P46-12 export sitemap lastmod format when present', () => {
   ])
   validateProductionSitemapXml(serialized, ballgamesSiteInstance)
   void entries
+})
+
+test('LD-N01 duplicate WebSite types fail multiset gate', () => {
+  const blocks = [
+    { '@type': 'WebSite', name: 'A', url: siteUrl() },
+    { '@type': 'WebSite', name: 'B', url: siteUrl() },
+    { '@type': 'ItemList', itemListElement: [] },
+    { '@type': 'FAQPage', mainEntity: [] },
+  ]
+  assert.throws(() => assertExactJsonLdTypeMultiset(blocks, ['WebSite', 'ItemList', 'FAQPage']))
+})
+
+test('LD-N02 extra Organization type fails', () => {
+  const blocks = [
+    { '@type': 'WebSite', url: siteUrl() },
+    { '@type': 'ItemList', itemListElement: [] },
+    { '@type': 'FAQPage', mainEntity: [] },
+    { '@type': 'Organization', name: 'BallGames.io' },
+  ]
+  assert.throws(() => assertExactJsonLdTypeMultiset(blocks, ['WebSite', 'ItemList', 'FAQPage']))
+})
+
+test('LD-N03 nested aggregateRating forbidden in export parse tree', () => {
+  const block = {
+    '@type': 'VideoGame',
+    nested: { aggregateRating: { ratingValue: 5 } },
+  }
+  assert.throws(() => assertNoForbiddenJsonLdFields(block))
+})
+
+test('LD-N04 array item offers forbidden', () => {
+  const block = {
+    '@type': 'VideoGame',
+    items: [{ offers: { price: 0 } }],
+  }
+  assert.throws(() => assertNoForbiddenJsonLdFields(block))
+})
+
+test('LD-N05 JSON-LD FAQ mismatch with visible FAQ fails parity check', () => {
+  const html = readExport('index.html')
+  const blocks = parseJsonLdScripts(html)
+  const faqBlock = blocks.find((b) => b['@type'] === 'FAQPage')!
+  const entities = faqBlock.mainEntity as Array<{ name: string; acceptedAnswer: { text: string } }>
+  const tampered = structuredClone(entities)
+  tampered[0] = { ...tampered[0], name: 'Mutated question text' }
+  const visible = extractVisibleFaq(html)
+  assert.throws(() => {
+    for (let i = 0; i < 8; i++) {
+      assert.equal(tampered[i].name, visible[i].q)
+    }
+  })
+})
+
+test('LD-N06 extra FAQPage fails multiset', () => {
+  const blocks = [
+    { '@type': 'WebSite', url: siteUrl() },
+    { '@type': 'ItemList', itemListElement: [] },
+    { '@type': 'FAQPage', mainEntity: [] },
+    { '@type': 'FAQPage', mainEntity: [] },
+  ]
+  assert.throws(() => assertExactJsonLdTypeMultiset(blocks, ['WebSite', 'ItemList', 'FAQPage']))
+})
+
+function homeSeoFixtureHtml(opts: { intro?: string; sectionParagraph?: string; includeCard?: boolean }) {
+  const intro = opts.intro ?? 'Portal intro without banned phrase.'
+  const sectionP =
+    opts.sectionParagraph ??
+    'Editorial section about ball games in general with no banned game names.'
+  const card = opts.includeCard
+    ? '<article><a href="https://ballgames.io/hockey-bros">Hockey Bros</a></article>'
+    : ''
+  const headings = PORTAL_HOME_SECTION_HEADINGS.map(
+    (h) =>
+      `<article class="space-y-4"><h2 class="text-2xl font-bold">${h}</h2><p class="text-base">${sectionP}</p></article>`
+  ).join('')
+  return `<!DOCTYPE html><html><body>
+<div class="divide-y divide-gray-200">
+<section class="py-10">${card}</section>
+<section class="max-w-3xl py-10"><p class="text-base">${intro}</p></section>
+<section class="max-w-3xl space-y-10 py-10">${headings}</section>
+<section class="max-w-3xl py-10" aria-label="Frequently asked questions"></section>
+</div>
+</body></html>`
+}
+
+test('SEO-N01 intro containing hockey bros fails', () => {
+  const html = homeSeoFixtureHtml({ intro: 'Try hockey bros today.' })
+  assert.throws(() => assertSeoBodyExcludesHockeyBrosPhrase(html))
+})
+
+test('SEO-N02 H2 section containing Hockey Bros fails', () => {
+  const html = homeSeoFixtureHtml({ sectionParagraph: 'Play Hockey Bros now.' })
+  assert.throws(() => assertSeoBodyExcludesHockeyBrosPhrase(html))
+})
+
+test('SEO-N03 GameCard only — still passes phrase gate', () => {
+  const html = homeSeoFixtureHtml({ includeCard: true })
+  assertSeoBodyExcludesHockeyBrosPhrase(html)
+})
+
+test('SEO-N04 JSON-LD ItemList only in script — still passes', () => {
+  const html = `${homeSeoFixtureHtml({})}
+<script type="application/ld+json">{"@type":"ItemList","itemListElement":[{"name":"Hockey Bros"}]}</script>`
+  assertSeoBodyExcludesHockeyBrosPhrase(html)
+})
+
+test('SEO-N05 missing required H2 fails extraction', () => {
+  const html = `<!DOCTYPE html><html><body>
+<section class="max-w-3xl py-10"><p>Intro</p></section>
+<section class="max-w-3xl space-y-10 py-10">
+<article><h2>Ball Games You Can Play Right Now</h2><p>x</p></article>
+</section>
+</body></html>`
+  assert.throws(() => extractPortalSeoBodyFromExportHtml(html))
 })

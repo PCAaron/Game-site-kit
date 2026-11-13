@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-11-13 — Phase 4.6 Validation Hardening（P1-01 / P1-02 / P2-01）
+
+**范围：** 增强 `phase4.6-hardcoded-paths`（TypeScript AST + 情境 allowlist）；导出 HTML 全量 JSON-LD 禁止字段与类型 multiset；首页 SEO 正文从 `out/index.html` 提取。**未**改产品代码、Spec、内容。
+
+**分支：** `main` · **Before HEAD：** `4fe7d4f8fe79aca2b581320f8993daf1a52d554c` · **After HEAD：** 未 commit（工作区）
+
+### 交付
+
+- `scripts/phase4.6-hardcoded-paths.mjs`（AST 扫描）
+- `scripts/phase4.6-hardcoded-paths.test.mjs`（Case 1–11 + allowlist 负例）
+- `scripts/phase4.6-test-entry.ts`（HTML JSON-LD / SEO body + LD-N / SEO-N）
+- `scripts/phase4.6-tests.mjs`（接线 hardcoded 单测）
+- 报告 [`phase4.6-validation.md`](reports/phase4.6-validation.md) §N
+
+### 验证（Node 22.14.0）
+
+全量回归与 §N 表一致 — **exit 0**。
+
+结论：**Validation Hardening PASS**；**Phase 4.6 Technical Validation** 仍为 **PASS WITH MANUAL REVIEW**（MR-01…05 保留）
+
+---
+
 ## 2026-11-13 — Phase 4.6：静态导出与 SEO 独立集成验证
 
 **范围：** 基于 `4f8bcabb` 重新 `EXPORT=1 UNOPTIMIZED=1 yarn build`；核验 `out/` sitemap/metadata/JSON-LD/FAQ；硬编码路径扫描；`test:phase4.6`；全量回归。**未**改产品内容/Launcher/CSP；**未**启动 4.7。

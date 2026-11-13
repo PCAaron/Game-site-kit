@@ -259,3 +259,88 @@ Environment: Node 22.14.0, `out/` from build above.
 - `docs/agent/STATUS.md`, `docs/agent/WORKLOG.md`
 
 **Phase 4.7:** not started. No commit/push performed (await user authorization).
+
+---
+
+## N. Validation Hardening Closeout
+
+**Date:** 2026-11-13  
+**Scope:** P1-01 hardcoded path scanner · P1-02 export JSON-LD · P2-01 export HTML SEO body  
+**Product code:** unchanged
+
+### N.1 Baseline
+
+| Item | Value |
+| --- | --- |
+| Branch | `main` |
+| Before HEAD | `4fe7d4f8fe79aca2b581320f8993daf1a52d554c` |
+| After HEAD | `4fe7d4f8fe79aca2b581320f8993daf1a52d554c` (hardening in working tree only) |
+| Working tree | Modified: `scripts/phase4.6-*`; added: `scripts/phase4.6-hardcoded-paths.test.mjs` |
+| Node.js | v22.14.0 |
+| Yarn | 3.6.1 |
+| Next.js | 15.5.12 |
+
+### N.2 Hardcoded Path Scanner
+
+| Item | Detail |
+| --- | --- |
+| Prior gap | Line-regex only caught quoted full strings; whole `lib/urls/**` and `lib/catalog/instances/**` skipped |
+| Fix | TypeScript AST (`StringLiteral`, templates, JSX attrs); context allowlist (`gameUrl` slug arg, slug properties, `fixtures.ts` `routePath` only) |
+| Scan roots | `app/**`, `components/**`, `lib/**` (`.ts/.tsx/.js/.jsx/.mjs/.cjs`) |
+| Files scanned | **86** |
+| Illegal hits | **0** |
+| Documented exceptions | `lib/seo/fixtures.ts` (routePath fixture), `lib/catalog/types.ts` (R1 slug constants) — **not** whole-directory skip |
+| Unit tests | `phase4.6-hardcoded-paths.test.mjs` — Cases 1–11 + allowlisted file new violation + `lib/urls/site-url.ts` not exempt |
+
+### N.3 Export JSON-LD
+
+| Page | Parsed `@type` multiset (export HTML) |
+| --- | --- |
+| `index.html` | `FAQPage`, `ItemList`, `WebSite` (exactly 3) |
+| `hockey-bros.html` | `BreadcrumbList`, `FAQPage`, `VideoGame` (exactly 3) |
+
+| Check | Result |
+| --- | --- |
+| `assertNoForbiddenJsonLdFields` on **every** parsed block from HTML | PASS |
+| Duplicate / extra types | Caught by `assertExactJsonLdTypeMultiset` |
+| `@graph` children | Parsed when present; not used in R1 export today |
+| FAQ parity | Home **8**, detail **7** — unchanged |
+| Negative fixtures | LD-N01…LD-N06 in `test:phase4.6` |
+
+### N.4 Export SEO Body
+
+| Item | Detail |
+| --- | --- |
+| Method | HAST: intro = `section.max-w-3xl.py-10` (no `space-y-10`, no FAQ `aria-label`); sections = `section.max-w-3xl.space-y-10.py-10` with frozen H2 order |
+| Export extract | Intro + five H2 paragraph blocks only (excludes Launcher/GameCard/JSON-LD/FAQ/footer) |
+| `hockey bros` in SEO body | **0** (`out/index.html`) |
+| GameCard / JSON-LD | SEO-N03 / SEO-N04 — phrase gate still PASS |
+| Negative fixtures | SEO-N01…SEO-N05 |
+
+### N.5 Regression Results
+
+| Command | Exit Code | Result |
+| --- | ---: | --- |
+| `git diff --check` | 0 | PASS |
+| `yarn typecheck` | 0 | PASS |
+| `yarn test:batch1` | 0 | PASS |
+| `yarn test:batch2` | 0 | PASS |
+| `yarn test:catalog` | 0 | PASS |
+| `yarn test:phase4.3` | 0 | PASS |
+| `yarn test:phase4.4` | 0 | PASS |
+| `yarn test:phase4.5` | 0 | PASS |
+| `yarn test:phase4.6` | 0 | PASS |
+| `yarn validate:catalog` | 0 | PASS |
+| `yarn validate:seo` | 0 | PASS |
+| `EXPORT=1 UNOPTIMIZED=1 yarn build` | 0 | PASS |
+| `yarn validate:seo --export-dir=out` | 0 | PASS |
+
+### N.6 Final Gate
+
+| Gate | Verdict |
+| --- | --- |
+| **Phase 4.6 Validation Hardening** | **PASS** |
+| **Phase 4.6 Technical Validation** | **PASS WITH MANUAL REVIEW** |
+| **Phase 4.7 Readiness** | **READY WITH MANUAL REVIEW** |
+
+MR-01…MR-05 unchanged (MR-03 **BLOCKED — EDITORIAL APPROVAL**).
