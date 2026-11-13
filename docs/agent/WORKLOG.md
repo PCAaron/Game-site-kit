@@ -4,6 +4,29 @@
 
 ---
 
+## 2026-11-13 — Phase 4.6：静态导出与 SEO 独立集成验证
+
+**范围：** 基于 `4f8bcabb` 重新 `EXPORT=1 UNOPTIMIZED=1 yarn build`；核验 `out/` sitemap/metadata/JSON-LD/FAQ；硬编码路径扫描；`test:phase4.6`；全量回归。**未**改产品内容/Launcher/CSP；**未**启动 4.7。
+
+**分支：** `main` · **HEAD：** `4f8bcabbb01a6411d0cb0089632d3418c83e4888`（仅新增验证脚本与 Agent 文档）
+
+### 交付
+
+- `scripts/phase4.6-hardcoded-paths.mjs`、`phase4.6-test-entry.ts`、`phase4.6-tests.mjs`
+- `package.json` → `test:phase4.6`
+- 报告 [`phase4.6-validation.md`](reports/phase4.6-validation.md)
+
+### 验证（Node 22.14.0）
+
+| Command | Exit |
+| --- | --- |
+| `yarn typecheck` + batch/phase 4.3–4.6 + validators | 0 |
+| `EXPORT=1 UNOPTIMIZED=1 yarn build` + `validate:seo --export-dir=out` | 0 |
+
+结论：**Phase 4.6 PASS WITH MANUAL REVIEW**（MR-01、MR-03 等保留）
+
+---
+
 ## 2026-11-12 — Phase 4.5.1：Spec 一致性定点收口
 
 **范围：** 对照 `ballgames-specs-v1` 审查首页/详情实现；词数实测；embed 文案冲突登记；P45-21–24；`tsconfig.tsbuildinfo` 治理；Agent 报告。**未**扩写正文、**未**启动 4.6。
