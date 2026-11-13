@@ -274,8 +274,8 @@ Environment: Node 22.14.0, `out/` from build above.
 | --- | --- |
 | Branch | `main` |
 | Before HEAD | `4fe7d4f8fe79aca2b581320f8993daf1a52d554c` |
-| After HEAD | `4fe7d4f8fe79aca2b581320f8993daf1a52d554c` (hardening in working tree only) |
-| Working tree | Modified: `scripts/phase4.6-*`; added: `scripts/phase4.6-hardcoded-paths.test.mjs` |
+| After HEAD | `bb5aa55` (`test(phase4.6): harden export validation scanner and HTML checks`) |
+| Working tree | clean after push |
 | Node.js | v22.14.0 |
 | Yarn | 3.6.1 |
 | Next.js | 15.5.12 |

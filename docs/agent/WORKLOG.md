@@ -8,7 +8,7 @@
 
 **范围：** 增强 `phase4.6-hardcoded-paths`（TypeScript AST + 情境 allowlist）；导出 HTML 全量 JSON-LD 禁止字段与类型 multiset；首页 SEO 正文从 `out/index.html` 提取。**未**改产品代码、Spec、内容。
 
-**分支：** `main` · **Before HEAD：** `4fe7d4f8fe79aca2b581320f8993daf1a52d554c` · **After HEAD：** 未 commit（工作区）
+**分支：** `main` · **Before HEAD：** `4fe7d4f8fe79aca2b581320f8993daf1a52d554c` · **After HEAD：** `bb5aa55`（pushed）
 
 ### 交付
 
