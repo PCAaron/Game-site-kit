@@ -171,7 +171,7 @@ Not on our side — we store nothing. Closing the tab ends the session. A few in
 **8. How often are new games added?**
 
 ```text
-Games are added as they become available to embed, without a fixed schedule. The New entry in the top navigation shows the most recent additions.
+Games are added as they become available to embed, without a fixed schedule. When a real “New” list page exists, the top navigation can link to it; R1 does not promise that page.
 ```
 
 ---
@@ -181,8 +181,10 @@ Games are added as they become available to embed, without a fixed schedule. The
 链接组（只这些，不留分类位、不留聚合位）：
 
 ```text
-Ball Games ・ Hockey Bros ・ About ・ Privacy ・ Terms ・ Contact
+Ball Games ・ About ・ Privacy ・ Terms ・ Contact
 ```
+
+（Hockey Bros 仅经首卡进入；**不得**在页脚重复链接，以满足 `hockey bros` 全页仅 1 次词频）
 
 - 四个法务页若 R1 还没建，先删掉对应的链接，不要链到 404，也不要写进 sitemap。
 - 上线日期只出现一处：`© 2026 BallGames.io · Launched November 2026`
@@ -199,19 +201,12 @@ Ball Games ・ Hockey Bros ・ About ・ Privacy ・ Terms ・ Contact
 
 ### Organization
 
-- name: BallGames.io
-- url: `https://ballgames.io/`
+按 Kit [`specs/seo/06-verified-offer-and-organization.md`](../../seo/06-verified-offer-and-organization.md)：有核实品牌展示依据时可输出；**无证据时允许省略**，不得虚构法人主体。
 
-### ItemList（只 1 项，且必须指向 DEFAULT_PLAYER_GAME）
+### ItemList（R1：只 1 项，指向真实详情页）
 
-- itemListElement → position 1 · name Football Bros · url `https://ballgames.io/football-bros`
-
-> **注意（文案稿内原话）：** Spec §4.9 要求 ItemList 必须指向 DEFAULT_PLAYER_GAME（R1 = Football Bros），但 `/football-bros` 这一页 R1 并不存在——R1 只有 `/` 和 `/hockey-bros`。两种处理，选一个，别留中间态：
->
-> - **做法一（推荐）：** ItemList 里那一项的 url 用 `https://ballgames.io/`（指向首页本身），name 写 Football Bros，不加 `/football-bros` 路径。
-> - **做法二：** ItemList 直接指向现有唯一的游戏页 `/hockey-bros`——但这与「ItemList 必须跟 DEFAULT_PLAYER_GAME 走」冲突，会让结构化数据去推 hockey bros，反向加重蚕食风险。不建议。
->
-> 建议按做法一写 Spec，下一轮把 §4.9 那句替换原文。
+- `DEFAULT_PLAYER_GAME`（Football Bros）仅决定首页播放器初始 embed；**不**决定 ItemList
+- itemListElement → position 1 · name **Hockey Bros** · url **`https://ballgames.io/hockey-bros`**（`gameUrl('hockey-bros')`，绝对 canonical）
 
 ### FAQPage
 
@@ -224,15 +219,15 @@ Ball Games ・ Hockey Bros ・ About ・ Privacy ・ Terms ・ Contact
 | 检查项 | 通过线 |
 | --- | --- |
 | 首页 “hockey bros” | 1 次（仅首卡锚文本） |
-| 正文块 “hockey bros” | 0 次（五段 + FAQ + 页脚全部为 0） |
+| 正文块 “hockey bros” | 0 次（五段 + FAQ + 页脚全部为 0；**计入口径**含可见正文、卡片锚文本、FAQ 可见文本、页脚可见文案；**不计** URL / alt / JSON-LD / metadata） |
 | 键位名（arrow keys / WASD / space bar） | 0 次（只在 `/hockey-bros` 出现一次） |
 | 节数、每节时长 | 0 次 |
 | 比例断言（几乎所有 / 大多数 / 十次有九次） | 0 次 |
 | 百科段（what are ball games / types of ball games） | 0 段 |
 | `<details>` 数量 | 8 |
 | FAQPage Question 数量 | 8，与 details 数一致 |
-| ItemList 项数 | 1，且不指向不存在的路径 |
-| 页脚链接 | 只 6 个，法务页未建则先删 |
+| ItemList 项数 | 1（Hockey Bros → `/hockey-bros` 真实页） |
+| 页脚链接 | 最多 5 个可见项（Ball Games + 法务）；无 Hockey Bros；法务页未建则先删 |
 | 卡片 heading 标签 | 0 个（卡片标题不用 h 标签） |
 
 **词数 TBD 的落法：** 五段正文标的是约 170 / 150 / 150 / 150 / 150 词，加上导语约 55 词和 FAQ，文案落进代码后用 `wc -w` 实测一次，把结果回填到 Spec §6 与 §7 的四处标注里，四处必须是同一个数。别拿本文估数当准。

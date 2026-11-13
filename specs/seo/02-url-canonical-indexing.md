@@ -2,7 +2,7 @@
 
 **状态：** **proposed**（规则）；模板现状见审计 — `siteUrl` 仍为演示域名，frontmatter `canonicalUrl` 未接入文章页（**validated** 缺口）。
 
-**生成原则：** absolute URL **仅**经 `siteUrl()` / `gameUrl(slug)`（及等价 helper）；内链、canonical、sitemap、JSON-LD、OG **同源**。
+**生成原则：** 生产 canonical / sitemap / JSON-LD / OG 的 absolute URL **仅**经 `siteUrl()` / `gameUrl(slug)`。站内可见导航（实施后）用 `gamePath(slug)` 相对 path，**不得**把 `gameUrl` 直接作 `<Link href>`（本地/preview 会跳到生产域名）。见 ADR 0003 **DEC-003-G**。
 
 ---
 
@@ -56,7 +56,7 @@
 | 页面 | robots / 策略 |
 |---|---|
 | 已放行 `portal_home`, `game_detail`, 达标 `category_hub` | index, follow（默认） |
-| `search_results` | **noindex, follow**；是否 `robots.txt` Disallow 由**实例**定（ballgames R2：**不** Disallow，见实例 §2-2） |
+| `search_results` | **noindex, follow**；ballgames R2：**不**用 `robots.txt` Disallow 阻断爬虫读取该页 noindex（见 `ballgames-specs-v1.2` §6） |
 | 分页第 2 页起 | **noindex, follow** |
 | `draft` / 未 `published` | noindex；不进 sitemap |
 | `indexable === false` | noindex 或等价；不进 sitemap |

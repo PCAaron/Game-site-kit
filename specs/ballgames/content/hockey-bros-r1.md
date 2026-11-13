@@ -12,7 +12,7 @@
 
 ~~Skating uses the arrow keys or WASD, and a single action key — the space bar — covers all three of shooting, passing and checking.~~
 
-Spec §6 要求「键位措辞与 hockeybros.io 官方 Controls 两行逐字一致」，而官方原文是两行、Move: 开头：
+**Official controls：** User verified（hockeybros.io official Controls）。Spec §6 要求「键位措辞与官方 Controls 两行逐字一致」，而官方原文是两行、Move: 开头：
 
 ```text
 Move: Arrow keys or WASD
@@ -204,7 +204,15 @@ Matches fill with other players, so there is no separate practice mode to select
 - url: `https://ballgames.io/hockey-bros`
 - applicationCategory: Game
 - operatingSystem: Web Browser
-- offers: `{ "@type": "Offer", "price": "0", "priceCurrency": "USD" }`
+- offers（**仅 verified 时**）：`{ "@type": "Offer", "price": "0", "priceCurrency": "USD" }` — 须满足 Kit [`specs/seo/06-verified-offer-and-organization.md`](../../seo/06-verified-offer-and-organization.md) 与下表
+
+| 字段 | R1 拟填 |
+| --- | --- |
+| status | `verified`（免费游玩事实 + 页面 H2④ 文案一致） |
+| evidenceUrl | 游戏可玩来源页 / 官方站（实施时录入可审计 URL） |
+| verifiedAt | 内容定稿日（ISO 8601） |
+
+无证据时 **不输出** Offer；不得为满足 JSON-LD 数量编造。
 
 ### FAQPage
 

@@ -1,9 +1,11 @@
 # Agent Project Status
 
-- **Current phase：** Phase 4 **ENGINEERING COMPLETE — READY WITH MANUAL BLOCKERS** @ `339250db53cbd48e7b816b10a73f4730146ca89b`
-- **Phase 4.7：** Final acceptance report delivered (local validation @ `339250d`; **not committed/pushed** until user authorizes)
+- **Current phase：** Phase 4 **ENGINEERING COMPLETE — READY WITH MANUAL BLOCKERS** @ `339250db53cbd48e7b816b10a73f4730146ca89b`（历史工程指针 **保留**）
+- **Product alignment：** **BG-1.2.0** — Ballgames Spec v1.2 决策文档收口（2026-11-13）；**v1.2 代码实施 NOT STARTED**
+- **Active product Spec：** [`specs/ballgames/ballgames-specs-v1.2.md`](../specs/ballgames/ballgames-specs-v1.2.md)
+- **Phase 4.7：** Final acceptance report on `main`；见 [`phase-4-final-validation.md`](reports/phase-4-final-validation.md)
 - **Prior engineering pointer：** Phase 4.6 on `main` @ `8bdb3e8` (validation hardening); product code for R1 unchanged since `386a8b7` feature work
-- **Last updated:** 2026-11-13（Phase 4.7 final acceptance）
+- **Last updated:** 2026-11-13（BG-1.2.0 Spec alignment）
 - **Current reviewed branch:** `main`
 
 ## Phase summary
@@ -43,9 +45,10 @@
 
 ## Recommended next action
 
-1. 产品/编辑裁决 MR-01、MR-03；catalog 路线规划 MR-04。
-2. 单独授权：部署批次 + embed/CSP 核实（MR-05）。
-3. 若需固化验收报告：用户授权 **commit** `phase-4-final-validation.md` 与 STATUS/WORKLOG。
+1. 用户授权 **BG-1.2.1**（Catalog & `gamePath`）前勿改产品代码。
+2. 阅读 [`ballgames-v1.2-impact-review.md`](reports/ballgames-v1.2-impact-review.md) 与修订后的 v1.2 / ADR 0003/0004。
+3. 产品/编辑 MR-01、MR-03；embed/CSP/域名外部证据（MR-05）；**未**因 v1.2 消除 Phase 4 工程结论。
+4. 文档收口 **commit** 待用户授权。
 
 ## Last verified checks（2026-11-13，Node **22.14.0**，`main` @ `339250d`）
 

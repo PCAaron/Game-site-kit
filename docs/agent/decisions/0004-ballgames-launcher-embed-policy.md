@@ -1,7 +1,7 @@
 # ADR 0004：ballgames Launcher 与 Embed 安全策略
 
 - **Status：** **Accepted**（策略原则）；生产 iframe 启用仍 **MANUAL REVIEW**（证据 + CSP）
-- **Date：** 2026-11-02（修订 2026-11-06）
+- **Date：** 2026-11-02（修订 2026-11-06；**增补 2026-11-13** BG-1.2.0 Demo-first）
 - **Decision owner：** Game Site Kit 维护者
 
 ## Context
@@ -53,6 +53,38 @@
 | C | 商业使用许可范围 |
 
 A **不**推出 B 或 C 已满足。
+
+### 3.1 Demo-first 技术验证 vs 生产授权（BG-1.2.0，**Accepted**）
+
+当游戏提供 iframe URL 时，**优先**在浏览器中运行 Demo（画面加载、可操作、切换游戏源），再记录结论。**Demo 成功不自动代表商业授权或生产 CSP 已满足。**
+
+| 独立维度 | 候选状态（规范层；BG-1.2.0 **不**改 Catalog 类型） |
+|---|---|
+| **Technical Embed Verification** | `untested` \| `passed` \| `failed` |
+| **Production Embed Authorization** | `unknown` \| `requested` \| `granted` \| `denied` |
+| **Deployment Verification**（生产 CSP / 响应头） | `unverified` \| `verified` |
+
+**验收决策：**
+
+```text
+Demo-first technical verification: ACCEPTED
+Skip duplicated technical probing after successful Demo: ACCEPTED
+Skip commercial authorization automatically: NOT ALLOWED
+Skip deployment CSP automatically: NOT ALLOWED
+```
+
+**Demo 成功时须记录（审计最小集）：** game slug、实际 iframe URL、来源页、测试日期、浏览器及版本、测试环境、画面是否显示、是否可操作、广告遮挡、跨域控制台错误、截图或记录位置、最终 **Technical Embed Verification** 状态。允许跳过后续 **相同** 技术探测；**不**跳过未完成的授权与部署检查。
+
+**Demo 失败时排查顺序：** (1) URL 有效 (2) 是否为可嵌入地址 (3) 目标 `X-Frame-Options` (4) 目标 CSP `frame-ancestors` (5) 本站 `frame-src` (6) 网络/浏览器/扩展 (7) 游戏初始化与输入。无法确认时保持外链/封面回退，**不**伪造 `passed`。
+
+**实例标注（Football Bros，Spec v1.2 §7.4）：**
+
+| 项 | 状态 |
+|---|---|
+| Technical Demo | Reported Passed（2026-11-12 本地） |
+| Evidence | 见 `specs/ballgames/ballgames-specs-v1.2.md` |
+| Production Authorization | Not Yet Verified |
+| Production CSP | Not Yet Verified |
 
 ### 4. 浏览器与 Launcher 现实边界
 
@@ -115,7 +147,8 @@ A **不**推出 B 或 C 已满足。
 - `specs/00-project-charter.md`
 - `specs/01-site-archetypes.md`
 - `specs/04-config-and-content-models.md`
-- `specs/ballgames/ballgames-specs-v1.md` §2、§3、§5、§6、§7.1
+- `specs/ballgames/ballgames-specs-v1.md` §2、§3、§5、§6、§7.1（历史）
+- `specs/ballgames/ballgames-specs-v1.2.md` §4.3、§7.4（Demo-first 产品引用）
 - `docs/architecture/architecture-consistency-review.md`
 
 ## Approval Required

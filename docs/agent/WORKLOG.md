@@ -4,6 +4,36 @@
 
 ---
 
+## 2026-11-13 — BG-1.2.0：Ballgames Spec v1.2 决策落地与规范对齐
+
+**范围：** P0-01～P1-07 文档落地；修订 v1.2 Spec、R1 content 稿、实例索引、seo/02–03、**新建** seo/06、ADR 0003/0004 增补、收口报告。**未**改 `app/`、`lib/`、`components/`、`scripts/`、测试或部署。
+
+**分支：** `main` · **基线 HEAD：** `5b6003afa4f1288df4456075a2c1caeb960728b1`
+
+### 交付
+
+- [`specs/ballgames/ballgames-specs-v1.2.md`](../../specs/ballgames/ballgames-specs-v1.2.md)（ItemList、`gamePath`、页脚、Demo、正文权威）
+- [`specs/ballgames/content/homepage-r1.md`](../../specs/ballgames/content/homepage-r1.md)、[`hockey-bros-r1.md`](../../specs/ballgames/content/hockey-bros-r1.md)
+- [`specs/seo/06-verified-offer-and-organization.md`](../../specs/seo/06-verified-offer-and-organization.md)
+- [`specs/instances/ballgames/README.md`](../../specs/instances/ballgames/README.md)（v1.2 权威）
+- ADR 0003 DEC-003-G、ADR 0004 Demo-first
+- [`ballgames-v1.2-impact-review.md`](reports/ballgames-v1.2-impact-review.md)
+- `docs/agent/STATUS.md`（本条目）
+
+### 验证
+
+- `git diff --check` · `git status --short` · `git diff --stat` — 仅文档；**未**运行产品 build 作为 v1.2 实现证明
+
+### 结论
+
+- **BG-1.2.0：** PASS WITH EXTERNAL EVIDENCE PENDING
+- **BG-1.2.1 Readiness：** READY WITH GATES
+- **Phase 4.7 历史验收：** 未修改报告正文，指针保留
+
+**未 commit/push** — 待用户授权。
+
+---
+
 ## 2026-11-13 — Phase 4.7：Ballgames R1 最终工程验收
 
 **范围：** 只读产品代码；`ballgames-specs-v1` §8 + `04-ballgames-r1` §14；全量回归；全新 `EXPORT=1 UNOPTIMIZED=1` 静态导出；`out/` HTML/XML/SEO 证据；MR-01…05 终态分类。**未**扩写正文、**未**改 Catalog/CSP/embed、**未**部署。

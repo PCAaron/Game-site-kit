@@ -14,6 +14,8 @@
 | 增补 1 的 1 次 → v1.1 改成 2 次 | v1.2 改回 1 次（可玩区显示的游戏名已换 Football Bros） |
 | v1：H2②「每个类型都有自己的页面」 | 作废。R1 没有分类页，不得承诺 |
 | §6 旧句「不写版本参数（节数 / 分钟 / 键位名）」 | 拆成两条，键位改为「允许且仅限一处」，见 §6 |
+| 旧：ItemList 必须跟 `DEFAULT_PLAYER_GAME` | 作废。ItemList 只列 **已发布真实详情页**（R1 = Hockey Bros）；播放器默认仍为 Football Bros |
+| 旧：首页页脚含 `/hockey-bros` | 作废。R1 页脚无 Hockey Bros 链接（P1-05） |
 
 ---
 
@@ -30,8 +32,9 @@
 ### 2.1 常量（都放数据层，组件里不许硬编码）
 
 - `SITE_URL = 'https://ballgames.io'`（含协议不带尾斜杠）—— canonical / sitemap / 结构化数据 / OG 的绝对地址都从它拼
-- `gameUrl(slug)`——全站 URL 唯一生成器，返回相对路径
-- `DEFAULT_PLAYER_GAME = 'football-bros'`——首页播放器初始嵌入哪款游戏
+- `gameUrl(slug)`——**SEO 绝对 URL** 唯一生成器（canonical / sitemap / JSON-LD / OpenGraph）；返回形如 `https://ballgames.io/hockey-bros`，**不**用于本地/预览环境的站内 `<Link href>`
+- `gamePath(slug)`——**拟实施**（BG-1.2.1+）站内相对导航路径，返回形如 `/hockey-bros`；须与 `gameUrl` 共用 slug 校验，禁止组件内手写 `'/' + slug`（见 Kit [`specs/seo/02-url-canonical-indexing.md`](../seo/02-url-canonical-indexing.md)、ADR 0003 增补 DEC-003-G）
+- `DEFAULT_PLAYER_GAME = 'football-bros'`——首页播放器初始嵌入哪款游戏；**与**首页 ItemList 资格 **解耦**（见 §4.9）
 
 ### 2.2 路由表
 
@@ -44,7 +47,7 @@
 ### 2.3 四条工程约束（硬性）
 
 1. 数据模型只存 slug，不存完整路径。
-2. 内链 / canonical / sitemap / 结构化数据 / OG 全部走 `gameUrl(slug)`；模板里不得出现 `/hockey-bros` 字面量，CI grep 拦截。
+2. canonical / sitemap / 结构化数据 / OG 走 `gameUrl(slug)`；站内可见导航走 `gamePath(slug)`（实施后）；模板里不得出现 `/hockey-bros` 字面量，CI grep 拦截。
 3. 将来加前缀：只改 `gameUrl` 一个函数 + 一条批量 301 + 重提 sitemap。
 4. 上线后不可改的两样：slug 本身、域名。
 
@@ -91,7 +94,7 @@ H1 → 副标题 → 唯一 iframe 可玩区 → 15~20 张卡片 → 导语（�
 ### 4.4 卡片 15~20 张
 
 - 排序：Hockey Bros 第 1 张、Football Bros 第 2 张
-- 全站唯一 `<a>` = Hockey Bros，`href={gameUrl('hockey-bros')}`，锚文本只写游戏名、不带 “play free” 修饰
+- 全站唯一 `<a>` = Hockey Bros，`href={gamePath('hockey-bros')}`（实施后；SEO 仍用 `gameUrl`），锚文本只写游戏名、不带 “play free” 修饰
 - 其余全部 `<button data-game-url="…">`，点击原地替换唯一 iframe 的 src：不改 URL、不 pushState、不加 hash、不弹窗、不新增第二个 iframe
 - `hasPage` 变 true 时才改 `<a>`（R2）
 - 卡片图必须有 alt（写游戏名）；卡片标题不用 heading 标签
@@ -125,22 +128,24 @@ H1 → 副标题 → 唯一 iframe 可玩区 → 15~20 张卡片 → 导语（�
 
 ### 4.8 页脚
 
-- 只放 About / Privacy / Terms / Contact + 首页 + `/hockey-bros`
+- R1 可见链接：**Ball Games**（首页）+ About / Privacy / Terms / Contact；**不得**增加 Hockey Bros 页脚入口（首卡已是唯一内链）
 - 不留分类位、不留聚合位
 - 四个法务页 R1 若未建，先去掉对应链接，不承诺不存在的页面
 - 上线日期只在页脚出现一处
 
+**首页词频统计边界（P1-05）：** 计入可见正文、卡片锚文本、FAQ 可见文本及本 Spec 定义的页脚可见文案；**不计入** URL、图片 alt、JSON-LD、Metadata、不可见技术字段（后二者仍须正确生成）
+
 ### 4.9 结构化数据
 
 - **WebSite**（删掉 SearchAction，R2 加回）
-- **ItemList**：只列 1 项，且必须指向 `DEFAULT_PLAYER_GAME`（R1 = Football Bros）
-- **Organization**
+- **ItemList**：R1 只列 **1** 项，且必须指向 **已发布、可索引、真实存在的** 游戏详情页；R1 = **Hockey Bros**，`url` = `gameUrl('hockey-bros')`（绝对 canonical）。**不得**为配合 `DEFAULT_PLAYER_GAME` 生成不存在的 `/football-bros` 等 URL
+- **Organization**：按 Kit [`specs/seo/06-verified-offer-and-organization.md`](../seo/06-verified-offer-and-organization.md) **证据门控**；无足够法人/品牌依据时 **允许省略**，不得虚构
 - **FAQPage**（8 问）
-- 禁止编造 aggregateRating / review
+- 禁止编造 aggregateRating / review；`offers` 仅在有核实依据时按 §6 契约输出（R1 首页 **不** 输出 Offer）
 
 ### 4.10 顶部导航
 
-R1 / R2 只放 Hot 与 New；Sports / 2 Player / .IO 移到 R3。
+R1：**仅**在有真实可用目标时展示 Hot / New（无列表页则不建链、不占位）；Sports / 2 Player / .IO 移到 R3。R1 **不**实现 `/search`、`/games`、`/bros-games`、`/sports-games`、`/car-soccer`（见 §6、§9）
 
 ---
 
@@ -150,23 +155,19 @@ R1 / R2 只放 Hot 与 New；Sports / 2 Player / .IO 移到 R3。
 
 面包屑 → H1 → 副标题 → iframe → 双广告位（放在游戏区外，不压可玩区）→ 5×H2 正文 → FAQ 7 → 相关游戏 12~16 → 页脚
 
-### 5.2 H2① How to Play 正文定稿（方案 B，约 155 词，以 wc -w 实测回填）
+### 5.2 正文权威与 H2①
 
-```text
-Hockey Bros drops you onto an ice rink with one job: put the puck in the net more often than the other team before the final horn. There is no setup screen between you and the puck — you are skating within a second of the rink loading.
-
-Skating uses the arrow keys or WASD, and a single action key — the space bar — covers all three of shooting, passing and checking. The control set is small enough that you will not be reading a control list before your first shift; what takes longer to learn is when to use which.
-
-That timing is the whole game. Lining up a shot instead of firing at the first thing you see, stepping into a check along the boards rather than reaching for one in open ice, and passing out of a crowd when defenders close on you are what turn a lucky goal into a repeatable one. Games run online against other players, so the rink rarely leaves you alone with the goalie.
-```
-
-**要点：** 本段 「Hockey Bros」只出现 1 次（仅首句）；不写节数、每节时长、用户数、胜负比例；键位措辞与 hockeybros.io 官方 Controls 两行逐字一致。空格一键三动作的具体触发条件官方没写，正文用定性表述；要写死规则须先实机确认。
+- **逐字定稿权威：** [`content/hockey-bros-r1.md`](content/hockey-bros-r1.md)（本 Spec 只写约束，不维护可能漂移的长正文）
+- **键位：** 官方 Controls 已 **用户核实**（2026-11-12 前后）；仅 H2① How to Play 描述键位；首页、FAQ、卡片、JSON-LD **不得**重复键位
+  - **Verification source：** hockeybros.io official Controls（Move / Shoot·Pass·Check 两行）
+  - **Trigger behavior：** 空格一键三动作的 **触发机制未独立核实**；正文保持定性表述，不得写死未确认规则
+- H2① 段内 「Hockey Bros」只出现 1 次；不写节数、时长、比例断言
 
 ### 5.3 其余规格
 
 - H1 = Hockey Bros；正文块 hockey bros 10~12 次
 - FAQ 7 条独立 details，FAQPage Question = 7
-- 结构化数据：VideoGame + FAQPage + BreadcrumbList（两级都带 item：`https://ballgames.io/` 与 `gameUrl('hockey-bros')`）；禁 aggregateRating / review；VideoGame 只在这一页用
+- 结构化数据：VideoGame + FAQPage + BreadcrumbList（两级都带 item：`https://ballgames.io/` 与 `gameUrl('hockey-bros')`）；禁 aggregateRating / review；**VideoGame.offers** 仅当免费事实 **verified** 时输出（见 [`specs/seo/06-verified-offer-and-organization.md`](../seo/06-verified-offer-and-organization.md) 与内容稿 §七）；VideoGame 只在这一页用
 - 内容要求：可玩内容 + 操作说明 + 相关游戏三块缺一不可，不得只换标题套模板
 - 相关游戏区 12~16 个链接：有独立页用 `<a>`，其余用 `<button>`
 - FAQ 若含 「How do you play Hockey Bros?」，答案用两句口诀（滑行 → 空格 → 进球多者胜），不得复述 H2① 第 3 段的时机论述
@@ -176,7 +177,7 @@ That timing is the whole game. Lining up a shot instead of firing at the first t
 ## §6 全站规则
 
 - **sitemap：** R1 只 2 条（`/` 与 `/hockey-bros`），全部走 `gameUrl`
-- **robots：** `/search` 只写 Disallow（标 R2 处理），不写 noindex——两者互斥；R1 不建 `/search`
+- **robots / 搜索：** R1 不建 `/search`。R2 建 `/search` 时页面 **`noindex, follow`**；**不**用 `robots.txt` Disallow 阻断爬虫读取该页上的 noindex（Disallow 与 noindex 非语法互斥，但禁止「拦抓导致读不到 noindex」的做法）
 - **内链：** R1 只有一条真实内链（首卡 → `/hockey-bros`），不制造指向不存在页面的链接
 - **多语言：** R1 不做，预留 `/es/` 这类目录位置，路由函数按「可加前缀」写
 
@@ -211,9 +212,13 @@ That timing is the whole game. Lining up a shot instead of firing at the first t
 3. Rich Results：首页 4 类、内页 3 类全部通过，无 aggregateRating / review
 4. details 数量：首页 8、内页 7
 
-### 7.4 可嵌性
+### 7.4 可嵌性（区分技术验证 vs 生产授权）
 
-Football Bros 已于 2026-11-12 本地实测通过（画面 + 操作）。其余卡片逐款验，嵌不了的换同批已实测可嵌款（Basket Bros / Soccer Bros），不退回 Hockey Bros。
+| 游戏 | Technical Demo | Production Authorization | Production CSP |
+| --- | --- | --- | --- |
+| Football Bros（`DEFAULT_PLAYER_GAME`） | **Reported Passed**（2026-11-12 本地：画面 + 操作）；证据见本 Spec §7.4 与 ADR 0004 Demo-first 记录 | **Not Yet Verified** | **Not Yet Verified** |
+
+Demo 成功 **不得** 自动代表商业 embed 许可或生产 `frame-src` 已配置（ADR 0004）。其余卡片逐款 Demo-first 验，嵌不了的换同批已实测可嵌款，不退回 Hockey Bros。
 
 ### 7.5 人工比对（不上 CI）
 
@@ -250,11 +255,11 @@ Football Bros 已于 2026-11-12 本地实测通过（画面 + 操作）。其余
 1. 首页直嵌 Football Bros：该站自带 AdinPlay 前贴视频广告 + 全屏 keydown/touchmove 拦截，首访会立刻发广告请求、可能抢键盘焦点；8 秒兜底与 LCP 开关必须保留；若「画面能看但按键没反应」，改封面图 + 点击加载，不换游戏
 2. R2 忘切 `DEFAULT_PLAYER_GAME` → 蚕食从 hockey bros 原样转到 football bros；已写进 R2 清单，靠清单核对不靠记忆
 3. 线上站暂不存在可比对页面（2026-11-11 首页请求超时、sitemap 0 条）；上线后第一件事是跑 §7.1 的 curl 计数，不凭截图判断
-4. `/search` 的 Disallow + noindex 互斥：R1 直接删，R2 建搜索页只写 noindex 不加 Disallow
+4. R2 `/search`：仅 `noindex, follow`；**不加** 使爬虫无法读取 noindex 的 `robots.txt` Disallow
 5. 域名归属未确认：2026-11-05 查 ballgames.io 为 registered 但无注册/到期日期，早前多次查到可注册；开工前确认归属，备选 goalbros.com / ballarcade.com
 6. 词数全部 TBD：旧数 950/778、980/895 是估的，定稿后 wc -w 回填
 7. 单卡源风险：Hockey Bros 来自 Blue Wizard（hockeybros.io，2026-08-01 上线），单一来源，源关掉该页会空；R2 起把来源分散到至少三家
-8. 待实机确认：空格一键三动作的触发条件（确认后才可写死规则）
+8. 官方键位已核实；空格一键三动作的 **触发条件** 仍未独立核实——How to Play 保持定性表述
 
 ---
 
@@ -262,4 +267,4 @@ Football Bros 已于 2026-11-12 本地实测通过（画面 + 操作）。其余
 
 **开工顺序：** 先落 §2.1 三个常量 → 按 §4 做首页 → 按 §5 做内页 → 跑 §7 全部自检 → 提上线。
 
-**开工前只剩两件事要确认：** ballgames.io 的域名归属（registered 但查不到注册日期，早前曾查到可注册），以及空格一键三动作的实机触发条件——这两项没定，前者会让整站白做，后者会让 How to Play 第 2 段只能停在定性表述。
+**开工前仍须外部证据：** ballgames.io 域名归属（registered 但查不到注册日期）；各 embed 的 **商业授权** 与 **生产 CSP**（见 ADR 0004）。键位文案已对齐官方 Controls；触发机制未核实项 **不** 阻塞文案定稿。

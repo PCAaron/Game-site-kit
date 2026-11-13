@@ -143,10 +143,19 @@ ballgames §2 规则 1 的 `status === "published"` 是 §3.1 数据模型 `publ
 
 - 只接受验证后的 slug，不接受完整 path 或 absolute URL。
 - 委托 `siteUrl('/' + slug)`，不重复实现规范化。
+- 输出 **生产 origin 绝对 URL**（如 `https://ballgames.io/hockey-bros`），用于 canonical、sitemap、JSON-LD、OpenGraph；**不**用于本地/preview 站内 `<Link href>`（否则点击会离开当前 host）。
+
+`gamePath(slug)` — **DEC-003-G（BG-1.2.0，拟实施 BG-1.2.1+）**
+
+- 返回站内 **相对** path（如 `/hockey-bros`），与 `gameUrl` 共用 slug 校验（`GAME_SLUG_PATTERN` 等价规则）。
+- 拒绝非法 slug、protocol-relative URL、外部 absolute URL、query/hash 注入；统一 **无** trailing slash（与 `urlPathStyle: no-trailing-slash` 一致）。
+- 预留未来可选 path prefix（仅 helper 层扩展，禁止组件 `'/' + slug`）。
+- 使用契约：站内导航 `<Link href={gamePath(slug)}>`；SEO 字段仍用 `gameUrl(slug)`。
+- 环境规则：localhost / Preview / Production 的导航均用相对 path + 当前 host；canonical **始终**生产绝对 URL，**不**用运行时 hostname 拼接 canonical。
 
 暂不增加 category、blog 或 wiki URL helper。内部可有纯 normalize/assert 函数，但不暴露新的业务 API。
 
-所有 canonical metadata、`metadataBase`/Open Graph URL、sitemap、JSON-LD `url`/`@id`、可索引页面内链都必须消费同一 helper 输出。RSS/Blog 若继续存在，可通过兼容适配读取 origin，但不得反向定义 portal canonical。
+所有 canonical metadata、`metadataBase`/Open Graph URL、sitemap、JSON-LD `url`/`@id` 必须消费 `siteUrl` / `gameUrl` 输出。可索引页面的 **可见站内导航** 在 `gamePath` 实施后消费 `gamePath`。RSS/Blog 若继续存在，可通过兼容适配读取 origin，但不得反向定义 portal canonical。
 
 ### 4. Indexability and sitemap eligibility
 
@@ -228,5 +237,6 @@ Phase 4 创建并发布实际页面后，生产输出才验收 exact-two sitemap
 | DEC-003-D | **D-1** | Phase 3 机制 + fixture；Phase 4 页面与 production exact-two / page JSON-LD | **Partial** — 机制 **Applied** @ Phase 3；production exact-two / page JSON-LD **Phase 4** |
 | DEC-003-E | **E-1 + F1** | 只读调查（E-1）；**F1** `trailingSlash: false` 用户 2026-11-03 批准 | **F1 applied** — `next.config.js`；Pages HTTP 复核 **Pending** |
 | DEC-003-F | **F-1（方案 A）** | Legacy routes 统一 `noindex, follow`；不进 R1 sitemap；与 sitemap 判定独立 | **Applied** — `lib/seo/metadata.ts`（`LEGACY_PAGE_ROBOTS`）、legacy 页 metadata；用户 2026-11-03 批准 |
+| DEC-003-G | **G-1** | `gamePath(slug)` 站内相对导航 vs `gameUrl(slug)` SEO 绝对 URL | **Documented**（BG-1.2.0）；实现 **BG-1.2.1+** |
 
 批准 DEC-003-A–D **不自动开始** Phase 3 应用实现；须按 Phase 3 Spec 单独立项执行。DEC-003-E 批准的是调查本身，**不是**调查报告中的任意未单独批准的技术方案（**F1** 已单独批准并落地）。

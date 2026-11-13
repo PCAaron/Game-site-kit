@@ -1,6 +1,6 @@
 # Metadata 与 Structured Data
 
-按 **page_type** 区分规则（SEO 指南 §9）。**禁止**虚构 `aggregateRating`、评论或未核实日期。
+按 **page_type** 区分规则（SEO 指南 §9）。**禁止**虚构 `aggregateRating`、评论或未核实日期。`offers` / `Organization` 见 [`06-verified-offer-and-organization.md`](06-verified-offer-and-organization.md)（有条件允许 vs 证据门控）。
 
 ---
 
@@ -42,8 +42,8 @@ Catalog Item 的 launcher 字段 **不**替代页面级 `PageSEO`。
 | 输出 | 规则 |
 |---|---|
 | title / description / H1 | 实例 §5.1 **照抄** |
-| JSON-LD | `WebSite`（R1 **无** `SearchAction`，R2 `/search` 后再加）、`ItemList`（**仅** indexable 详情 URL）、`Organization`、`FAQPage` |
-| ItemList | `name` 仅游戏名；**不得**列未发布/未 indexable 的 URL |
+| JSON-LD | `WebSite`（R1 **无** `SearchAction`）、`ItemList`（**仅** indexable 真实详情 URL）、`Organization`（可选，证据门控）、`FAQPage` |
+| ItemList | `name` 仅游戏名；**不得**列未发布/未 indexable 的 URL；**不得**为 `DEFAULT_PLAYER_GAME` 虚构无详情路由（ballgames R1：1 项 → Hockey Bros `/hockey-bros`） |
 | `WebSite.url` | 与首页 canonical 一致（ballgames：`https://ballgames.io`） |
 
 ### `game_detail`（ballgames R1：`/hockey-bros`）
@@ -52,7 +52,7 @@ Catalog Item 的 launcher 字段 **不**替代页面级 `PageSEO`。
 |---|---|
 | title / description / H1 | 实例 §6.1 **照抄** |
 | JSON-LD | `VideoGame`（publisher/date 须有依据）、`FAQPage`（与可见 FAQ 逐字一致）、`BreadcrumbList` |
-| 禁止 | `aggregateRating`、未核实 offers |
+| 禁止 | `aggregateRating`、未核实 `review` / `offers`（核实免费 Offer 见 doc 06） |
 
 ### `category_hub`（R3+）
 
