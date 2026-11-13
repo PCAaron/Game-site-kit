@@ -4,6 +4,34 @@
 
 ---
 
+## 2026-11-13 — Phase 4.7：Ballgames R1 最终工程验收
+
+**范围：** 只读产品代码；`ballgames-specs-v1` §8 + `04-ballgames-r1` §14；全量回归；全新 `EXPORT=1 UNOPTIMIZED=1` 静态导出；`out/` HTML/XML/SEO 证据；MR-01…05 终态分类。**未**扩写正文、**未**改 Catalog/CSP/embed、**未**部署。
+
+**分支：** `main` · **Validated SHA：** `339250db53cbd48e7b816b10a73f4730146ca89b`（= 授权审查基线；工作区验收时 **clean**）
+
+### 交付
+
+- 报告 [`phase-4-final-validation.md`](reports/phase-4-final-validation.md)
+- `docs/agent/STATUS.md`、`docs/agent/WORKLOG.md`（本条目）
+
+### 验证（Node 22.14.0 @ `339250d`）
+
+| Command | Exit |
+| --- | --- |
+| `yarn typecheck` + batch/catalog + phase4.3–4.6 + validators | 0 |
+| `EXPORT=1 UNOPTIMIZED=1 yarn build` + `validate:seo --export-dir=out` + `test:phase4.6` | 0 |
+
+### 结论（分层）
+
+- **Phase 4 Engineering Acceptance：** **PASS WITH MANUAL REVIEW**
+- **Ballgames R1 Product Acceptance：** **CONDITIONAL ACCEPTANCE**（MR-01/03/04）
+- **R1 Production Release：** **NOT VERIFIED**
+
+**未 commit/push** — 待用户授权。
+
+---
+
 ## 2026-11-13 — Phase 4.6 Validation Hardening（P1-01 / P1-02 / P2-01）
 
 **范围：** 增强 `phase4.6-hardcoded-paths`（TypeScript AST + 情境 allowlist）；导出 HTML 全量 JSON-LD 禁止字段与类型 multiset；首页 SEO 正文从 `out/index.html` 提取。**未**改产品代码、Spec、内容。
