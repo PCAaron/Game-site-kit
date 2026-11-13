@@ -1,8 +1,10 @@
 import type { Catalog, CatalogGame, EmbedPermission, Provider } from '../types'
+import { BALLGAMES_DEFAULT_PLAYER_GAME_SLUG } from '../types'
 import { validateCatalog } from '../validate'
 import { hockeyBrosDetail } from './hockey-bros-detail'
 
 const HOCKEY_BROS_PRIMARY_URL = 'https://www.hockeybros.io/'
+const FOOTBALL_BROS_PRIMARY_URL = 'https://footballbros.io/'
 
 const providers: Provider[] = [
   {
@@ -46,7 +48,6 @@ const unverifiedDraftSlugs: Array<{ slug: string; title: string; homeSort: numbe
   { slug: 'basket-bros', title: 'Basket Bros', homeSort: 2 },
   { slug: 'soccer-bros', title: 'Soccer Bros', homeSort: 3 },
   { slug: 'soccer-bros-2', title: 'Soccer Bros 2', homeSort: 4 },
-  { slug: 'football-bros', title: 'Football Bros', homeSort: 5 },
   { slug: 'baseball-bros', title: 'Baseball Bros', homeSort: 6 },
   { slug: 'kart-bros', title: 'Kart Bros', homeSort: 7 },
   { slug: 'wrestle-bros', title: 'Wrestle Bros', homeSort: 8 },
@@ -66,6 +67,36 @@ function draftLauncherGame(input: { slug: string; title: string; homeSort: numbe
     cardAction: 'launcher-select',
     availability: 'unknown',
   }
+}
+
+const footballBrosGame: CatalogGame = {
+  id: 'football-bros',
+  slug: 'football-bros',
+  title: 'Football Bros',
+  launch: {
+    verification: 'verified',
+    mode: 'iframe-official',
+    primaryUrl: FOOTBALL_BROS_PRIMARY_URL,
+    timeoutMs: 8000,
+    embedLayout: {
+      aspectRatio: '16/9',
+      desktopMinHeightPx: 480,
+      width: '70%',
+    },
+  },
+  publicationStatus: 'draft',
+  showOnHome: false,
+  homeSort: 5,
+  cardAction: 'launcher-select',
+  availability: 'unknown',
+  technicalEmbedVerification: {
+    status: 'reported',
+    sourceUrl: FOOTBALL_BROS_PRIMARY_URL,
+    testedAt: '2026-11-12',
+    environment: 'local-demo',
+    evidenceRef:
+      'ballgames-specs-v1.2 §7.4 — reported passed (local picture + controls); not independent production authorization or CSP verification',
+  },
 }
 
 const hockeyBrosGame: CatalogGame = {
@@ -96,7 +127,10 @@ const hockeyBrosGame: CatalogGame = {
 export const ballgamesCatalog: Catalog = {
   providers,
   embedPermissions,
-  games: [hockeyBrosGame, ...unverifiedDraftSlugs.map(draftLauncherGame)],
+  defaultPlayerGameSlug: BALLGAMES_DEFAULT_PLAYER_GAME_SLUG,
+  games: [hockeyBrosGame, footballBrosGame, ...unverifiedDraftSlugs.map(draftLauncherGame)],
 }
+
+export { BALLGAMES_DEFAULT_PLAYER_GAME_SLUG }
 
 validateCatalog(ballgamesCatalog)

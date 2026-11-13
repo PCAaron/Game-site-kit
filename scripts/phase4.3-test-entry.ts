@@ -39,10 +39,30 @@ test('H01 production home catalog has one verified game and presentation is usab
   assert.equal(presentation.primaryUrl, 'https://www.hockeybros.io/')
 })
 
+test('H01b default launcher is football-bros independent of home grid', () => {
+  const catalog = getBallgamesCatalog()
+  const home = getProductionHomeCatalog(catalog)
+  assert.equal(home[0].slug, 'hockey-bros')
+  const defaultGame = pickDefaultLauncherGame(catalog, home)
+  assert.equal(defaultGame?.slug, 'football-bros')
+  const presentation = resolvePlayPresentation(defaultGame!, catalog)
+  assert.equal(presentation.mode, 'external-only')
+  assert.equal(presentation.primaryUrl, 'https://footballbros.io/')
+  assert.equal(isProductionEmbedAllowed(defaultGame!, catalog), false)
+})
+
+test('H01c missing defaultPlayerGameSlug entry falls back to first verified home row', () => {
+  const catalog = { ...getBallgamesCatalog(), defaultPlayerGameSlug: 'no-such-slug' }
+  const home = getProductionHomeCatalog()
+  const picked = pickDefaultLauncherGame(catalog, home)
+  assert.equal(picked?.slug, 'hockey-bros')
+})
+
 test('H02 empty published home catalog resolves without throwing', () => {
-  const empty = getProductionHomeCatalog({ ...ballgamesCatalog, games: [] })
+  const emptyCatalog = { ...ballgamesCatalog, games: [], defaultPlayerGameSlug: undefined }
+  const empty = getProductionHomeCatalog(emptyCatalog)
   assert.equal(empty.length, 0)
-  assert.equal(pickDefaultLauncherGame(empty), undefined)
+  assert.equal(pickDefaultLauncherGame(emptyCatalog, empty), undefined)
 })
 
 test('H03 draft games are excluded from production home catalog', () => {

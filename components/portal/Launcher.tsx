@@ -14,7 +14,10 @@ export interface LauncherProps {
 }
 
 export function Launcher({ homeGames, catalog }: LauncherProps) {
-  const defaultGame = useMemo(() => pickDefaultLauncherGame(homeGames), [homeGames])
+  const defaultGame = useMemo(
+    () => pickDefaultLauncherGame(catalog, homeGames),
+    [catalog, homeGames]
+  )
   const [selectedGame, setSelectedGame] = useState<CatalogGame | undefined>(defaultGame)
   const [loadGeneration, setLoadGeneration] = useState(0)
 

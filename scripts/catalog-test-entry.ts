@@ -264,6 +264,15 @@ test('catalog site URLs use existing helpers and are not stored on records', () 
   assertCatalogError(() => validateCatalog(withCanonical), 'CATALOG_CANONICAL_URL_FORBIDDEN')
 })
 
+test('football-bros reported demo does not bypass production embed gate', () => {
+  const catalog = getBallgamesCatalog()
+  const football = catalog.games.find((game) => game.slug === 'football-bros')
+  assert.ok(football)
+  assert.equal(catalog.defaultPlayerGameSlug, 'football-bros')
+  assert.equal(football.technicalEmbedVerification?.status, 'reported')
+  assert.equal(isProductionEmbedAllowed(football!, catalog), false)
+})
+
 test('production ballgames catalog validates and keeps unverified rows out of home', () => {
   validateCatalog(getBallgamesCatalog())
   const home = getProductionHomeCatalog()

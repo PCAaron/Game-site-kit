@@ -332,7 +332,7 @@ test('D25 scrollDetailPlayAreaIntoView honors prefers-reduced-motion', () => {
 test('D26 home GameCard behaviors unchanged by Related policy', () => {
   render(<GameCard game={hockeyGame!} displayContext="home" />)
   const homeLink = screen.getByRole('link', { name: 'Hockey Bros' })
-  assert.equal(homeLink.getAttribute('href'), 'https://ballgames.io/hockey-bros')
+  assert.equal(homeLink.getAttribute('href'), '/hockey-bros')
 
   const launcherGame = minimalPublishedGame({
     id: 'phase44-launcher',

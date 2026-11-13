@@ -1,1 +1,1 @@
-export { assertValidGameSlug, gameUrl, siteUrl } from './site-url'
+export { assertValidGameSlug, gamePath, gameUrl, siteUrl, validateGameSlug } from './site-url'

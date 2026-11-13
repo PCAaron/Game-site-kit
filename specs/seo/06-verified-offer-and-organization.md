@@ -49,7 +49,7 @@ interface VerifiedFreeOffer {
   price: '0'
   priceCurrency: 'USD'
   evidenceUrl: string
-  verifiedAt: string // ISO 8601
+  verifiedAt: string // ISO 8601 — 实际核实免费游玩事实的日期，非内容定稿日
 }
 ```
 

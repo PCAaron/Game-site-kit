@@ -99,10 +99,8 @@ export function siteUrl(path?: string, instance?: SiteInstance): string {
   return `${origin}${pathname}`
 }
 
-/**
- * Canonical portal URL for a game detail slug (not third-party launchUrl).
- */
-export function gameUrl(slug: string, instance?: SiteInstance): string {
+/** Shared slug validation for `gamePath` and `gameUrl` (single path strategy). */
+export function validateGameSlug(slug: string): void {
   if (typeof slug !== 'string' || !slug.length) {
     throw new SiteConfigError('GAME_SLUG_INVALID', 'slug must be a non-empty string')
   }
@@ -124,15 +122,49 @@ export function gameUrl(slug: string, instance?: SiteInstance): string {
   if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(slug)) {
     throw new SiteConfigError('GAME_SLUG_INVALID', 'slug must not be an absolute URL')
   }
+  let decoded = slug
+  if (slug.includes('%')) {
+    try {
+      decoded = decodeURIComponent(slug)
+    } catch {
+      throw new SiteConfigError('GAME_SLUG_INVALID', 'slug is not validly percent-encoded')
+    }
+    if (
+      decoded.includes('/') ||
+      decoded.includes('\\') ||
+      decoded.includes('?') ||
+      decoded.includes('#')
+    ) {
+      throw new SiteConfigError(
+        'GAME_SLUG_INVALID',
+        'slug must not contain encoded path separators'
+      )
+    }
+  }
   if (!GAME_SLUG_PATTERN.test(slug)) {
     throw new SiteConfigError(
       'GAME_SLUG_INVALID',
       'slug must be lowercase kebab-case alphanumeric segments'
     )
   }
+}
+
+/**
+ * In-site relative path for portal game navigation (`<Link href>`). Not for canonical/JSON-LD.
+ */
+export function gamePath(slug: string): string {
+  validateGameSlug(slug)
+  return `/${slug}`
+}
+
+/**
+ * Canonical portal URL for a game detail slug (not third-party launchUrl).
+ */
+export function gameUrl(slug: string, instance?: SiteInstance): string {
+  validateGameSlug(slug)
   return siteUrl(`/${slug}`, instance)
 }
 
 export function assertValidGameSlug(slug: string): void {
-  gameUrl(slug)
+  validateGameSlug(slug)
 }

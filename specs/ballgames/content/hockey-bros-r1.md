@@ -210,7 +210,7 @@ Matches fill with other players, so there is no separate practice mode to select
 | --- | --- |
 | status | `verified`（免费游玩事实 + 页面 H2④ 文案一致） |
 | evidenceUrl | 游戏可玩来源页 / 官方站（实施时录入可审计 URL） |
-| verifiedAt | 内容定稿日（ISO 8601） |
+| verifiedAt | 实际核实免费游玩事实的日期（ISO 8601）；须对应真实 `evidenceUrl`，不得以内容定稿日代替；无核实依据则不输出 Offer |
 
 无证据时 **不输出** Offer；不得为满足 JSON-LD 数量编造。
 

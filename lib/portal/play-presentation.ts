@@ -14,9 +14,23 @@ export interface PlayPresentation {
   embedLayout?: EmbedLayout
 }
 
-/** First home-grid row with a verified launch — default PlayFrame selection on `/`. */
-export function pickDefaultLauncherGame(games: CatalogGame[]): CatalogGame | undefined {
-  return games.find((game) => isLaunchVerified(game.launch))
+/**
+ * Home play area default game. Uses catalog.defaultPlayerGameSlug when set (Ballgames:
+ * football-bros), independent of homeSort / first verified home card. Falls back to the first
+ * verified launch in `homeGames` for other portal prototypes.
+ */
+export function pickDefaultLauncherGame(
+  catalog: Catalog,
+  homeGames: CatalogGame[] = []
+): CatalogGame | undefined {
+  const configuredSlug = catalog.defaultPlayerGameSlug
+  if (configuredSlug) {
+    const configured = catalog.games.find((game) => game.slug === configuredSlug)
+    if (configured) {
+      return configured
+    }
+  }
+  return homeGames.find((game) => isLaunchVerified(game.launch))
 }
 
 export function resolvePlayPresentation(game: CatalogGame, catalog: Catalog): PlayPresentation {

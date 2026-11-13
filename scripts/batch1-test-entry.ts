@@ -13,7 +13,7 @@ import {
   validateSiteInstance,
 } from '../lib/site/index'
 import { ballgamesPortalHomeContentFixture } from '../lib/site/instances/ballgames'
-import { gameUrl, siteUrl } from '../lib/urls/site-url'
+import { gamePath, gameUrl, siteUrl } from '../lib/urls/site-url'
 
 test('siteUrl root returns canonicalOrigin without trailing slash', () => {
   assert.equal(siteUrl(), 'https://ballgames.io')
@@ -64,6 +64,24 @@ test('gameUrl rejects invalid slugs', () => {
   assert.throws(() => gameUrl('Hockey-Bros'), SiteConfigError)
   assert.throws(() => gameUrl('https://hockeybros.io'), SiteConfigError)
   assert.throws(() => gameUrl(''), SiteConfigError)
+})
+
+test('gamePath returns in-site relative paths', () => {
+  assert.equal(gamePath('hockey-bros'), '/hockey-bros')
+  assert.equal(gamePath('football-bros'), '/football-bros')
+  assert.equal(gameUrl('hockey-bros'), 'https://ballgames.io/hockey-bros')
+})
+
+test('gamePath rejects invalid slugs', () => {
+  assert.throws(() => gamePath(''), SiteConfigError)
+  assert.throws(() => gamePath(' Hockey-bros '), SiteConfigError)
+  assert.throws(() => gamePath('../hockey-bros'), SiteConfigError)
+  assert.throws(() => gamePath('//evil.com'), SiteConfigError)
+  assert.throws(() => gamePath('https://evil.com'), SiteConfigError)
+  assert.throws(() => gamePath('hockey-bros?x=1'), SiteConfigError)
+  assert.throws(() => gamePath('hockey-bros#play'), SiteConfigError)
+  assert.throws(() => gamePath('hockey\\bros'), SiteConfigError)
+  assert.throws(() => gamePath('hockey%2fbros'), SiteConfigError)
 })
 
 test('validatePortalHomeContent requires non-empty seo title and description', () => {

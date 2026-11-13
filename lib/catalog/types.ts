@@ -43,6 +43,21 @@ export const DEFAULT_SEO_INDEXABLE = false
 
 export const PRODUCTION_HOME_CARD_TARGET = { min: 15, max: 20 } as const
 
+/** Ballgames R1 homepage play area initial selection (decoupled from ItemList / home card order). */
+export const BALLGAMES_DEFAULT_PLAYER_GAME_SLUG = 'football-bros' as const
+
+export type TechnicalEmbedVerificationStatus = 'untested' | 'reported' | 'verified' | 'failed'
+
+/** Demo-first technical embed check — independent of production EmbedPermission / CSP. */
+export interface TechnicalEmbedVerification {
+  status: TechnicalEmbedVerificationStatus
+  sourceUrl?: string
+  testedAt?: string
+  browser?: string
+  environment?: string
+  evidenceRef?: string
+}
+
 export interface EmbedLayout {
   aspectRatio?: string
   desktopMinHeightPx?: number
@@ -149,12 +164,16 @@ export interface CatalogGame {
   availability?: Availability
   thumbnail?: Thumbnail
   detail?: GameDetailContent
+  /** Optional demo-first technical embed record; never substitutes production embed grant. */
+  technicalEmbedVerification?: TechnicalEmbedVerification
 }
 
 export interface Catalog {
   providers: Provider[]
   embedPermissions: EmbedPermission[]
   games: CatalogGame[]
+  /** When set, home play area defaults to this slug (instance catalog). */
+  defaultPlayerGameSlug?: string
 }
 
 /** Readiness / quality severities — not the same as schema `CatalogError`. */

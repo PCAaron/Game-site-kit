@@ -48,7 +48,7 @@
 
 1. 数据模型只存 slug，不存完整路径。
 2. canonical / sitemap / 结构化数据 / OG 走 `gameUrl(slug)`；站内可见导航走 `gamePath(slug)`（实施后）；模板里不得出现 `/hockey-bros` 字面量，CI grep 拦截。
-3. 将来加前缀：只改 `gameUrl` 一个函数 + 一条批量 301 + 重提 sitemap。
+3. 将来加路径前缀：`gamePath()` 与 `gameUrl()` **必须共用同一套路径策略**（单一事实来源，禁止两函数各自拼接导致前缀不一致）；同步 Redirect、Canonical、Sitemap 与可见导航；批量 301 + 重提 sitemap。本批次 **不** 实现前缀或 Redirect 系统。
 4. 上线后不可改的两样：slug 本身、域名。
 
 **为什么不加 `/game/` 前缀：** 一款游戏同时属冰球 / 双人 / 球类多个分类，用分类做父目录就必须选一个，选错是永久错；且 R1 只有 2 页。
@@ -197,9 +197,9 @@ R1：**仅**在有真实可用目标时展示 Hot / New（无列表页则不建�
 
 ### 7.1 CI 三条拦截
 
-1. `grep -rn "hockeybros.io" src/`：只允许命中 `/hockey-bros` 的数据配置；不得出现在首页模板或 `DEFAULT_PLAYER_GAME` 取值里
-2. `curl -s https://ballgames.io/ | grep -c "hockeybros.io"` = 0；`curl -s https://ballgames.io/hockey-bros | grep -c "hockeybros.io"` ≥ 1
-3. 播放器组件源码里不得出现任何 `https://` 域名（嵌入源只能来自数据层）
+1. **静态代码检查**（仓库实际目录 `app/`、`components/`、`lib/`，**非**虚构的 `src/`）：第三方游戏来源 URL **只**允许出现在 Catalog / 数据层；**禁止**在播放器组件（如 `PlayFrame`、`Launcher`）或首页模板中硬编码第三方域名；`DEFAULT_PLAYER_GAME` 的取值不得内联第三方 URL。
+2. **导出 HTML / 浏览器语义验证**（不得仅靠全页 `grep` 域名字符串）：检查 **实际挂载的游戏 iframe 节点**——`src` 值、数量、是否可见。静态 HTML 中出现来源 URL **不**代表浏览器已加载对应 iframe。生产 embed 门禁未通过时，允许首页 **0** 个游戏 iframe（**不能**据此判代码失败）；首页 **不得**将 Hockey Bros 作为默认 iframe `src`。`/hockey-bros` 详情页的 Hockey Bros 配置与外链回退须保持有效。
+3. 播放器 **组件源码**里不得出现任何硬编码 `https://` 游戏域名（嵌入 `src` 只能由数据层 + 展示层解析传入）。
 
 ### 7.2 其他 CI grep
 
@@ -209,7 +209,11 @@ R1：**仅**在有真实可用目标时展示 Hot / New（无列表页则不建�
 
 1. `wc -w` 回填首页与内页正文词数，四处标注一致
 2. 词频自检：首页 hockey bros = 1，正文块 = 0
-3. Rich Results：首页 4 类、内页 3 类全部通过，无 aggregateRating / review
+3. **JSON-LD 校验**（目标：结构正确、可解析、字段真实、与可见页面一致；**不**以保证 Google Rich Results 展示为构建门禁）：
+   - **首页**：WebSite、ItemList、FAQPage（**必须**）
+   - **首页 Organization**：有证据可输出；无证据 **允许省略**；**不是**无条件构建门禁
+   - **详情页**：VideoGame、FAQPage、BreadcrumbList
+   - **Offer**（详情页 VideoGame）：条件字段；无核实证据时 **允许省略**；禁止 aggregateRating / review
 4. details 数量：首页 8、内页 7
 
 ### 7.4 可嵌性（区分技术验证 vs 生产授权）

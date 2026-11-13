@@ -4,6 +4,32 @@
 
 ---
 
+## 2026-11-13 — BG-1.2.1：Catalog & Default Player + `gamePath`
+
+**范围：** 四项 Spec 定点修订；`gamePath`/`validateGameSlug`；`GameCard` 相对导航；`defaultPlayerGameSlug` + Football Bros Catalog；`pickDefaultLauncherGame(catalog)`；可选 `technicalEmbedVerification`；测试与全新 static export。**未**改首页正式 SEO 正文、PortalHome UI、JSON-LD 生成器、CSP、生产 embed 授权。
+
+**分支：** `main` · **基线 HEAD：** `a8b4f59f34a490cefc503f05d47d1aa041e10efa`
+
+### 交付
+
+- 代码：`lib/urls/site-url.ts`、`lib/catalog/*`、`lib/portal/play-presentation.ts`、`components/portal/{GameCard,Launcher}.tsx`
+- 规范：`ballgames-specs-v1.2` §2.3/§7.1/§7.3、`hockey-bros-r1` Offer 表、`seo/02`、`seo/06`
+- 报告：[`ballgames-v1.2.1-catalog-default-player.md`](reports/ballgames-v1.2.1-catalog-default-player.md)
+
+### 验证
+
+- 全量 `yarn typecheck`、batch、catalog、phase4.3–4.6、validators — **exit 0**
+- `$env:EXPORT='1'; $env:UNOPTIMIZED='1'; yarn build` + `validate:seo --export-dir=out` — **exit 0**
+
+### 结论
+
+- **BG-1.2.1：** PASS WITH MANUAL GATES
+- **BG-1.2.2：** NOT STARTED
+- **Production iframe：** BLOCKED
+- **未 commit/push** — 待用户授权
+
+---
+
 ## 2026-11-13 — BG-1.2.0：Ballgames Spec v1.2 决策落地与规范对齐
 
 **范围：** P0-01～P1-07 文档落地；修订 v1.2 Spec、R1 content 稿、实例索引、seo/02–03、**新建** seo/06、ADR 0003/0004 增补、收口报告。**未**改 `app/`、`lib/`、`components/`、`scripts/`、测试或部署。

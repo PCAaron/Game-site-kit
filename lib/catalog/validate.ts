@@ -425,6 +425,19 @@ export function validateCatalog(catalog: Catalog): void {
     slugs.add(game.slug)
     validateGame(game, catalog)
   }
+
+  if (catalog.defaultPlayerGameSlug !== undefined) {
+    const defaultSlug = catalog.defaultPlayerGameSlug
+    if (typeof defaultSlug !== 'string' || !defaultSlug.length) {
+      fail('CATALOG_DEFAULT_PLAYER_INVALID', 'defaultPlayerGameSlug must be a non-empty string')
+    }
+    if (!slugs.has(defaultSlug)) {
+      fail(
+        'CATALOG_DEFAULT_PLAYER_UNKNOWN',
+        `defaultPlayerGameSlug ${defaultSlug} does not match any catalog game`
+      )
+    }
+  }
 }
 
 /** SEO / indexability layer — separate from schema validation. */

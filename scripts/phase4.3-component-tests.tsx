@@ -28,7 +28,7 @@ import { PORTAL_HOME_FROZEN_H1, PORTAL_HOME_FROZEN_SUBTITLE } from '../component
 import type { Catalog, CatalogGame } from '../lib/catalog/types'
 import { DEFAULT_PLAY_TIMEOUT_MS, type PlayPresentation } from '../lib/portal/play-presentation'
 import { ballgamesCatalog } from '../lib/catalog/index'
-import { gameUrl } from '../lib/urls/site-url'
+import { gamePath } from '../lib/urls/site-url'
 
 function minimalPublishedGame(
   overrides: Partial<CatalogGame> & Pick<CatalogGame, 'id' | 'slug' | 'title' | 'cardAction'>
@@ -87,11 +87,11 @@ const iframePresentation: PlayPresentation = {
   gameTitle: 'Embed Test',
 }
 
-test('T01 GameCard navigate-to-detail renders Link with gameUrl(slug)', () => {
+test('T01 GameCard navigate-to-detail renders Link with gamePath(slug)', () => {
   const onSelect = mock.fn()
   render(<GameCard game={hockeyDetail} onLauncherSelect={onSelect} />)
   const link = screen.getByRole('link', { name: hockeyDetail.title })
-  assert.equal(link.getAttribute('href'), gameUrl(hockeyDetail.slug))
+  assert.equal(link.getAttribute('href'), gamePath(hockeyDetail.slug))
 })
 
 test('T01 GameCard launcher-select button invokes selection callback', () => {

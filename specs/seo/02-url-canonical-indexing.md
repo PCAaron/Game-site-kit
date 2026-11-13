@@ -86,6 +86,11 @@
 
 ---
 
+## slug 路径策略（`gamePath` / `gameUrl`）
+
+- `gamePath(slug)` 与 `gameUrl(slug)` **共用同一套 slug 校验与路径拼接策略**（单一事实来源）；将来若增加路径前缀，两函数须同步更新，禁止独立拼接导致站内相对链与 canonical 绝对 URL 不一致。
+- slug 迁移须同步 Redirect、Canonical、Sitemap 与可见导航（本批次不实现前缀系统）。
+
 ## 验收（Phase 3 代码阶段）
 
 - 内链、canonical、sitemap、JSON-LD **同源** URL

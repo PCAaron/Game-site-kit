@@ -3,7 +3,7 @@
 import Image from 'next/image'
 
 import type { CatalogGame } from '@/lib/catalog/types'
-import { gameUrl } from '@/lib/urls/site-url'
+import { gamePath } from '@/lib/urls/site-url'
 import Link from '@/components/Link'
 
 export type GameCardDisplayContext = 'home' | 'related'
@@ -57,7 +57,7 @@ export function GameCard({
           </button>
         ) : (
           <Link
-            href={gameUrl(game.slug)}
+            href={gamePath(game.slug)}
             className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 text-base font-semibold"
           >
             {game.title}
