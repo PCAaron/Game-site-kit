@@ -116,6 +116,15 @@ function isAbsoluteHttpsOrigin(value: string): boolean {
   return true
 }
 
+function assertCanonicalOrigin(instance: SiteInstance): void {
+  if (!isAbsoluteHttpsOrigin(instance.canonicalOrigin)) {
+    throw new SiteConfigError(
+      'CANONICAL_ORIGIN_INVALID',
+      'canonicalOrigin must be https origin without path, query, hash, or trailing slash'
+    )
+  }
+}
+
 export function validateSiteInstance(instance: SiteInstance): void {
   if (!instance.siteId?.trim()) {
     throw new SiteConfigError('SITE_ID_REQUIRED', 'siteId must be a non-empty string')
@@ -123,12 +132,7 @@ export function validateSiteInstance(instance: SiteInstance): void {
   if (instance.archetype !== 'game-portal') {
     throw new SiteConfigError('ARCHETYPE_INVALID', 'archetype must be game-portal for Phase 3')
   }
-  if (!isAbsoluteHttpsOrigin(instance.canonicalOrigin)) {
-    throw new SiteConfigError(
-      'CANONICAL_ORIGIN_INVALID',
-      'canonicalOrigin must be https origin without path, query, hash, or trailing slash'
-    )
-  }
+  assertCanonicalOrigin(instance)
   if (instance.urlPathStyle !== 'no-trailing-slash') {
     throw new SiteConfigError('URL_PATH_STYLE_INVALID', 'urlPathStyle must be no-trailing-slash')
   }
@@ -161,6 +165,11 @@ export function validateSiteInstance(instance: SiteInstance): void {
 export function isVerifiedOrganizationEvidenceEligible(site: SiteInstance): boolean {
   if (!site.organizationEvidence) return false
   if (site.organizationEvidence.status === 'unverified') return false
+  if (site.organizationEvidence.status !== 'verified') {
+    assertOrganizationEvidence(site)
+    return false
+  }
+  assertCanonicalOrigin(site)
   assertOrganizationEvidence(site)
-  return site.organizationEvidence.status === 'verified'
+  return true
 }

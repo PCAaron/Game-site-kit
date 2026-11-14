@@ -85,9 +85,7 @@ function parseJsonLdScripts(html: string): Record<string, unknown>[] {
 }
 
 function jsonLdTopLevelTypes(blocks: Record<string, unknown>[]): string[] {
-  return blocks
-    .map((b) => b['@type'])
-    .filter((t): t is string => typeof t === 'string')
+  return blocks.map((b) => b['@type']).filter((t): t is string => typeof t === 'string')
 }
 
 function assertExactJsonLdTypeMultiset(blocks: Record<string, unknown>[], expected: string[]) {
@@ -122,7 +120,11 @@ function assertExportJsonLdEvidenceGated(
 
 function elementClassTokens(el: Element): Set<string> {
   const raw = el.properties?.className
-  const parts = Array.isArray(raw) ? raw.map(String) : String(raw ?? '').split(/\s+/).filter(Boolean)
+  const parts = Array.isArray(raw)
+    ? raw.map(String)
+    : String(raw ?? '')
+        .split(/\s+/)
+        .filter(Boolean)
   return new Set(parts)
 }
 
@@ -134,7 +136,10 @@ function elementTextContent(el: Element): string {
   return normalizeWs(text)
 }
 
-function extractPortalSeoBodyFromExportHtml(html: string): { intro: string; sectionParagraphs: string[] } {
+function extractPortalSeoBodyFromExportHtml(html: string): {
+  intro: string
+  sectionParagraphs: string[]
+} {
   const tree = fromHtmlIsomorphic(html, { fragment: false }) as Root
   let intro = ''
   let seoSection: Element | undefined
@@ -277,7 +282,10 @@ test('P46-03 sitemap negative fixtures still reject bad XML', () => {
   assert.throws(() => validateProductionSitemapXml(three, site), SitemapXmlValidationError)
 
   const dup = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="${ns}"><url><loc>https://ballgames.io</loc></url><url><loc>https://ballgames.io</loc></url></urlset>`
-  assert.throws(() => validateSitemapXmlUrls(dup, ['https://ballgames.io'], site), SitemapXmlValidationError)
+  assert.throws(
+    () => validateSitemapXmlUrls(dup, ['https://ballgames.io'], site),
+    SitemapXmlValidationError
+  )
 
   const legacy = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="${ns}"><url><loc>https://ballgames.io/blog</loc></url></urlset>`
   assert.throws(
@@ -393,7 +401,10 @@ test('P46-09 detail JSON-LD types breadcrumb and FAQ parity', () => {
   } else {
     assert.equal('offers' in video, false)
   }
-  assert.equal(blocks.some((b) => b['@type'] === 'Organization'), false)
+  assert.equal(
+    blocks.some((b) => b['@type'] === 'Organization'),
+    false
+  )
 
   const faqBlock = blocks.find((b) => b['@type'] === 'FAQPage')!
   const entities = faqBlock.mainEntity as Array<{ name: string; acceptedAnswer: { text: string } }>
@@ -417,7 +428,10 @@ test('P46-09 detail JSON-LD types breadcrumb and FAQ parity', () => {
 test('P46-10 homepage structure H1 H2 and SEO phrase gate', () => {
   const html = readExport('index.html')
   const h1s = headingTexts(html, 1)
-  assert.deepEqual(h1s.filter((t) => t === 'Ball Games'), ['Ball Games'])
+  assert.deepEqual(
+    h1s.filter((t) => t === 'Ball Games'),
+    ['Ball Games']
+  )
   assert.equal(h1s.length, 1)
   const h2s = headingTexts(html, 2)
   assert.deepEqual(h2s, [...PORTAL_HOME_SECTION_HEADINGS])
@@ -466,7 +480,10 @@ test('LD-N02 extra Organization type fails without evidence', () => {
   ]
   assert.throws(() => assertExactJsonLdTypeMultiset(blocks, expectedHomeJsonLdTypes()))
   assert.throws(() =>
-    assertJsonLdBlocksMeetEvidenceContract(blocks, { site: ballgamesSiteInstance, page: 'portal_home' })
+    assertJsonLdBlocksMeetEvidenceContract(blocks, {
+      site: ballgamesSiteInstance,
+      page: 'portal_home',
+    })
   )
 })
 
@@ -485,7 +502,10 @@ test('ORG-N-08 export homepage without evidence rejects surprise Organization', 
     },
   ]
   assert.throws(() =>
-    assertJsonLdBlocksMeetEvidenceContract(blocks, { site: ballgamesSiteInstance, page: 'portal_home' })
+    assertJsonLdBlocksMeetEvidenceContract(blocks, {
+      site: ballgamesSiteInstance,
+      page: 'portal_home',
+    })
   )
 })
 
@@ -560,7 +580,11 @@ test('LD-N06 extra FAQPage fails multiset', () => {
   assert.throws(() => assertExactJsonLdTypeMultiset(blocks, ['WebSite', 'ItemList', 'FAQPage']))
 })
 
-function homeSeoFixtureHtml(opts: { intro?: string; sectionParagraph?: string; includeCard?: boolean }) {
+function homeSeoFixtureHtml(opts: {
+  intro?: string
+  sectionParagraph?: string
+  includeCard?: boolean
+}) {
   const intro = opts.intro ?? 'Portal intro without banned phrase.'
   const sectionP =
     opts.sectionParagraph ??
@@ -800,8 +824,9 @@ test('SEO-N10 duplicate footer elements fails FOOTER-01 gate', () => {
   assert.equal(countFooterElements(html), 2)
 })
 
-const EVIDENCE_ON_TEST_MARK = 'BG1231_TEST_FIXTURE_NOT_PRODUCTION'
+const EVIDENCE_ON_TEST_MARK = 'BG1232_TEST_ONLY_SYNTHETIC_VERIFIED_STATE_NOT_PRODUCTION_EVIDENCE'
 
+/** TEST ONLY — SYNTHETIC VERIFIED STATE — NOT PRODUCTION EVIDENCE. */
 function syntheticVerifiedFreeOfferGame() {
   const base = findProductionRoutableGame('hockey-bros')!
   return {
@@ -813,7 +838,9 @@ function syntheticVerifiedFreeOfferGame() {
       evidenceUrl: `https://www.hockeybros.io/${EVIDENCE_ON_TEST_MARK}-free`,
       verifiedAt: '2026-11-01',
       sourceUrl:
-        base.launch.verification === 'verified' ? base.launch.primaryUrl : 'https://www.hockeybros.io/',
+        base.launch.verification === 'verified'
+          ? base.launch.primaryUrl
+          : 'https://www.hockeybros.io/',
     },
   }
 }
@@ -829,6 +856,18 @@ function syntheticVerifiedOrganizationSite(): SiteInstance {
       verifiedAt: '2026-11-01',
     },
   }
+}
+
+function injectFixtureJsonLdIntoHtmlCopy(
+  exportHtml: string,
+  blocks: Record<string, unknown>[]
+): string {
+  const jsonLdScript = /<script type="application\/ld\+json">[\s\S]*?<\/script>/
+  assert.match(exportHtml, jsonLdScript)
+  return exportHtml.replace(
+    jsonLdScript,
+    `<script type="application/ld+json">${serializeJsonLdForHtml(blocks)}</script>`
+  )
 }
 
 test('PATH-B-01 TEST FIXTURE ONLY homepage JSON-LD with Organization', () => {
@@ -856,13 +895,49 @@ test('PATH-B-03 export HTML copy with injected fixture JSON-LD parses and gates'
   const { portal, game } = buildR1ExactTwoContractFixtures()
   const homeBlocks = buildPortalHomeJsonLdBlocks({ portal, qualifiedGameDetail: game, site })
   const exportHtml = readExport('index.html')
-  const injected = exportHtml.replace(
-    /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
-    `<script type="application/ld+json">${serializeJsonLdForHtml(homeBlocks)}</script>`
-  )
+  const injected = injectFixtureJsonLdIntoHtmlCopy(exportHtml, homeBlocks)
   const blocks = parseJsonLdScripts(injected)
   assertExactJsonLdTypeMultiset(blocks, expectedHomeJsonLdTypes(site))
   assertJsonLdBlocksMeetEvidenceContract(blocks, { site, page: 'portal_home' })
   const parsedRoundTrip = JSON.parse(serializeJsonLd(homeBlocks))
   assert.ok(parsedRoundTrip)
+})
+
+test('PATH-B-04 TEST FIXTURE ONLY detail export HTML with synthetic Offer', () => {
+  const game = syntheticVerifiedFreeOfferGame()
+  const detailBlocks = buildGameDetailJsonLdBlocks({ game, site: ballgamesSiteInstance })
+  const exportHtml = readExport('hockey-bros.html')
+  const injectedHtmlCopy = injectFixtureJsonLdIntoHtmlCopy(exportHtml, detailBlocks)
+  const parsedBlocks = parseJsonLdScripts(injectedHtmlCopy)
+
+  assertExactJsonLdTypeMultiset(parsedBlocks, ['VideoGame', 'FAQPage', 'BreadcrumbList'])
+  assertJsonLdBlocksMeetEvidenceContract(parsedBlocks, {
+    site: ballgamesSiteInstance,
+    detailGame: game,
+    page: 'game_detail',
+  })
+
+  const video = parsedBlocks.find((block) => block['@type'] === 'VideoGame')!
+  assertMinimalVerifiedOfferShape(video.offers)
+  assert.equal('aggregateRating' in video, false)
+  assert.equal('review' in video, false)
+  assert.equal(
+    parsedBlocks.some((block) => block['@type'] === 'Organization'),
+    false
+  )
+
+  const faq = parsedBlocks.find((block) => block['@type'] === 'FAQPage')!
+  const entities = faq.mainEntity as Array<{ name: string; acceptedAnswer: { text: string } }>
+  const visibleFaq = extractVisibleFaq(exportHtml)
+  assert.equal(entities.length, visibleFaq.length)
+  for (let index = 0; index < visibleFaq.length; index++) {
+    assert.equal(entities[index].name, visibleFaq[index].q)
+    assert.equal(entities[index].acceptedAnswer.text, visibleFaq[index].a)
+  }
+
+  const breadcrumbs = parsedBlocks.find((block) => block['@type'] === 'BreadcrumbList')!
+  const items = breadcrumbs.itemListElement as Array<{ name: string; item: string }>
+  assert.equal(items.length, 2)
+  assert.equal(items[0].item, siteUrl())
+  assert.equal(items[1].item, gameUrl('hockey-bros'))
 })

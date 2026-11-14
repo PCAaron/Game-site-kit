@@ -602,7 +602,9 @@ test('CAT-N08 catalog game without technical embed record still validates', () =
 
 const FREE_OFFER_TEST_MARK = `${CATALOG_TEST_FIXTURE_MARK}: freeOffer audit fixture only`
 
-function verifiedFreeOfferFixture(overrides?: Partial<CatalogGame['freeOffer']>): NonNullable<CatalogGame['freeOffer']> {
+function verifiedFreeOfferFixture(
+  overrides?: Partial<CatalogGame['freeOffer']>
+): NonNullable<CatalogGame['freeOffer']> {
   return {
     status: 'verified',
     price: '0',
@@ -734,6 +736,85 @@ test('OFF-C-N10 sourceUrl on reserved .test host fails catalog', () => {
     sourceUrl: 'https://launch.test/game',
   })
   assertCatalogError(() => validateCatalog(catalog), 'CATALOG_FREE_OFFER_INVALID')
+})
+
+test('OFF-C-N11 verified Offer with invalid launch.mode fails eligibility', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture()
+  hockey.launch = {
+    verification: 'verified',
+    mode: 'invalid-mode',
+    primaryUrl: 'https://www.hockeybros.io/',
+  } as unknown as CatalogGame['launch']
+  assertCatalogError(() => isVerifiedFreeOfferEligible(hockey), 'CATALOG_LAUNCH_MODE_INVALID')
+  assertCatalogError(() => {
+    buildVideoGameJsonLd(hockey, ballgamesSiteInstance)
+  }, 'CATALOG_LAUNCH_MODE_INVALID')
+})
+
+test('OFF-C-N12 verified Offer with missing launch.primaryUrl fails eligibility', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture()
+  hockey.launch = {
+    verification: 'verified',
+    mode: 'iframe-official',
+  } as CatalogGame['launch']
+  assertCatalogError(() => isVerifiedFreeOfferEligible(hockey), 'CATALOG_FIELD_REQUIRED')
+  assertCatalogError(() => {
+    buildVideoGameJsonLd(hockey, ballgamesSiteInstance)
+  }, 'CATALOG_FIELD_REQUIRED')
+})
+
+test('OFF-C-N13 verified Offer with invalid launch.primaryUrl fails eligibility', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture({ sourceUrl: 'http://www.hockeybros.io/' })
+  hockey.launch = {
+    verification: 'verified',
+    mode: 'iframe-official',
+    primaryUrl: 'http://www.hockeybros.io/',
+  }
+  assertCatalogError(() => isVerifiedFreeOfferEligible(hockey), 'CATALOG_LAUNCH_URL_INVALID')
+  assertCatalogError(() => {
+    buildVideoGameJsonLd(hockey, ballgamesSiteInstance)
+  }, 'CATALOG_LAUNCH_URL_INVALID')
+})
+
+test('OFF-C-N14 direct VideoGame generator rejects malformed verified Launch', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture()
+  hockey.launch = {
+    verification: 'verified',
+    mode: 'invalid-mode',
+    primaryUrl: 'https://www.hockeybros.io/',
+  } as unknown as CatalogGame['launch']
+  assertCatalogError(() => {
+    buildVideoGameJsonLd(hockey, ballgamesSiteInstance)
+  }, 'CATALOG_LAUNCH_MODE_INVALID')
+})
+
+test('OFF-C-N15 trailing DNS root dot keeps example.com reserved', () => {
+  assert.equal(isReservedHost('example.com.'), true)
+})
+
+test('OFF-C-N16 trailing DNS root dot keeps .example reserved', () => {
+  assert.equal(isReservedHost('audit-fixture.example.'), true)
+})
+
+test('OFF-C-N17 trailing DNS root dot keeps localhost reserved', () => {
+  assert.equal(isReservedHost('localhost.'), true)
+})
+
+test('OFF-C-P04 real hostname with trailing DNS root dot is not reserved', () => {
+  assert.equal(isReservedHost('ballgames.io.'), false)
+})
+
+test('OFF-C-P05 reserved host checks are case-insensitive', () => {
+  assert.equal(isReservedHost('EXAMPLE.COM.'), isReservedHost('example.com'))
+  assert.equal(isReservedHost('BALLGAMES.IO.'), isReservedHost('ballgames.io'))
 })
 
 test('OFF-C-N09b isReservedHost rejects example and subdomains', () => {

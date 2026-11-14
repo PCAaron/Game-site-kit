@@ -76,43 +76,105 @@ type JsonLdSafetyContext = {
   allowOrganizationRoot?: boolean
 }
 
+function jsonLdPath(parent: string, key: string): string {
+  return /^[A-Za-z_][A-Za-z0-9_-]*$/.test(key)
+    ? `${parent}.${key}`
+    : `${parent}[${JSON.stringify(key)}]`
+}
+
+function hasJsonLdType(block: JsonLdObject, expected: string): boolean {
+  const type = block['@type']
+  return type === expected || (Array.isArray(type) && type.includes(expected))
+}
+
+function assertJsonLdValueWithContext(
+  value: unknown,
+  ctx: JsonLdSafetyContext,
+  depth: number,
+  path: string,
+  ancestors: WeakSet<object>
+): void {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      throw new Error(`JSON-LD number must be finite at ${path}`)
+    }
+    return
+  }
+  if (Array.isArray(value)) {
+    if (ancestors.has(value)) {
+      throw new Error(`Circular JSON-LD reference at ${path}`)
+    }
+    ancestors.add(value)
+    try {
+      value.forEach((item, index) =>
+        assertJsonLdValueWithContext(item, ctx, depth, `${path}[${index}]`, ancestors)
+      )
+    } finally {
+      ancestors.delete(value)
+    }
+    return
+  }
+  if (typeof value !== 'object') {
+    throw new Error(`JSON-LD value is not serializable at ${path}`)
+  }
+  const prototype = Object.getPrototypeOf(value)
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new Error(`JSON-LD value must be a plain object at ${path}`)
+  }
+  assertJsonLdFieldsWithContext(value as JsonLdObject, ctx, depth, path, ancestors)
+}
+
 function assertJsonLdFieldsWithContext(
   block: JsonLdObject,
   ctx: JsonLdSafetyContext,
-  depth: number
+  depth: number,
+  path = '$',
+  ancestors = new WeakSet<object>()
 ): void {
+  if (ancestors.has(block)) {
+    throw new Error(`Circular JSON-LD reference at ${path}`)
+  }
+  ancestors.add(block)
   const rootType = typeof block['@type'] === 'string' ? block['@type'] : undefined
   const isVideoGameRoot = depth === 0 && rootType === 'VideoGame'
   const isOrganizationRoot = depth === 0 && rootType === 'Organization'
 
-  for (const key of Object.keys(block)) {
-    if (key === 'offers') {
-      if (!(isVideoGameRoot && ctx.allowVideoGameTopLevelOffer)) {
-        throw new Error(`Forbidden JSON-LD field: offers`)
+  try {
+    if (hasJsonLdType(block, 'Organization')) {
+      if (Array.isArray(block['@type'])) {
+        throw new Error(`Organization @type must be the string Organization at ${path}`)
       }
-      assertMinimalVerifiedOfferShape(block[key])
-      continue
-    }
-    if (FORBIDDEN_KEYS.has(key)) {
-      throw new Error(`Forbidden JSON-LD field: ${key}`)
-    }
-    if (isOrganizationRoot && ctx.allowOrganizationRoot) {
-      if (!ALLOWED_ORGANIZATION_KEYS.has(key)) {
-        throw new Error(`Forbidden Organization field: ${key}`)
+      if (!isOrganizationRoot) {
+        throw new Error(`Nested Organization JSON-LD is forbidden at ${path}`)
+      }
+      if (!ctx.allowOrganizationRoot) {
+        throw new Error(`Organization JSON-LD is forbidden at ${path}`)
       }
     }
 
-    const value = block[key]
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-      assertJsonLdFieldsWithContext(value as JsonLdObject, ctx, depth + 1)
-    }
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        if (item && typeof item === 'object') {
-          assertJsonLdFieldsWithContext(item as JsonLdObject, ctx, depth + 1)
+    for (const key of Object.keys(block)) {
+      const keyPath = jsonLdPath(path, key)
+      if (key === 'offers') {
+        if (!(isVideoGameRoot && ctx.allowVideoGameTopLevelOffer)) {
+          throw new Error(`Forbidden JSON-LD field: offers at ${keyPath}`)
+        }
+        assertMinimalVerifiedOfferShape(block[key])
+        continue
+      }
+      if (FORBIDDEN_KEYS.has(key)) {
+        throw new Error(`Forbidden JSON-LD field: ${key} at ${keyPath}`)
+      }
+      if (isOrganizationRoot && ctx.allowOrganizationRoot) {
+        if (!ALLOWED_ORGANIZATION_KEYS.has(key)) {
+          throw new Error(`Forbidden Organization field: ${key} at ${keyPath}`)
         }
       }
+
+      assertJsonLdValueWithContext(block[key], ctx, depth + 1, keyPath, ancestors)
     }
+  } finally {
+    ancestors.delete(block)
   }
 }
 
@@ -127,7 +189,13 @@ export function assertJsonLdBlocksMeetEvidenceContract(
 ): void {
   const orgAllowed =
     input.page === 'portal_home' && isVerifiedOrganizationEvidenceEligible(input.site)
-  const orgCount = blocks.filter((b) => b['@type'] === 'Organization').length
+  const orgCount = blocks.filter(
+    (block) =>
+      block &&
+      typeof block === 'object' &&
+      !Array.isArray(block) &&
+      hasJsonLdType(block, 'Organization')
+  ).length
   if (orgCount > 1) {
     throw new Error('At most one Organization JSON-LD block is allowed')
   }
@@ -144,7 +212,10 @@ export function assertJsonLdBlocksMeetEvidenceContract(
     }
   }
 
-  for (const block of blocks) {
+  for (const [index, block] of blocks.entries()) {
+    if (!block || typeof block !== 'object' || Array.isArray(block)) {
+      throw new Error(`JSON-LD top-level block must be an object at $[${index}]`)
+    }
     const type = block['@type']
     if (type === 'VideoGame' && input.detailGame) {
       const allowOffer =
@@ -152,7 +223,12 @@ export function assertJsonLdBlocksMeetEvidenceContract(
       if ('offers' in block && !allowOffer) {
         throw new Error('VideoGame offers without verified freeOffer evidence')
       }
-      assertJsonLdFieldsWithContext(block, { allowVideoGameTopLevelOffer: allowOffer }, 0)
+      assertJsonLdFieldsWithContext(
+        block,
+        { allowVideoGameTopLevelOffer: allowOffer },
+        0,
+        `$[${index}]`
+      )
       continue
     }
     if (type === 'Organization') {
@@ -172,10 +248,10 @@ export function assertJsonLdBlocksMeetEvidenceContract(
           throw new Error('Organization url does not match verified organizationEvidence')
         }
       }
-      assertJsonLdFieldsWithContext(block, { allowOrganizationRoot: true }, 0)
+      assertJsonLdFieldsWithContext(block, { allowOrganizationRoot: true }, 0, `$[${index}]`)
       continue
     }
-    assertJsonLdFieldsWithContext(block, {}, 0)
+    assertJsonLdFieldsWithContext(block, {}, 0, `$[${index}]`)
   }
 }
 

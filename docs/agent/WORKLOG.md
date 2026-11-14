@@ -4,6 +4,38 @@
 
 ---
 
+## 2026-11-14 — BG-1.2.3.2：Evidence Gate Final Hardening
+
+**范围：** Offer / Organization 直接生成器门禁、递归嵌套 Organization、Reserved Host DNS 根点、PATH-B Detail HTML + FAQ parity；**未**改生产 instances、冻结正文、UI、embed/CSP、依赖或 workflow。
+
+**分支：** `main` · **基线/当前 HEAD：** `18b43bab112f2db4f14ebe5301cc26067a8538e3`（BG-1.2.3.1 已在 main）· **Git 状态：** 本地未提交/未推送
+
+### 交付
+
+- `lib/catalog/validate.ts`：verified Offer 资格复用完整 `assertLaunch()`；Reserved Host 单 DNS 根点与大小写规范化，非法尾随点 fail closed。
+- `lib/site/validate-site-instance.ts`：Site 校验与 Organization 资格共享唯一 canonical Origin 断言，不引入循环或无关字段门禁。
+- `lib/seo/structured-data.ts`：正式证据门禁递归对象/数组，拒绝任意深度、`@graph`、自定义属性与 `@type` 数组中的 Organization；递归栈检测循环且允许正常共享对象。
+- 测试：Catalog 71、Phase 4.5 54、Phase 4.6 43（含 PATH-B-04）；PATH-B 只使用内存合成证据并读取真实新构建 HTML。
+- 文档：`STATUS.md`、本 WORKLOG、[`ballgames-v1.2.3.2-evidence-gate-final-hardening.md`](reports/ballgames-v1.2.3.2-evidence-gate-final-hardening.md)。
+
+### 验证
+
+- Node **24.9.0** · npm **11.6.0**；本机无 Yarn CLI，使用等价 `npm.cmd run` 脚本。
+- typecheck、batch1/2、catalog、phase4.3–4.6、validate:catalog/seo、`git diff --check` — **exit 0**。
+- `$env:EXPORT='1'; $env:UNOPTIMIZED='1'; npm.cmd run build` + export SEO — **exit 0**；`out/index.html` 时间戳晚于构建开始时间。
+
+### 未解决 / 人工门禁
+
+- MR-01–MR-08 全部保留；生产 Organization / freeOffer 仍无入库证据；生产 iframe/CSP 仍 BLOCKED；Cloudflare/live HTTPS 未验证。
+- 未 commit、未 push、未建 PR、未部署；GitHub Pages `configure-pages@v5` 已知阻塞不在本任务范围。
+
+### 结论
+
+- **BG-1.2.3.2 Engineering：PASS WITH MANUAL REVIEW**
+- **Ballgames R1 Product Acceptance：CONDITIONAL ACCEPTANCE**
+
+---
+
 ## 2026-11-14 — BG-1.2.3.1：Evidence Gate Closeout
 
 **范围：** 证据门控定点修复（P1/P2）— 双路径 SEO 校验、生成器资格、`isReservedHost`、Organization 输出一致性、OFF/ORG/PATH-B 测试；**未**改生产 instances、`app/**`、冻结正文、embed/CSP。

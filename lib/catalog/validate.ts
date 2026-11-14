@@ -48,7 +48,10 @@ const RESERVED_HOST_SUFFIXES = [
 
 /** Reject IANA / documentation reserved hosts (exact label or delegated suffix). */
 export function isReservedHost(hostname: string): boolean {
-  const host = hostname.toLowerCase()
+  const lowerHost = hostname.toLowerCase()
+  if (!lowerHost || lowerHost.trim() !== lowerHost || lowerHost.endsWith('..')) return true
+  const host = lowerHost.endsWith('.') ? lowerHost.slice(0, -1) : lowerHost
+  if (!host) return true
   if (BLOCKED_HOSTS.has(host)) return true
   if (RESERVED_ROOT_LABELS.has(host)) return true
   for (const suffix of RESERVED_HOST_SUFFIXES) {
@@ -365,8 +368,13 @@ export function isLaunchVerified(
 export function isVerifiedFreeOfferEligible(game: CatalogGame): boolean {
   if (!game.freeOffer) return false
   if (game.freeOffer.status === 'unverified') return false
+  if (game.freeOffer.status !== 'verified') {
+    assertFreeOfferEvidence(game)
+    return false
+  }
+  assertLaunch(game)
   assertFreeOfferEvidence(game)
-  return game.freeOffer.status === 'verified' && isLaunchVerified(game.launch)
+  return isLaunchVerified(game.launch)
 }
 
 export function isPublishedForHome(game: CatalogGame): boolean {

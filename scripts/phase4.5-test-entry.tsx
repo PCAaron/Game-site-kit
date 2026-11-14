@@ -35,7 +35,10 @@ import { isAppRoutePath } from '../lib/seo/routes'
 import { buildR1ExactTwoContractFixtures } from '../lib/seo/fixtures'
 import { PORTAL_HOME_SECTION_HEADINGS } from '../lib/site/portal-home-editorial-contract'
 import { ballgamesPortalHomeContent, ballgamesSiteInstance } from '../lib/site/instances/ballgames'
-import { validateSiteInstance } from '../lib/site/validate-site-instance'
+import {
+  isVerifiedOrganizationEvidenceEligible,
+  validateSiteInstance,
+} from '../lib/site/validate-site-instance'
 import { SiteConfigError } from '../lib/site/types'
 import { getPortalHomeContent } from '../lib/site/get-portal-home-content'
 import { assertPortalHomeEditorialContract } from '../lib/site/portal-home-editorial-contract'
@@ -278,7 +281,9 @@ test('P45-21 content stats separate intro, five H2 paragraphs, and FAQ (no 950 h
   assert.ok(faq > 0)
   assert.equal(portal.faq?.length, 8)
   assert.equal(
-    countWords([portal.intro ?? '', ...(portal.sections ?? []).flatMap((s) => s.paragraphs)].join(' ')),
+    countWords(
+      [portal.intro ?? '', ...(portal.sections ?? []).flatMap((s) => s.paragraphs)].join(' ')
+    ),
     intro + fiveH2
   )
 })
@@ -346,7 +351,10 @@ test('OFF-P-02 production hockey-bros VideoGame has no offers', () => {
 })
 
 test('OFF-N-01 unverified freeOffer omits offers', () => {
-  const game = { ...findProductionRoutableGame('hockey-bros')!, freeOffer: { status: 'unverified' as const } }
+  const game = {
+    ...findProductionRoutableGame('hockey-bros')!,
+    freeOffer: { status: 'unverified' as const },
+  }
   const block = buildVideoGameJsonLd(game, ballgamesSiteInstance)!
   assert.equal('offers' in block, false)
 })
@@ -387,7 +395,10 @@ test('ORG-P-01 verified organization on portal home only', () => {
     game: findProductionRoutableGame('hockey-bros')!,
     site,
   })
-  assert.equal(detailBlocks.some((b) => b['@type'] === 'Organization'), false)
+  assert.equal(
+    detailBlocks.some((b) => b['@type'] === 'Organization'),
+    false
+  )
 })
 
 test('ORG-N-01 production homepage JSON-LD has no Organization', () => {
@@ -397,7 +408,10 @@ test('ORG-N-01 production homepage JSON-LD has no Organization', () => {
     qualifiedGameDetail: game,
     site: ballgamesSiteInstance,
   })
-  assert.equal(blocks.some((b) => b['@type'] === 'Organization'), false)
+  assert.equal(
+    blocks.some((b) => b['@type'] === 'Organization'),
+    false
+  )
 })
 
 test('ORG-N-02 Organization forbids legalName', () => {
@@ -460,7 +474,8 @@ test('ORG-N-05 organization url not matching canonicalOrigin fails', () => {
           verifiedAt: '2026-11-01',
         },
       }),
-    (err: unknown) => err instanceof SiteConfigError && err.code === 'SITE_ORGANIZATION_EVIDENCE_URL_MISMATCH'
+    (err: unknown) =>
+      err instanceof SiteConfigError && err.code === 'SITE_ORGANIZATION_EVIDENCE_URL_MISMATCH'
   )
 })
 
@@ -510,9 +525,7 @@ test('ORG-C-N08 JSON-LD Organization name mismatch fails evidence contract', () 
       url: site.canonicalOrigin,
     },
   ]
-  assert.throws(() =>
-    assertJsonLdBlocksMeetEvidenceContract(blocks, { site, page: 'portal_home' })
-  )
+  assert.throws(() => assertJsonLdBlocksMeetEvidenceContract(blocks, { site, page: 'portal_home' }))
 })
 
 test('ORG-C-N09 JSON-LD Organization url mismatch fails evidence contract', () => {
@@ -526,9 +539,7 @@ test('ORG-C-N09 JSON-LD Organization url mismatch fails evidence contract', () =
       url: 'https://not-canonical-origin.io',
     },
   ]
-  assert.throws(() =>
-    assertJsonLdBlocksMeetEvidenceContract(blocks, { site, page: 'portal_home' })
-  )
+  assert.throws(() => assertJsonLdBlocksMeetEvidenceContract(blocks, { site, page: 'portal_home' }))
 })
 
 test('ORG-C-N07 verified organization evidenceUrl on .example fails site validation', () => {
@@ -545,5 +556,209 @@ test('ORG-C-N07 verified organization evidenceUrl on .example fails site validat
         },
       }),
     SiteConfigError
+  )
+})
+
+test('ORG-C-N10 malformed canonicalOrigin fails Organization eligibility', () => {
+  const site = testSiteWithVerifiedOrganization()
+  const evidence = site.organizationEvidence
+  assert.equal(evidence?.status, 'verified')
+  if (!evidence || evidence.status !== 'verified') throw new Error('expected verified test fixture')
+  site.canonicalOrigin = 'https://ballgames.io/not-an-origin'
+  site.organizationEvidence = {
+    ...evidence,
+    url: site.canonicalOrigin,
+  }
+  assert.throws(
+    () => isVerifiedOrganizationEvidenceEligible(site),
+    (error: unknown) =>
+      error instanceof SiteConfigError && error.code === 'CANONICAL_ORIGIN_INVALID'
+  )
+})
+
+test('ORG-C-N11 direct Organization generator rejects malformed canonicalOrigin', () => {
+  const site = testSiteWithVerifiedOrganization()
+  const evidence = site.organizationEvidence
+  assert.equal(evidence?.status, 'verified')
+  if (!evidence || evidence.status !== 'verified') throw new Error('expected verified test fixture')
+  site.canonicalOrigin = 'https://ballgames.io/not-an-origin'
+  site.organizationEvidence = {
+    ...evidence,
+    url: site.canonicalOrigin,
+  }
+  assert.throws(
+    () => buildOrganizationJsonLd(site),
+    (error: unknown) =>
+      error instanceof SiteConfigError && error.code === 'CANONICAL_ORIGIN_INVALID'
+  )
+})
+
+test('ORG-C-N12 canonicalOrigin and organizationEvidence.url mismatch fails', () => {
+  const site = testSiteWithVerifiedOrganization()
+  const evidence = site.organizationEvidence
+  assert.equal(evidence?.status, 'verified')
+  if (!evidence || evidence.status !== 'verified') throw new Error('expected verified test fixture')
+  site.organizationEvidence = {
+    ...evidence,
+    url: 'https://different-brand.io',
+  }
+  assert.throws(
+    () => buildOrganizationJsonLd(site),
+    (error: unknown) =>
+      error instanceof SiteConfigError && error.code === 'SITE_ORGANIZATION_EVIDENCE_URL_MISMATCH'
+  )
+})
+
+test('ORG-C-N13 unverified Organization safely omits without unrelated Origin validation', () => {
+  const site: SiteInstance = {
+    ...ballgamesSiteInstance,
+    canonicalOrigin: 'https://ballgames.io/not-an-origin',
+    organizationEvidence: { status: 'unverified' },
+  }
+  assert.equal(isVerifiedOrganizationEvidenceEligible(site), false)
+  assert.equal(buildOrganizationJsonLd(site), undefined)
+})
+
+test('ORG-C-N14 unevidenced nested Organization is rejected', () => {
+  const blocks = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      publisher: { '@type': 'Organization', name: 'Fake', url: 'https://fake.invalid' },
+    },
+  ]
+  assert.throws(
+    () =>
+      assertJsonLdBlocksMeetEvidenceContract(blocks, {
+        site: ballgamesSiteInstance,
+        page: 'portal_home',
+      }),
+    /Nested Organization JSON-LD is forbidden.*publisher/
+  )
+})
+
+test('ORG-C-N15 verified evidence still rejects deeply nested custom Organization', () => {
+  const site = testSiteWithVerifiedOrganization()
+  const blocks = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      custom: {
+        layers: [
+          {
+            node: {
+              '@type': 'Organization',
+              name: 'Audit Fixture Portal',
+              url: site.canonicalOrigin,
+            },
+          },
+        ],
+      },
+    },
+  ]
+  assert.throws(
+    () => assertJsonLdBlocksMeetEvidenceContract(blocks, { site, page: 'portal_home' }),
+    /Nested Organization JSON-LD is forbidden.*custom/
+  )
+})
+
+test('ORG-C-N16 Organization @type array is rejected', () => {
+  const site = testSiteWithVerifiedOrganization()
+  const blocks = [
+    {
+      '@context': 'https://schema.org',
+      '@type': ['Organization', 'Thing'],
+      name: 'Audit Fixture Portal',
+      url: site.canonicalOrigin,
+    },
+  ]
+  assert.throws(
+    () => assertJsonLdBlocksMeetEvidenceContract(blocks, { site, page: 'portal_home' }),
+    /Organization @type must be the string Organization/
+  )
+})
+
+test('ORG-C-N17 Organization nested through @graph is rejected', () => {
+  const blocks = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      '@graph': [
+        { '@type': 'Thing', name: 'Allowed node' },
+        { '@type': 'Organization', name: 'Fake', url: 'https://fake.invalid' },
+      ],
+    },
+  ]
+  assert.throws(
+    () =>
+      assertJsonLdBlocksMeetEvidenceContract(blocks, {
+        site: ballgamesSiteInstance,
+        page: 'portal_home',
+      }),
+    /Nested Organization JSON-LD is forbidden.*@graph/
+  )
+})
+
+test('ORG-C-N18 Organization nested through publisher or author is rejected', () => {
+  for (const key of ['publisher', 'author'] as const) {
+    const blocks = [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        [key]: { '@type': 'Organization', name: 'Fake', url: 'https://fake.invalid' },
+      },
+    ]
+    assert.throws(
+      () =>
+        assertJsonLdBlocksMeetEvidenceContract(blocks, {
+          site: ballgamesSiteInstance,
+          page: 'portal_home',
+        }),
+      new RegExp(`Nested Organization JSON-LD is forbidden.*${key}`)
+    )
+  }
+})
+
+test('ORG-C-P04 valid homepage root Organization and shared non-Organization nodes pass', () => {
+  const site = testSiteWithVerifiedOrganization()
+  const shared = { '@type': 'Thing', name: 'Shared non-Organization node' }
+  const blocks = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      custom: [shared, { nested: shared }],
+    },
+    buildOrganizationJsonLd(site)!,
+  ]
+  assertJsonLdBlocksMeetEvidenceContract(blocks, { site, page: 'portal_home' })
+})
+
+test('ORG-C-N19 game detail nested Organization is rejected', () => {
+  const game = findProductionRoutableGame('hockey-bros')!
+  const blocks = buildGameDetailJsonLdBlocks({ game, site: ballgamesSiteInstance })
+  const video = blocks.find((block) => block['@type'] === 'VideoGame')!
+  video.publisher = { '@type': 'Organization', name: 'Fake', url: 'https://fake.invalid' }
+  assert.throws(
+    () =>
+      assertJsonLdBlocksMeetEvidenceContract(blocks, {
+        site: ballgamesSiteInstance,
+        detailGame: game,
+        page: 'game_detail',
+      }),
+    /Nested Organization JSON-LD is forbidden.*publisher/
+  )
+})
+
+test('ORG-C-N20 circular JSON-LD is rejected without misclassifying shared nodes', () => {
+  const circular: Record<string, unknown> = { '@type': 'Thing' }
+  circular.self = circular
+  const blocks = [{ '@type': 'WebSite', custom: circular }]
+  assert.throws(
+    () =>
+      assertJsonLdBlocksMeetEvidenceContract(blocks, {
+        site: ballgamesSiteInstance,
+        page: 'portal_home',
+      }),
+    /Circular JSON-LD reference.*self/
   )
 })
