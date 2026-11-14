@@ -525,8 +525,97 @@ test('SEO-N05 missing required H2 fails extraction', () => {
   const html = `<!DOCTYPE html><html><body>
 <section class="max-w-3xl py-10"><p>Intro</p></section>
 <section class="max-w-3xl space-y-10 py-10">
-<article><h2>Ball Games You Can Play Right Now</h2><p>x</p></article>
+<article><h2>Free Online Ball Games</h2><p>x</p></article>
 </section>
 </body></html>`
   assert.throws(() => extractPortalSeoBodyFromExportHtml(html))
+})
+
+function visibleDomText(html: string): string {
+  const tree = fromHtmlIsomorphic(html, { fragment: false }) as Root
+  const chunks: string[] = []
+  const skipTags = new Set(['script', 'style', 'noscript'])
+
+  function walk(node: Root | Element | import('hast').Text, skipAncestors: boolean) {
+    if (node.type === 'root' || node.type === 'element') {
+      const nextSkip =
+        node.type === 'element' ? skipAncestors || skipTags.has(node.tagName) : skipAncestors
+      for (const child of node.children ?? []) {
+        walk(child as Element | import('hast').Text, nextSkip)
+      }
+      return
+    }
+    if (!skipAncestors && node.type === 'text' && 'value' in node) {
+      chunks.push(node.value)
+    }
+  }
+
+  walk(tree, false)
+  return normalizeWs(chunks.join(' '))
+}
+
+function countPhraseInsensitive(text: string, phrase: string): number {
+  const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const re = new RegExp(escaped, 'gi')
+  return [...text.matchAll(re)].length
+}
+
+function firstGameCardAnchorText(html: string): string | undefined {
+  const tree = fromHtmlIsomorphic(html, { fragment: false }) as Root
+  let found: string | undefined
+  visit(tree, (node) => {
+    if (found) return
+    if (node.type !== 'element') return
+    const el = node as Element
+    if (el.tagName !== 'article') return
+    visit(el, (child) => {
+      if (found) return
+      if (child.type !== 'element') return
+      const c = child as Element
+      if (c.tagName === 'a') {
+        let text = ''
+        visit(c, (n) => {
+          if (n.type === 'text' && 'value' in n) text += n.value
+        })
+        found = normalizeWs(text)
+      }
+    })
+  })
+  return found
+}
+
+test('SEO-HOME-01 visible hockey bros phrase count is exactly one', () => {
+  const html = readExport('index.html')
+  const visible = visibleDomText(html)
+  assert.equal(countPhraseInsensitive(visible, 'hockey bros'), 1)
+})
+
+test('SEO-HOME-02 first GameCard anchor text is Hockey Bros', () => {
+  const html = readExport('index.html')
+  assert.equal(firstGameCardAnchorText(html), 'Hockey Bros')
+})
+
+test('SEO-HOME-03 SEO body block excludes hockey bros', () => {
+  assertSeoBodyExcludesHockeyBrosPhrase(readExport('index.html'))
+})
+
+test('SEO-HOME-04 footer visible text excludes hockey bros', () => {
+  const html = readExport('index.html')
+  const tree = fromHtmlIsomorphic(html, { fragment: false }) as Root
+  let footerText = ''
+  visit(tree, (node) => {
+    if (node.type !== 'element') return
+    const el = node as Element
+    if (el.tagName !== 'footer') return
+    visit(el, (child) => {
+      if (child.type === 'text' && 'value' in child) footerText += child.value
+    })
+  })
+  assert.equal(countPhraseInsensitive(normalizeWs(footerText), 'hockey bros'), 0)
+})
+
+test('SEO-HOME-05 title and description exclude Hockey Bros', () => {
+  const portal = getPortalHomeContent()
+  assert.equal(portal.seo.title.toLowerCase().includes('hockey bros'), false)
+  assert.equal(portal.seo.description.toLowerCase().includes('hockey bros'), false)
 })

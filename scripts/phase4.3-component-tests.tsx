@@ -27,7 +27,12 @@ import { PlayFrame } from '../components/portal/PlayFrame'
 import { PORTAL_HOME_FROZEN_H1, PORTAL_HOME_FROZEN_SUBTITLE } from '../components/portal/PortalHome'
 import type { Catalog, CatalogGame } from '../lib/catalog/types'
 import { DEFAULT_PLAY_TIMEOUT_MS, type PlayPresentation } from '../lib/portal/play-presentation'
-import { ballgamesCatalog } from '../lib/catalog/index'
+import {
+  ballgamesCatalog,
+  getBallgamesCatalog,
+  getProductionHomeCatalog,
+  isProductionEmbedAllowed,
+} from '../lib/catalog/index'
 import { gamePath } from '../lib/urls/site-url'
 
 function minimalPublishedGame(
@@ -199,10 +204,59 @@ test('T06 switching games clears prior timeout (no early timeout for new game)',
   assert.ok(screen.getByText(/taking longer than usual/i))
 })
 
+test('PLAY-01 Launcher default presentation title is Football Bros', () => {
+  const catalog = getBallgamesCatalog()
+  const home = getProductionHomeCatalog(catalog)
+  render(<Launcher homeGames={home} catalog={catalog} />)
+  assert.equal(screen.getByRole('status').textContent, 'Football Bros')
+  assert.equal(document.querySelectorAll('iframe').length, 0)
+  const football = catalog.games.find((g) => g.slug === 'football-bros')!
+  assert.equal(isProductionEmbedAllowed(football, catalog), false)
+})
+
+test('PLAY-04 granted fixture renders exactly one iframe with id player', () => {
+  const catalog: Catalog = {
+    providers: [{ id: 'prov-a', name: 'Prov A', verification: 'verified' }],
+    embedPermissions: [
+      {
+        id: 'embed-a',
+        providerId: 'prov-a',
+        gameSlug: 'fixture-a',
+        sourceUrl: 'https://embed.example.com/a',
+        status: 'granted',
+        permissionBasis: 'CATALOG_TEST_FIXTURE_NOT_PRODUCTION: granted iframe A',
+        cspFrameSrcVerified: true,
+      },
+    ],
+    games: [
+      {
+        id: 'fixture-a',
+        slug: 'fixture-a',
+        title: 'Fixture A',
+        providerId: 'prov-a',
+        launch: {
+          verification: 'verified',
+          mode: 'iframe-official',
+          primaryUrl: 'https://embed.example.com/a',
+        },
+        publicationStatus: 'published',
+        showOnHome: true,
+        homeSort: 1,
+        embedPermissionId: 'embed-a',
+        cardAction: 'launcher-select',
+      },
+    ],
+    defaultPlayerGameSlug: 'fixture-a',
+  }
+  render(<Launcher homeGames={[catalog.games[0]]} catalog={catalog} />)
+  assert.equal(document.querySelectorAll('iframe').length, 1)
+  assert.equal(document.querySelector('iframe#player')?.getAttribute('src'), 'https://embed.example.com/a')
+})
+
 test('H16 portal home frozen H1 and subtitle markup', () => {
   assert.equal(PORTAL_HOME_FROZEN_H1, 'Ball Games')
   assert.equal(
     PORTAL_HOME_FROZEN_SUBTITLE,
-    'Pick a game and it starts — hockey, soccer, football, basketball, free in your browser.'
+    'Pick a game and play in seconds — free, in your browser, nothing to install.'
   )
 })

@@ -15,6 +15,7 @@ import {
   isProductionEmbedAllowed,
   validateCatalog,
   validateCatalogSeo,
+  collectDefaultPlayerGameIssues,
   type Catalog,
   type CatalogGame,
   type GameDetailContent,
@@ -493,4 +494,70 @@ test('C16 validate-seo entry shape: schema then catalog SEO gate', () => {
   const source = readFileSync(path, 'utf8')
   assert.ok(source.includes('validateCatalog('))
   assert.ok(source.includes('validateCatalogSeo('))
+})
+
+test('CAT-N01 defaultPlayerGameSlug unknown slug fails schema', () => {
+  const catalog = fixtureCatalog()
+  catalog.defaultPlayerGameSlug = 'not-in-catalog'
+  assertCatalogError(() => validateCatalog(catalog), 'CATALOG_DEFAULT_PLAYER_UNKNOWN')
+})
+
+test('CAT-N02 default player without verified launch emits WARNING', () => {
+  const catalog = clone(fixtureCatalog())
+  catalog.defaultPlayerGameSlug = 'basket-bros'
+  catalog.games[1].launch = { verification: 'unverified' }
+  validateCatalog(catalog)
+  const issues = collectDefaultPlayerGameIssues(catalog)
+  assert.ok(issues.some((i) => i.code === 'CATALOG_DEFAULT_PLAYER_LAUNCH_UNVERIFIED'))
+})
+
+test('CAT-N03 default player discontinued emits WARNING', () => {
+  const catalog = clone(getBallgamesCatalog())
+  const football = catalog.games.find((g) => g.slug === 'football-bros')!
+  football.availability = 'discontinued'
+  validateCatalog(catalog)
+  const issues = collectDefaultPlayerGameIssues(catalog)
+  assert.ok(issues.some((i) => i.code === 'CATALOG_DEFAULT_PLAYER_DISCONTINUED'))
+})
+
+test('CAT-N04 illegal technical embed status fails schema', () => {
+  const catalog = clone(getBallgamesCatalog())
+  const football = catalog.games.find((g) => g.slug === 'football-bros')!
+  football.technicalEmbedVerification = {
+    status: 'bogus' as 'reported',
+    evidenceRef: 'x',
+  }
+  assertCatalogError(() => validateCatalog(catalog), 'CATALOG_TECH_EMBED_STATUS_INVALID')
+})
+
+test('CAT-N05 illegal technical testedAt fails schema', () => {
+  const catalog = clone(getBallgamesCatalog())
+  const football = catalog.games.find((g) => g.slug === 'football-bros')!
+  football.technicalEmbedVerification = {
+    status: 'reported',
+    testedAt: 'not-a-date',
+  }
+  assertCatalogError(() => validateCatalog(catalog), 'CATALOG_TECH_EMBED_TESTED_AT_INVALID')
+})
+
+test('CAT-N06 technical sourceUrl mismatch fails schema', () => {
+  const catalog = clone(getBallgamesCatalog())
+  const football = catalog.games.find((g) => g.slug === 'football-bros')!
+  football.technicalEmbedVerification = {
+    status: 'reported',
+    sourceUrl: 'https://example.com/wrong',
+  }
+  assertCatalogError(() => validateCatalog(catalog), 'CATALOG_TECH_EMBED_SOURCE_URL_MISMATCH')
+})
+
+test('CAT-N07 reported demo with unknown permission still blocks production iframe', () => {
+  const catalog = getBallgamesCatalog()
+  const football = catalog.games.find((g) => g.slug === 'football-bros')!
+  assert.equal(football.technicalEmbedVerification?.status, 'reported')
+  assert.equal(isProductionEmbedAllowed(football, catalog), false)
+})
+
+test('CAT-N08 catalog game without technical embed record still validates', () => {
+  const catalog = clone(fixtureCatalog())
+  validateCatalog(catalog)
 })

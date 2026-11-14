@@ -9,6 +9,7 @@ import {
 } from './types'
 import {
   collectCatalogContentQualityIssues,
+  collectDefaultPlayerGameIssues,
   isLaunchVerified,
   isPublishedForHome,
   validateCatalog,
@@ -91,6 +92,7 @@ export function buildCatalogVerificationReport(
   }
 
   issues.push(...collectCatalogContentQualityIssues(catalog))
+  issues.push(...collectDefaultPlayerGameIssues(catalog))
 
   const unpublished = catalog.games.filter((game) => game.publicationStatus !== 'published')
   if (unpublished.length > 0) {

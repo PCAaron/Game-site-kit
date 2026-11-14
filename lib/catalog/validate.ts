@@ -16,9 +16,11 @@ import {
   type EmbedPermission,
   type GameDetailContent,
   type LaunchConfig,
+  TECHNICAL_EMBED_VERIFICATION_STATUSES,
   type CatalogVerificationIssue,
   type Provider,
   type PublicationStatus,
+  type TechnicalEmbedVerification,
 } from './types'
 
 const PLACEHOLDER_HOST_RE = /(^|\.)(example\.(com|org|net)|localhost|invalid|placeholder)$/i
@@ -368,6 +370,9 @@ export function validateGame(game: CatalogGame, catalog: Catalog): void {
   assertLaunch(game)
   assertR1CardAction(game)
   assertDetailSchema(game)
+  if (game.technicalEmbedVerification) {
+    assertTechnicalEmbedVerification(game)
+  }
 
   if (game.publicationStatus === 'published') {
     if (!isLaunchVerified(game.launch)) {
@@ -384,6 +389,105 @@ export function validateGame(game: CatalogGame, catalog: Catalog): void {
       `${game.slug}: unverified or unpublished games must not set showOnHome true`
     )
   }
+}
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+function assertTechnicalEmbedVerification(game: CatalogGame): void {
+  const record = game.technicalEmbedVerification as TechnicalEmbedVerification
+  if (
+    typeof record.status !== 'string' ||
+    !TECHNICAL_EMBED_VERIFICATION_STATUSES.includes(
+      record.status as (typeof TECHNICAL_EMBED_VERIFICATION_STATUSES)[number]
+    )
+  ) {
+    fail(
+      'CATALOG_TECH_EMBED_STATUS_INVALID',
+      `${game.slug}: technicalEmbedVerification.status must be one of ${TECHNICAL_EMBED_VERIFICATION_STATUSES.join(', ')}`
+    )
+  }
+
+  if (record.testedAt !== undefined) {
+    if (typeof record.testedAt !== 'string' || !ISO_DATE_RE.test(record.testedAt)) {
+      fail(
+        'CATALOG_TECH_EMBED_TESTED_AT_INVALID',
+        `${game.slug}: technicalEmbedVerification.testedAt must be YYYY-MM-DD`
+      )
+    }
+    const parsed = Date.parse(`${record.testedAt}T00:00:00.000Z`)
+    if (Number.isNaN(parsed)) {
+      fail(
+        'CATALOG_TECH_EMBED_TESTED_AT_INVALID',
+        `${game.slug}: technicalEmbedVerification.testedAt is not a valid date`
+      )
+    }
+  }
+
+  if (record.sourceUrl !== undefined && record.sourceUrl !== '') {
+    if (!isHttpsAbsoluteUrl(record.sourceUrl)) {
+      fail(
+        'CATALOG_TECH_EMBED_SOURCE_URL_INVALID',
+        `${game.slug}: technicalEmbedVerification.sourceUrl must be absolute https`
+      )
+    }
+    if (isLaunchVerified(game.launch) && record.sourceUrl !== game.launch.primaryUrl) {
+      fail(
+        'CATALOG_TECH_EMBED_SOURCE_URL_MISMATCH',
+        `${game.slug}: technicalEmbedVerification.sourceUrl must match verified launch.primaryUrl`
+      )
+    }
+  }
+
+  if (record.status === 'verified') {
+    if (typeof record.evidenceRef !== 'string' || !record.evidenceRef.trim()) {
+      fail(
+        'CATALOG_TECH_EMBED_EVIDENCE_REQUIRED',
+        `${game.slug}: technicalEmbedVerification.status verified requires a non-empty evidenceRef`
+      )
+    }
+  }
+}
+
+/** Runtime readiness warnings for defaultPlayerGameSlug — schema hard errors stay in validateCatalog. */
+export function collectDefaultPlayerGameIssues(catalog: Catalog): CatalogVerificationIssue[] {
+  const slug = catalog.defaultPlayerGameSlug
+  if (!slug) {
+    return []
+  }
+  const game = catalog.games.find((row) => row.slug === slug)
+  if (!game) {
+    return []
+  }
+
+  const issues: CatalogVerificationIssue[] = []
+
+  if (!isLaunchVerified(game.launch)) {
+    issues.push({
+      code: 'CATALOG_DEFAULT_PLAYER_LAUNCH_UNVERIFIED',
+      severity: 'WARNING',
+      message: `${slug}: default player launch is not verified; home play area must use safe external-only presentation`,
+    })
+  }
+
+  if (game.availability === 'discontinued') {
+    issues.push({
+      code: 'CATALOG_DEFAULT_PLAYER_DISCONTINUED',
+      severity: 'WARNING',
+      message: `${slug}: default player availability is discontinued`,
+    })
+  }
+
+  if (isLaunchVerified(game.launch)) {
+    if (game.launch.verification === 'verified' && !game.launch.primaryUrl?.trim()) {
+      issues.push({
+        code: 'CATALOG_DEFAULT_PLAYER_NO_LAUNCH_URL',
+        severity: 'WARNING',
+        message: `${slug}: default player has no usable launch primaryUrl`,
+      })
+    }
+  }
+
+  return issues
 }
 
 export function validateCatalog(catalog: Catalog): void {
@@ -430,6 +534,14 @@ export function validateCatalog(catalog: Catalog): void {
     const defaultSlug = catalog.defaultPlayerGameSlug
     if (typeof defaultSlug !== 'string' || !defaultSlug.length) {
       fail('CATALOG_DEFAULT_PLAYER_INVALID', 'defaultPlayerGameSlug must be a non-empty string')
+    }
+    try {
+      assertValidGameSlug(defaultSlug)
+    } catch (error) {
+      if (error instanceof SiteConfigError) {
+        fail('CATALOG_DEFAULT_PLAYER_INVALID', `defaultPlayerGameSlug: ${error.message}`)
+      }
+      throw error
     }
     if (!slugs.has(defaultSlug)) {
       fail(

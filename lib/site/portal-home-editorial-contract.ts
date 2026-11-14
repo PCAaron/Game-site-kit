@@ -5,13 +5,13 @@ import {
   type PortalHomeContent,
 } from './types'
 
-/** Frozen H2 order — ballgames-specs-v1 §5.5 */
+/** Frozen H2 order — ballgames-specs-v1.2 §4 / homepage-r1.md */
 export const PORTAL_HOME_SECTION_HEADINGS = [
-  'Ball Games You Can Play Right Now',
-  'Ball Games by Type',
-  'How to Pick One',
-  'How This Site Works',
-  'Playing in the Browser',
+  'Free Online Ball Games',
+  'No Download, Play in the Browser',
+  'Unblocked at School or Work',
+  'Two-Player Ball Games',
+  'How to Play',
 ] as const
 
 export function assertPortalHomeEditorialContract(content: PortalHomeContent): void {

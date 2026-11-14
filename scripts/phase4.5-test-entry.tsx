@@ -34,7 +34,7 @@ import { countWords } from './phase4.5-word-count-lib'
 import { siteUrl } from '../lib/urls/site-url'
 
 const FROZEN_PORTAL_INTRO =
-  'Every game on this page runs inside the tab you already have open. No installer, no sign-up, no launcher asking for an update. We collect ball games — hockey, soccer, American football, basketball, baseball, and the odd car-with-a-ball hybrid — and put them behind one click. If it needs a download, it is not on this site.'
+  'Everything on this page runs in your browser tab. Pick a card, the game loads in place, and you are playing before the page finishes scrolling. No account, no download, no install. Some games are solo challenges, others are two-player battles on one keyboard or one device — the cards below mark which is which.'
 
 function portalSeoBodyText(): string {
   const portal = getPortalHomeContent()
@@ -274,7 +274,7 @@ test('P45-21 content stats separate intro, five H2 paragraphs, and FAQ (no 950 h
   )
 })
 
-test('P45-22 frozen intro matches product spec section 5.4 verbatim', () => {
+test('P45-22 frozen intro matches homepage-r1.md verbatim', () => {
   const portal = getPortalHomeContent()
   assert.equal(portal.intro?.trim(), FROZEN_PORTAL_INTRO)
 })

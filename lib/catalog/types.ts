@@ -46,7 +46,14 @@ export const PRODUCTION_HOME_CARD_TARGET = { min: 15, max: 20 } as const
 /** Ballgames R1 homepage play area initial selection (decoupled from ItemList / home card order). */
 export const BALLGAMES_DEFAULT_PLAYER_GAME_SLUG = 'football-bros' as const
 
-export type TechnicalEmbedVerificationStatus = 'untested' | 'reported' | 'verified' | 'failed'
+export const TECHNICAL_EMBED_VERIFICATION_STATUSES = [
+  'untested',
+  'reported',
+  'verified',
+  'failed',
+] as const
+export type TechnicalEmbedVerificationStatus =
+  (typeof TECHNICAL_EMBED_VERIFICATION_STATUSES)[number]
 
 /** Demo-first technical embed check — independent of production EmbedPermission / CSP. */
 export interface TechnicalEmbedVerification {

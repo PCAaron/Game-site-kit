@@ -93,6 +93,7 @@ export function PlayFrame({ presentation, loadGeneration }: PlayFrameProps) {
         <div className="relative w-full overflow-hidden rounded-lg border border-gray-200 bg-black dark:border-gray-700">
           <div className="relative aspect-video w-full md:min-h-[480px]">
             <iframe
+              id="player"
               key={`${loadGeneration}:${presentation.primaryUrl}`}
               src={presentation.primaryUrl}
               title={`Play ${presentation.gameTitle}`}

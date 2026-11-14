@@ -21,16 +21,16 @@ export const ballgamesSiteInstance: SiteInstance = {
 
 validateSiteInstance(ballgamesSiteInstance)
 
-/** R1 production Portal Home content — ballgames-specs-v1 §5.1 + §5.4–5.6 (Phase 4.5). */
+/** R1 production Portal Home content — ballgames-specs-v1.2 §4 / homepage-r1.md. */
 export const ballgamesPortalHomeContent: PortalHomeContent = {
   publicationStatus: 'published',
   seo: {
-    title: 'Ball Games - Play Free Browser Games | BallGames.io',
+    title: 'Ball Games | Free Online Sports Games, No Download',
     description:
-      'Play free ball games right in your browser - hockey, soccer, football, basketball and more. No download, no account, one click to start.',
+      'Play free online ball games right in your browser — soccer, basketball, rink battles and more. No downloads, no sign-ups, no installs.',
     indexable: true,
   },
-  updatedAt: '2026-11-12',
+  updatedAt: '2026-11-14',
   ...ballgamesPortalHomeProductionEditorial,
 }
 

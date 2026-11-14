@@ -4,6 +4,34 @@
 
 ---
 
+## 2026-11-14 — BG-1.2.2：Homepage / Launcher / v1.2 文案
+
+**范围：** Catalog 默认玩家与 technical embed 校验；homepage-r1 正文/TDK/H2/FAQ；副标题与 Portal 页脚；Launcher 默认 Football Bros；`iframe#player`；SEO-HOME 导出词频测试；phase4.3/4.5/4.6 与 catalog 负面用例。**未**改 Hockey Bros 详情、Offer JSON-LD、生产 embed 授权、15–20 卡片数据。
+
+**分支：** `main` · **基线 HEAD：** `7521011665bb1251046b6b76c474ab3c591d33f1`
+
+### 交付
+
+- 内容与契约：`lib/site/instances/ballgames*.ts`、`portal-home-editorial-contract.ts`
+- UI：`PortalHome.tsx`、`PortalHomeSiteFooter.tsx`、`PlayFrame.tsx`（`id="player"`）
+- Catalog：`lib/catalog/validate.ts`、adapter 报告
+- 测试：`scripts/catalog-test-entry.ts`、`phase4.3/4.5/4.6`
+- 报告：[`ballgames-v1.2.2-homepage-launcher.md`](reports/ballgames-v1.2.2-homepage-launcher.md)
+
+### 验证
+
+- 全量 typecheck、batch、catalog、phase4.3–4.6、validators — **exit 0**
+- 全新 static export + `validate:seo --export-dir=out` — **exit 0**
+
+### 结论
+
+- **BG-1.2.2：** PASS WITH MANUAL REVIEW
+- **BG-1.2.3：** NOT STARTED
+- **Production iframe：** BLOCKED
+- **未 commit/push**
+
+---
+
 ## 2026-11-13 — BG-1.2.1：Catalog & Default Player + `gamePath`
 
 **范围：** 四项 Spec 定点修订；`gamePath`/`validateGameSlug`；`GameCard` 相对导航；`defaultPlayerGameSlug` + Football Bros Catalog；`pickDefaultLauncherGame(catalog)`；可选 `technicalEmbedVerification`；测试与全新 static export。**未**改首页正式 SEO 正文、PortalHome UI、JSON-LD 生成器、CSP、生产 embed 授权。

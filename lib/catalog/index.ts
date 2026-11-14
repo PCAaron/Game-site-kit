@@ -48,6 +48,7 @@ export {
 } from './adapter'
 export {
   collectCatalogContentQualityIssues,
+  collectDefaultPlayerGameIssues,
   isLaunchVerified,
   isPublishedForHome,
   validateCatalog,
