@@ -176,3 +176,9 @@
 | BG-1.2.3 Readiness | **READY WITH GATES** |
 | Production iframe | **BLOCKED** |
 | R1 Production Release | **NOT VERIFIED** |
+
+## K. Commit status update (2026-11-14)
+
+BG-1.2.2.1 changes were subsequently committed to `main` as **`129961e1207a9e7be5a19a00a7c9ed94ba39e31d`**.
+
+The original local validation baseline was **`200280f`**. Historical execution evidence in §I above remains unchanged and is **not** claimed to have been re-run verbatim on `129961e` unless a later report (e.g. BG-1.2.3) states otherwise.

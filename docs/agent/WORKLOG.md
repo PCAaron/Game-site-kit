@@ -4,6 +4,41 @@
 
 ---
 
+## 2026-11-14 — BG-1.2.3：Verified Offer / Organization evidence-gated JSON-LD
+
+**范围：** `FreeOfferEvidence` / `OrganizationEvidence` 可选类型；Catalog 与 SiteInstance 校验；`lib/seo/structured-data.ts` 条件化 `VideoGame.offers` 与首页 `Organization`；`assertJsonLdBlocksMeetEvidenceContract`；OFF/ORG 与 P46 导出测试。**未**改生产 instances、冻结正文、`app/**`、embed/CSP。
+
+**分支：** `main` · **基线 HEAD（任务书）：** `129961e1207a9e7be5a19a00a7c9ed94ba39e31d`
+
+### 交付
+
+- 类型：`lib/catalog/types.ts`、`lib/site/types.ts`
+- 校验：`lib/catalog/validate.ts`、`lib/site/validate-site-instance.ts`
+- SEO：`lib/seo/structured-data.ts`、`lib/seo/index.ts`
+- 测试：`scripts/catalog-test-entry.ts`、`scripts/phase4.5-test-entry.tsx`、`scripts/phase4.6-test-entry.ts`
+- 文档：`docs/agent/STATUS.md`、`docs/agent/reports/ballgames-v1.2.2.1-homepage-closeout.md`（提交状态勘误）、[`ballgames-v1.2.3-offer-organization.md`](reports/ballgames-v1.2.3-offer-organization.md)
+
+### 验证
+
+- Node **24.9.0** · npm **11.6.0**
+- typecheck、batch1/2、catalog、phase4.3–4.6、validate:catalog、validate:seo — **exit 0**
+- 全新 `EXPORT=1 UNOPTIMIZED=1 npm run build` + `validate:seo --export-dir=out` — **exit 0**
+
+### 证据状态
+
+- 生产 Hockey Bros：**无** `freeOffer` → VideoGame **无** `offers`
+- 生产 Site：**无** `organizationEvidence` → 首页 **无** Organization
+- 免费事实核实 ≠ iframe 授权（EmbedPermission 仍为 unknown / BLOCKED）
+
+### 结论
+
+- **BG-1.2.3 Engineering：** PASS WITH MANUAL REVIEW
+- **Verified Offer Contract：** PASS（工程；生产数据省略）
+- **Organization Contract：** PASS（工程；生产数据省略）
+- **未 commit/push**
+
+---
+
 ## 2026-11-14 — BG-1.2.2.1：Homepage closeout（Footer/Header/Legacy 隔离）
 
 **范围：** 唯一站点 Footer（`resolveSiteChrome`）；Ballgames 隐藏 Legacy Search 与 About 导航；`PortalHome` 移除重复页脚；双游戏 granted iframe 换源测试；Level-2 产品可见词频与 Footer 结构测试；`isValidIsoCalendarDate`；人工产品能力门禁文档。**未**改冻结正文、生产 Catalog embed、CSP、BG-1.2.3。
@@ -27,9 +62,9 @@
 
 - **BG-1.2.2.1：** PASS WITH MANUAL REVIEW
 - **BG-1.2.2 Closeout：** CLOSED（产品 manual gates 保留）
-- **BG-1.2.3：** NOT STARTED
+- **BG-1.2.3：** NOT STARTED（本节历史记录；工程后见上文 BG-1.2.3 条目）
 - **Production iframe：** BLOCKED
-- **未 commit/push**
+- **后续：** 变更已提交为 `129961e` on `main`（见 closeout 报告 Commit status update）
 
 ---
 

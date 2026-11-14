@@ -86,6 +86,22 @@ export interface UnverifiedLaunchConfig {
 
 export type LaunchConfig = VerifiedLaunchConfig | UnverifiedLaunchConfig
 
+/** Audited free-play fact for JSON-LD Offer — not inferred from copy or launch/embed status. */
+export interface VerifiedFreeOffer {
+  status: 'verified'
+  price: '0'
+  priceCurrency: 'USD'
+  evidenceUrl: string
+  verifiedAt: string
+  sourceUrl: string
+}
+
+export interface UnverifiedFreeOffer {
+  status: 'unverified'
+}
+
+export type FreeOfferEvidence = VerifiedFreeOffer | UnverifiedFreeOffer
+
 export interface Provider {
   id: string
   name: string
@@ -173,6 +189,8 @@ export interface CatalogGame {
   detail?: GameDetailContent
   /** Optional demo-first technical embed record; never substitutes production embed grant. */
   technicalEmbedVerification?: TechnicalEmbedVerification
+  /** Optional audited free-play evidence for Schema.org Offer (VideoGame only). */
+  freeOffer?: FreeOfferEvidence
 }
 
 export interface Catalog {

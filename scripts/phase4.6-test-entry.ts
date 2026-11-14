@@ -16,6 +16,8 @@ import { getPortalHomeContent } from '../lib/site/get-portal-home-content'
 import { ballgamesSiteInstance } from '../lib/site/index'
 import { PORTAL_HOME_SECTION_HEADINGS } from '../lib/site/portal-home-editorial-contract'
 import {
+  assertJsonLdBlocksMeetEvidenceContract,
+  assertMinimalVerifiedOfferShape,
   assertNoForbiddenJsonLdFields,
   buildGameDetailPageDescriptor,
   findProductionRoutableGame,
@@ -92,10 +94,24 @@ function assertExactJsonLdTypeMultiset(blocks: Record<string, unknown>[], expect
   assert.deepEqual([...types].sort(), [...expected].sort())
 }
 
-function assertAllParsedJsonLdForbiddenFree(blocks: Record<string, unknown>[]) {
-  for (const block of blocks) {
-    assertNoForbiddenJsonLdFields(block)
+function expectedHomeJsonLdTypes(): string[] {
+  const types = ['WebSite', 'ItemList', 'FAQPage']
+  if (ballgamesSiteInstance.organizationEvidence?.status === 'verified') {
+    types.push('Organization')
   }
+  return types
+}
+
+function assertExportJsonLdEvidenceGated(
+  blocks: Record<string, unknown>[],
+  page: 'portal_home' | 'game_detail'
+) {
+  const game = page === 'game_detail' ? findProductionRoutableGame('hockey-bros')! : undefined
+  assertJsonLdBlocksMeetEvidenceContract(blocks, {
+    site: ballgamesSiteInstance,
+    detailGame: game,
+    page,
+  })
 }
 
 function elementClassTokens(el: Element): Set<string> {
@@ -323,8 +339,8 @@ test('P46-07 legacy export pages remain noindex follow', () => {
 test('P46-08 homepage JSON-LD types and FAQ parity', () => {
   const html = readExport('index.html')
   const blocks = parseJsonLdScripts(html)
-  assertExactJsonLdTypeMultiset(blocks, ['WebSite', 'ItemList', 'FAQPage'])
-  assertAllParsedJsonLdForbiddenFree(blocks)
+  assertExactJsonLdTypeMultiset(blocks, expectedHomeJsonLdTypes())
+  assertExportJsonLdEvidenceGated(blocks, 'portal_home')
 
   const webSite = blocks.find((b) => b['@type'] === 'WebSite')!
   assert.equal(webSite.name, 'BallGames.io')
@@ -352,10 +368,10 @@ test('P46-08 homepage JSON-LD types and FAQ parity', () => {
 test('P46-09 detail JSON-LD types breadcrumb and FAQ parity', () => {
   const html = readExport('hockey-bros.html')
   const blocks = parseJsonLdScripts(html)
-  assertExactJsonLdTypeMultiset(blocks, ['VideoGame', 'FAQPage', 'BreadcrumbList'])
-  assertAllParsedJsonLdForbiddenFree(blocks)
-
   const game = findProductionRoutableGame('hockey-bros')!
+  const expectedTypes = ['VideoGame', 'FAQPage', 'BreadcrumbList']
+  assertExactJsonLdTypeMultiset(blocks, expectedTypes)
+  assertExportJsonLdEvidenceGated(blocks, 'game_detail')
   const descriptor = buildGameDetailPageDescriptor(game)
   assert.ok(descriptor)
 
@@ -427,14 +443,66 @@ test('LD-N01 duplicate WebSite types fail multiset gate', () => {
   assert.throws(() => assertExactJsonLdTypeMultiset(blocks, ['WebSite', 'ItemList', 'FAQPage']))
 })
 
-test('LD-N02 extra Organization type fails', () => {
+test('LD-N02 extra Organization type fails without evidence', () => {
   const blocks = [
     { '@type': 'WebSite', url: siteUrl() },
     { '@type': 'ItemList', itemListElement: [] },
     { '@type': 'FAQPage', mainEntity: [] },
-    { '@type': 'Organization', name: 'BallGames.io' },
+    { '@type': 'Organization', name: 'BallGames.io', url: siteUrl() },
   ]
-  assert.throws(() => assertExactJsonLdTypeMultiset(blocks, ['WebSite', 'ItemList', 'FAQPage']))
+  assert.throws(() => assertExactJsonLdTypeMultiset(blocks, expectedHomeJsonLdTypes()))
+  assert.throws(() =>
+    assertJsonLdBlocksMeetEvidenceContract(blocks, { site: ballgamesSiteInstance, page: 'portal_home' })
+  )
+})
+
+test('ORG-N-08 export homepage without evidence rejects surprise Organization', () => {
+  const blocks = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      url: siteUrl(),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Surprise',
+      url: siteUrl(),
+    },
+  ]
+  assert.throws(() =>
+    assertJsonLdBlocksMeetEvidenceContract(blocks, { site: ballgamesSiteInstance, page: 'portal_home' })
+  )
+})
+
+test('OFF-N-09 export detail rejects unevidenced offers', () => {
+  const game = findProductionRoutableGame('hockey-bros')!
+  const blocks = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'VideoGame',
+      name: game.title,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
+  ]
+  assert.throws(() =>
+    assertJsonLdBlocksMeetEvidenceContract(blocks, {
+      site: ballgamesSiteInstance,
+      detailGame: game,
+      page: 'game_detail',
+    })
+  )
+})
+
+test('OFF-N-04 export Offer seller extension fails shape gate', () => {
+  assert.throws(() =>
+    assertMinimalVerifiedOfferShape({
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+    })
+  )
 })
 
 test('LD-N03 nested aggregateRating forbidden in export parse tree', () => {

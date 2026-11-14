@@ -596,3 +596,84 @@ test('CAT-N08 catalog game without technical embed record still validates', () =
   const catalog = clone(fixtureCatalog())
   validateCatalog(catalog)
 })
+
+const FREE_OFFER_TEST_MARK = `${CATALOG_TEST_FIXTURE_MARK}: freeOffer audit fixture only`
+
+function verifiedFreeOfferFixture(overrides?: Partial<CatalogGame['freeOffer']>): NonNullable<CatalogGame['freeOffer']> {
+  return {
+    status: 'verified',
+    price: '0',
+    priceCurrency: 'USD',
+    evidenceUrl: 'https://audit-fixture.example/free-fact-evidence',
+    verifiedAt: '2026-11-01',
+    sourceUrl: 'https://www.hockeybros.io/',
+    ...overrides,
+  } as NonNullable<CatalogGame['freeOffer']>
+}
+
+test('OFF-N-01 production hockey-bros has no freeOffer field', () => {
+  const hockey = getBallgamesCatalog().games.find((g) => g.slug === 'hockey-bros')!
+  assert.equal(hockey.freeOffer, undefined)
+})
+
+test('OFF-P-01 verified freeOffer passes catalog schema when source matches launch', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture()
+  validateCatalog(catalog)
+})
+
+test('OFF-N-04 freeOffer price not string zero fails', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture({ price: '0.00' as '0' })
+  assertCatalogError(() => validateCatalog(catalog), 'CATALOG_FREE_OFFER_INVALID')
+})
+
+test('OFF-N-05 freeOffer currency not USD fails', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture({ priceCurrency: 'EUR' as 'USD' })
+  assertCatalogError(() => validateCatalog(catalog), 'CATALOG_FREE_OFFER_INVALID')
+})
+
+test('OFF-N-06 freeOffer invalid evidenceUrl fails', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture({ evidenceUrl: 'http://not-https.example/x' })
+  assertCatalogError(() => validateCatalog(catalog), 'CATALOG_FREE_OFFER_EVIDENCE_INVALID')
+})
+
+test('OFF-N-07 freeOffer sourceUrl mismatch fails', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture({
+    sourceUrl: 'https://www.hockeybros.io/other-path',
+  })
+  assertCatalogError(() => validateCatalog(catalog), 'CATALOG_FREE_OFFER_SOURCE_MISMATCH')
+})
+
+test('OFF-N-08 freeOffer invalid verifiedAt fails', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture({ verifiedAt: '2026-02-30' })
+  assertCatalogError(() => validateCatalog(catalog), 'CATALOG_FREE_OFFER_VERIFIED_AT_INVALID')
+})
+
+test('OFF-N-02 unverified freeOffer passes without verified fields', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = { status: 'unverified' }
+  validateCatalog(catalog)
+})
+
+test('OFF-N-10 verified freeOffer with unverified launch fails', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.launch = { verification: 'unverified' }
+  hockey.freeOffer = verifiedFreeOfferFixture({
+    sourceUrl: 'https://audit-fixture.example/ignored',
+    evidenceUrl: `https://audit-fixture.example/${FREE_OFFER_TEST_MARK}`,
+  })
+  assertCatalogError(() => validateCatalog(catalog), 'CATALOG_FREE_OFFER_INVALID')
+})

@@ -35,10 +35,14 @@ export {
 } from './validate-sitemap-xml'
 export { SitemapXmlValidationError } from './validate-sitemap-xml'
 export {
+  assertJsonLdBlocksMeetEvidenceContract,
+  assertMinimalOrganizationShape,
+  assertMinimalVerifiedOfferShape,
   assertNoForbiddenJsonLdFields,
   buildBreadcrumbListJsonLd,
   buildFaqPageJsonLd,
   buildGameDetailJsonLdBlocks,
+  buildOrganizationJsonLd,
   buildPortalHomeJsonLdBlocks,
   buildVideoGameJsonLd,
   buildWebSiteJsonLd,

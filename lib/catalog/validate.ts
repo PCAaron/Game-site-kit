@@ -18,9 +18,11 @@ import {
   type LaunchConfig,
   TECHNICAL_EMBED_VERIFICATION_STATUSES,
   type CatalogVerificationIssue,
+  type FreeOfferEvidence,
   type Provider,
   type PublicationStatus,
   type TechnicalEmbedVerification,
+  type VerifiedFreeOffer,
 } from './types'
 
 const PLACEHOLDER_HOST_RE = /(^|\.)(example\.(com|org|net)|localhost|invalid|placeholder)$/i
@@ -329,6 +331,14 @@ export function isLaunchVerified(
   return launch.verification === 'verified'
 }
 
+/** JSON-LD Offer eligibility — requires validated verified freeOffer + verified launch (not embed/copy). */
+export function isVerifiedFreeOfferEligible(game: CatalogGame): boolean {
+  if (game.freeOffer?.status !== 'verified') return false
+  if (!isLaunchVerified(game.launch)) return false
+  const verified = game.freeOffer
+  return verified.sourceUrl === game.launch.primaryUrl
+}
+
 export function isPublishedForHome(game: CatalogGame): boolean {
   return game.publicationStatus === 'published' && game.showOnHome === true
 }
@@ -373,6 +383,9 @@ export function validateGame(game: CatalogGame, catalog: Catalog): void {
   if (game.technicalEmbedVerification) {
     assertTechnicalEmbedVerification(game)
   }
+  if (game.freeOffer) {
+    assertFreeOfferEvidence(game)
+  }
 
   if (game.publicationStatus === 'published') {
     if (!isLaunchVerified(game.launch)) {
@@ -406,6 +419,83 @@ export function isValidIsoCalendarDate(value: string): boolean {
   return (
     utc.getUTCFullYear() === year && utc.getUTCMonth() === month - 1 && utc.getUTCDate() === day
   )
+}
+
+function assertFreeOfferEvidence(game: CatalogGame): void {
+  const record = game.freeOffer as FreeOfferEvidence | undefined
+  if (!record) return
+
+  if (record.status === 'unverified') {
+    if (
+      'price' in record ||
+      'priceCurrency' in record ||
+      'evidenceUrl' in record ||
+      'verifiedAt' in record ||
+      'sourceUrl' in record
+    ) {
+      fail(
+        'CATALOG_FREE_OFFER_INVALID',
+        `${game.slug}: unverified freeOffer must not include verified-only fields`
+      )
+    }
+    return
+  }
+
+  if (record.status !== 'verified') {
+    fail(
+      'CATALOG_FREE_OFFER_INVALID',
+      `${game.slug}: freeOffer.status must be verified or unverified`
+    )
+  }
+
+  const verified = record as VerifiedFreeOffer
+  if (verified.price !== '0') {
+    fail(
+      'CATALOG_FREE_OFFER_INVALID',
+      `${game.slug}: verified freeOffer.price must be the string "0"`
+    )
+  }
+  if (verified.priceCurrency !== 'USD') {
+    fail('CATALOG_FREE_OFFER_INVALID', `${game.slug}: verified freeOffer.priceCurrency must be USD`)
+  }
+  assertNonEmpty(
+    verified.evidenceUrl,
+    'CATALOG_FREE_OFFER_EVIDENCE_INVALID',
+    `${game.slug}: verified freeOffer.evidenceUrl is required`
+  )
+  assertValidHttpsUrl(
+    verified.evidenceUrl,
+    'CATALOG_FREE_OFFER_EVIDENCE_INVALID',
+    `${game.slug}: freeOffer.evidenceUrl`
+  )
+  if (typeof verified.verifiedAt !== 'string' || !isValidIsoCalendarDate(verified.verifiedAt)) {
+    fail(
+      'CATALOG_FREE_OFFER_VERIFIED_AT_INVALID',
+      `${game.slug}: verified freeOffer.verifiedAt must be a valid YYYY-MM-DD calendar date`
+    )
+  }
+  assertNonEmpty(
+    verified.sourceUrl,
+    'CATALOG_FREE_OFFER_INVALID',
+    `${game.slug}: verified freeOffer.sourceUrl is required`
+  )
+  assertValidHttpsUrl(
+    verified.sourceUrl,
+    'CATALOG_FREE_OFFER_INVALID',
+    `${game.slug}: freeOffer.sourceUrl`
+  )
+  if (!isLaunchVerified(game.launch)) {
+    fail(
+      'CATALOG_FREE_OFFER_INVALID',
+      `${game.slug}: verified freeOffer requires a verified launch.primaryUrl`
+    )
+  }
+  if (verified.sourceUrl !== game.launch.primaryUrl) {
+    fail(
+      'CATALOG_FREE_OFFER_SOURCE_MISMATCH',
+      `${game.slug}: freeOffer.sourceUrl must match launch.primaryUrl`
+    )
+  }
 }
 
 function assertTechnicalEmbedVerification(game: CatalogGame): void {

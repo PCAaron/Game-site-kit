@@ -15,6 +15,21 @@ export interface SiteInstanceChrome {
   includeLegacyAboutNav?: boolean
 }
 
+/** Audited brand entity for homepage Organization JSON-LD — not inferred from metadata.title alone. */
+export interface VerifiedOrganizationEvidence {
+  status: 'verified'
+  name: string
+  url: string
+  evidenceUrl: string
+  verifiedAt: string
+}
+
+export interface UnverifiedOrganizationEvidence {
+  status: 'unverified'
+}
+
+export type OrganizationEvidence = VerifiedOrganizationEvidence | UnverifiedOrganizationEvidence
+
 export interface SiteInstance {
   siteId: string
   archetype: 'game-portal'
@@ -23,6 +38,8 @@ export interface SiteInstance {
   defaultIndexable: false
   enabledPageTypes: PageType[]
   chrome?: SiteInstanceChrome
+  /** Optional audited Organization evidence for portal_home JSON-LD only. */
+  organizationEvidence?: OrganizationEvidence
   metadata: {
     title: string
     description: string

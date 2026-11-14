@@ -11,12 +11,18 @@ afterEach(() => cleanup())
 import { PortalHome, PORTAL_HOME_FROZEN_SUBTITLE } from '../components/portal/PortalHome'
 import { getBallgamesCatalog, isProductionEmbedAllowed } from '../lib/catalog'
 import { hockeyBrosDetail } from '../lib/catalog/instances/hockey-bros-detail'
+import type { CatalogGame } from '../lib/catalog/types'
 import {
+  assertJsonLdBlocksMeetEvidenceContract,
+  assertMinimalOrganizationShape,
+  assertMinimalVerifiedOfferShape,
   assertNoForbiddenJsonLdFields,
   buildFaqPageJsonLd,
   buildGameDetailJsonLdBlocks,
+  buildOrganizationJsonLd,
   buildPortalHomeJsonLdBlocks,
   buildProductionSitemap,
+  buildVideoGameJsonLd,
   findProductionRoutableGame,
   isSitemapCandidate,
   LEGACY_PAGE_ROBOTS,
@@ -24,10 +30,13 @@ import {
   serializeJsonLd,
   serializeJsonLdForHtml,
 } from '../lib/seo'
+import type { SiteInstance } from '../lib/site/types'
 import { isAppRoutePath } from '../lib/seo/routes'
 import { buildR1ExactTwoContractFixtures } from '../lib/seo/fixtures'
 import { PORTAL_HOME_SECTION_HEADINGS } from '../lib/site/portal-home-editorial-contract'
 import { ballgamesPortalHomeContent, ballgamesSiteInstance } from '../lib/site/instances/ballgames'
+import { validateSiteInstance } from '../lib/site/validate-site-instance'
+import { SiteConfigError } from '../lib/site/types'
 import { getPortalHomeContent } from '../lib/site/get-portal-home-content'
 import { assertPortalHomeEditorialContract } from '../lib/site/portal-home-editorial-contract'
 import { countWords } from './phase4.5-word-count-lib'
@@ -288,4 +297,182 @@ test('P45-23 production embed gate remains closed for hockey-bros', () => {
 
 test('P45-24 published portal home passes frozen editorial contract', () => {
   assertPortalHomeEditorialContract(getPortalHomeContent())
+})
+
+const JSON_LD_TEST_MARK = 'JSON_LD_TEST_FIXTURE_NOT_PRODUCTION'
+
+function testGameWithVerifiedFreeOffer(): CatalogGame {
+  const base = findProductionRoutableGame('hockey-bros')!
+  return {
+    ...base,
+    freeOffer: {
+      status: 'verified',
+      price: '0',
+      priceCurrency: 'USD',
+      evidenceUrl: `https://audit-fixture.example/${JSON_LD_TEST_MARK}-free`,
+      verifiedAt: '2026-11-01',
+      sourceUrl: base.launch.verification === 'verified' ? base.launch.primaryUrl : '',
+    },
+  }
+}
+
+function testSiteWithVerifiedOrganization(): SiteInstance {
+  return {
+    ...ballgamesSiteInstance,
+    organizationEvidence: {
+      status: 'verified',
+      name: 'Audit Fixture Portal',
+      url: ballgamesSiteInstance.canonicalOrigin,
+      evidenceUrl: `https://audit-fixture.example/${JSON_LD_TEST_MARK}-org`,
+      verifiedAt: '2026-11-01',
+    },
+  }
+}
+
+test('OFF-P-01 VideoGame emits minimal verified Offer', () => {
+  const game = testGameWithVerifiedFreeOffer()
+  const block = buildVideoGameJsonLd(game, ballgamesSiteInstance)!
+  const offers = block.offers as Record<string, unknown>
+  assert.equal(offers['@type'], 'Offer')
+  assert.equal(offers.price, '0')
+  assert.equal(offers.priceCurrency, 'USD')
+  assert.equal('seller' in offers, false)
+})
+
+test('OFF-P-02 production hockey-bros VideoGame has no offers', () => {
+  const game = findProductionRoutableGame('hockey-bros')!
+  const block = buildVideoGameJsonLd(game, ballgamesSiteInstance)!
+  assert.equal('offers' in block, false)
+})
+
+test('OFF-N-01 unverified freeOffer omits offers', () => {
+  const game = { ...findProductionRoutableGame('hockey-bros')!, freeOffer: { status: 'unverified' as const } }
+  const block = buildVideoGameJsonLd(game, ballgamesSiteInstance)!
+  assert.equal('offers' in block, false)
+})
+
+test('OFF-N-03 aggregateRating still forbidden', () => {
+  assert.throws(() =>
+    assertNoForbiddenJsonLdFields({
+      '@type': 'VideoGame',
+      aggregateRating: { ratingValue: '5' },
+    })
+  )
+})
+
+test('OFF-N-09 nested offers in array forbidden', () => {
+  assert.throws(() =>
+    assertNoForbiddenJsonLdFields({
+      '@type': 'VideoGame',
+      items: [{ offers: { '@type': 'Offer', price: '0' } }],
+    })
+  )
+})
+
+test('ORG-P-01 verified organization on portal home only', () => {
+  const site = testSiteWithVerifiedOrganization()
+  const org = buildOrganizationJsonLd(site)!
+  assert.equal(org.name, 'Audit Fixture Portal')
+  assert.equal(org.url, site.canonicalOrigin)
+
+  const { portal, game } = buildR1ExactTwoContractFixtures()
+  const homeBlocks = buildPortalHomeJsonLdBlocks({
+    portal,
+    qualifiedGameDetail: game,
+    site,
+  })
+  assert.ok(homeBlocks.some((b) => b['@type'] === 'Organization'))
+
+  const detailBlocks = buildGameDetailJsonLdBlocks({
+    game: findProductionRoutableGame('hockey-bros')!,
+    site,
+  })
+  assert.equal(detailBlocks.some((b) => b['@type'] === 'Organization'), false)
+})
+
+test('ORG-N-01 production homepage JSON-LD has no Organization', () => {
+  const { portal, game } = buildR1ExactTwoContractFixtures()
+  const blocks = buildPortalHomeJsonLdBlocks({
+    portal,
+    qualifiedGameDetail: game,
+    site: ballgamesSiteInstance,
+  })
+  assert.equal(blocks.some((b) => b['@type'] === 'Organization'), false)
+})
+
+test('ORG-N-02 Organization forbids legalName', () => {
+  assert.throws(() =>
+    assertMinimalOrganizationShape({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'X',
+      url: 'https://ballgames.io',
+      legalName: 'Fake Corp',
+    })
+  )
+})
+
+test('OFF-N-04 Offer extra seller field rejected', () => {
+  assert.throws(() =>
+    assertMinimalVerifiedOfferShape({
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+      seller: { '@type': 'Organization', name: 'X' },
+    })
+  )
+})
+
+test('ORG-N-03 unverified organizationEvidence passes site validation', () => {
+  validateSiteInstance({
+    ...ballgamesSiteInstance,
+    organizationEvidence: { status: 'unverified' },
+  })
+})
+
+test('ORG-N-04 empty organization name fails site validation', () => {
+  assert.throws(
+    () =>
+      validateSiteInstance({
+        ...ballgamesSiteInstance,
+        organizationEvidence: {
+          status: 'verified',
+          name: '  ',
+          url: ballgamesSiteInstance.canonicalOrigin,
+          evidenceUrl: `https://audit-fixture.example/${JSON_LD_TEST_MARK}`,
+          verifiedAt: '2026-11-01',
+        },
+      }),
+    SiteConfigError
+  )
+})
+
+test('ORG-N-05 organization url not matching canonicalOrigin fails', () => {
+  assert.throws(
+    () =>
+      validateSiteInstance({
+        ...ballgamesSiteInstance,
+        organizationEvidence: {
+          status: 'verified',
+          name: 'Brand',
+          url: 'https://other.example',
+          evidenceUrl: `https://audit-fixture.example/${JSON_LD_TEST_MARK}`,
+          verifiedAt: '2026-11-01',
+        },
+      }),
+    (err: unknown) => err instanceof SiteConfigError && err.code === 'SITE_ORGANIZATION_EVIDENCE_URL_MISMATCH'
+  )
+})
+
+test('LD-N02b unevidenced Organization fails evidence contract', () => {
+  const blocks = [
+    { '@context': 'https://schema.org', '@type': 'WebSite', url: siteUrl() },
+    { '@context': 'https://schema.org', '@type': 'Organization', name: 'X', url: siteUrl() },
+  ]
+  assert.throws(() =>
+    assertJsonLdBlocksMeetEvidenceContract(blocks, {
+      site: ballgamesSiteInstance,
+      page: 'portal_home',
+    })
+  )
 })
