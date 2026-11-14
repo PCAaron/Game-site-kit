@@ -4,6 +4,37 @@
 
 ---
 
+## 2026-11-14 — BG-1.2.3.1：Evidence Gate Closeout
+
+**范围：** 证据门控定点修复（P1/P2）— 双路径 SEO 校验、生成器资格、`isReservedHost`、Organization 输出一致性、OFF/ORG/PATH-B 测试；**未**改生产 instances、`app/**`、冻结正文、embed/CSP。
+
+**分支：** `main` · **基线 HEAD：** `c04ae75bdc8108cb60b05504fb9212f11fdb4604`
+
+### 交付
+
+- `lib/catalog/validate.ts`：`isReservedHost`、`isVerifiedFreeOfferEligible` 完整校验
+- `lib/site/validate-site-instance.ts`：`isVerifiedOrganizationEvidenceEligible` 完整校验
+- `lib/seo/structured-data.ts`：Organization name/url 与证据一致；生成器走资格函数
+- 测试：`scripts/validate-seo-entry.ts`、`scripts/phase4.5/4.6/ catalog-test-entry.ts`
+- 文档：`STATUS.md`、[`ballgames-v1.2.3.1-evidence-gate-closeout.md`](reports/ballgames-v1.2.3.1-evidence-gate-closeout.md)、BG-1.2.3 报告勘误
+
+### 验证
+
+- Node **24.9.0** · npm **11.6.0**
+- typecheck、batch1/2、catalog（62）、phase4.3–4.6（含 PATH-B）、validate:catalog/seo — **exit 0**
+- `$env:EXPORT='1'; $env:UNOPTIMIZED='1'; npm run build` + export SEO — **exit 0**
+
+### PATH
+
+- **PATH-A：** 生产无证据 — 首页无 Organization、Hockey Bros 无 offers — **PASS**
+- **PATH-B：** 内存合成 verified fixture — **PASS**（**TEST FIXTURE ONLY，非生产证据**）
+
+### 结论
+
+- **BG-1.2.3.1 Engineering：** PASS WITH MANUAL REVIEW
+
+---
+
 ## 2026-11-14 — BG-1.2.3：Verified Offer / Organization evidence-gated JSON-LD
 
 **范围：** `FreeOfferEvidence` / `OrganizationEvidence` 可选类型；Catalog 与 SiteInstance 校验；`lib/seo/structured-data.ts` 条件化 `VideoGame.offers` 与首页 `Organization`；`assertJsonLdBlocksMeetEvidenceContract`；OFF/ORG 与 P46 导出测试。**未**改生产 instances、冻结正文、`app/**`、embed/CSP。

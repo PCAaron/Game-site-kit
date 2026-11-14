@@ -12,6 +12,7 @@ import { hockeyBrosDetail } from '../lib/catalog/instances/hockey-bros-detail'
 import { getPortalHomeContent } from '../lib/site/get-portal-home-content'
 import { SiteConfigError, ballgamesSiteInstance } from '../lib/site/index'
 import {
+  assertJsonLdBlocksMeetEvidenceContract,
   buildGameDetailPageDescriptor,
   buildPortalHomeJsonLdBlocks,
   buildProductionSitemap,
@@ -28,11 +29,37 @@ import {
   validateSitemapXmlUrls,
   assertExportHtmlHeadMatches,
 } from '../lib/seo/index'
+import type { JsonLdObject } from '../lib/seo/structured-data'
+import { isVerifiedOrganizationEvidenceEligible } from '../lib/site/validate-site-instance'
 import { LEGACY_PAGE_ROBOTS, resolvedSeoToMetadata } from '../lib/seo/metadata'
 import { gameUrl, siteUrl } from '../lib/urls/site-url'
 
 const STARTER_DOMAIN = 'tailwind-nextjs-starter-blog.vercel.app'
 const failures: string[] = []
+
+function jsonLdTopLevelTypes(blocks: JsonLdObject[]): string[] {
+  return blocks
+    .map((b) => b['@type'])
+    .filter((t): t is string => typeof t === 'string')
+}
+
+function assertExactJsonLdTypeMultiset(blocks: JsonLdObject[], expected: string[]): void {
+  const types = jsonLdTopLevelTypes(blocks)
+  assert.equal(
+    types.length,
+    expected.length,
+    `JSON-LD type count ${types.length} !== ${expected.length}; got ${types.join(', ')}`
+  )
+  assert.deepEqual([...types].sort(), [...expected].sort())
+}
+
+function expectedPortalHomeJsonLdTypes(site: typeof ballgamesSiteInstance): string[] {
+  const types = ['WebSite', 'ItemList', 'FAQPage']
+  if (isVerifiedOrganizationEvidenceEligible(site)) {
+    types.push('Organization')
+  }
+  return types
+}
 
 function runCatalogSeoGate(): void {
   const catalog = getBallgamesCatalog()
@@ -212,9 +239,14 @@ check('json-ld parseable and forbidden fields absent', () => {
   })
   const json = serializeJsonLd(blocks)
   JSON.parse(json)
+  assertExactJsonLdTypeMultiset(blocks, expectedPortalHomeJsonLdTypes(ballgamesSiteInstance))
+  assertJsonLdBlocksMeetEvidenceContract(blocks, {
+    site: ballgamesSiteInstance,
+    page: 'portal_home',
+  })
   assert.equal(json.includes('aggregateRating'), false)
-  assert.equal(json.includes('Organization'), false)
   assert.equal(json.includes('SearchAction'), false)
+  assert.equal(blocks.some((b) => 'offers' in b), false)
 })
 
 check('sitemap lastmod from updatedAt only', () => {

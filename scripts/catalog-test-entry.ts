@@ -21,6 +21,9 @@ import {
   type CatalogGame,
   type GameDetailContent,
 } from '../lib/catalog/index'
+import { isReservedHost, isVerifiedFreeOfferEligible } from '../lib/catalog/validate'
+import { ballgamesSiteInstance } from '../lib/site/index'
+import { buildVideoGameJsonLd } from '../lib/seo/structured-data'
 import { gameUrl, siteUrl } from '../lib/urls/site-url'
 import { getBallgamesPortalHomeContent, getPortalHomeContent } from '../lib/site/index'
 
@@ -604,7 +607,7 @@ function verifiedFreeOfferFixture(overrides?: Partial<CatalogGame['freeOffer']>)
     status: 'verified',
     price: '0',
     priceCurrency: 'USD',
-    evidenceUrl: 'https://audit-fixture.example/free-fact-evidence',
+    evidenceUrl: 'https://www.hockeybros.io/catalog-test-free-offer-evidence-fixture',
     verifiedAt: '2026-11-01',
     sourceUrl: 'https://www.hockeybros.io/',
     ...overrides,
@@ -672,8 +675,70 @@ test('OFF-N-10 verified freeOffer with unverified launch fails', () => {
   const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
   hockey.launch = { verification: 'unverified' }
   hockey.freeOffer = verifiedFreeOfferFixture({
-    sourceUrl: 'https://audit-fixture.example/ignored',
-    evidenceUrl: `https://audit-fixture.example/${FREE_OFFER_TEST_MARK}`,
+    sourceUrl: 'https://www.hockeybros.io/ignored',
+    evidenceUrl: `https://www.hockeybros.io/${FREE_OFFER_TEST_MARK}`,
   })
   assertCatalogError(() => validateCatalog(catalog), 'CATALOG_FREE_OFFER_INVALID')
+})
+
+test('OFF-C-P01 verified freeOffer passes catalog schema (TEST ONLY synthetic)', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture()
+  validateCatalog(catalog)
+  assert.equal(isVerifiedFreeOfferEligible(hockey), true)
+})
+
+test('OFF-C-P02 direct VideoGame generator emits minimal Offer with full synthetic evidence', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture()
+  validateCatalog(catalog)
+  const block = buildVideoGameJsonLd(hockey, ballgamesSiteInstance)!
+  assert.ok(block.offers)
+})
+
+test('OFF-C-N01 missing freeOffer is not eligible and omits Offer', () => {
+  const hockey = getBallgamesCatalog().games.find((g) => g.slug === 'hockey-bros')!
+  assert.equal(isVerifiedFreeOfferEligible(hockey), false)
+  const block = buildVideoGameJsonLd(hockey, ballgamesSiteInstance)!
+  assert.equal('offers' in block, false)
+})
+
+test('OFF-C-N03 verified freeOffer missing evidenceUrl fails generator eligibility', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = {
+    status: 'verified',
+    price: '0',
+    priceCurrency: 'USD',
+    verifiedAt: '2026-11-01',
+    sourceUrl: 'https://www.hockeybros.io/',
+  } as CatalogGame['freeOffer']
+  assert.throws(() => isVerifiedFreeOfferEligible(hockey), CatalogError)
+})
+
+test('OFF-C-N09 evidenceUrl on reserved .example host fails catalog', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture({
+    evidenceUrl: 'https://audit-fixture.example/reserved-evidence',
+  })
+  assertCatalogError(() => validateCatalog(catalog), 'CATALOG_FREE_OFFER_EVIDENCE_INVALID')
+})
+
+test('OFF-C-N10 sourceUrl on reserved .test host fails catalog', () => {
+  const catalog = clone(fixtureCatalog())
+  const hockey = catalog.games.find((g) => g.slug === 'hockey-bros')!
+  hockey.freeOffer = verifiedFreeOfferFixture({
+    sourceUrl: 'https://launch.test/game',
+  })
+  assertCatalogError(() => validateCatalog(catalog), 'CATALOG_FREE_OFFER_INVALID')
+})
+
+test('OFF-C-N09b isReservedHost rejects example and subdomains', () => {
+  assert.equal(isReservedHost('example'), true)
+  assert.equal(isReservedHost('audit-fixture.example'), true)
+  assert.equal(isReservedHost('foo.example.com'), true)
+  assert.equal(isReservedHost('ballgames.io'), false)
 })

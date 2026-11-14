@@ -25,8 +25,37 @@ import {
   type VerifiedFreeOffer,
 } from './types'
 
-const PLACEHOLDER_HOST_RE = /(^|\.)(example\.(com|org|net)|localhost|invalid|placeholder)$/i
 const BLOCKED_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1'])
+const RESERVED_ROOT_LABELS = new Set([
+  'example',
+  'test',
+  'invalid',
+  'localhost',
+  'placeholder',
+  'example.com',
+  'example.org',
+  'example.net',
+])
+const RESERVED_HOST_SUFFIXES = [
+  '.example',
+  '.test',
+  '.invalid',
+  '.localhost',
+  '.example.com',
+  '.example.org',
+  '.example.net',
+] as const
+
+/** Reject IANA / documentation reserved hosts (exact label or delegated suffix). */
+export function isReservedHost(hostname: string): boolean {
+  const host = hostname.toLowerCase()
+  if (BLOCKED_HOSTS.has(host)) return true
+  if (RESERVED_ROOT_LABELS.has(host)) return true
+  for (const suffix of RESERVED_HOST_SUFFIXES) {
+    if (host.endsWith(suffix)) return true
+  }
+  return false
+}
 
 function fail(code: string, message: string): never {
   throw new CatalogError(code, message)
@@ -58,8 +87,7 @@ function isPlaceholderUrl(value: string): boolean {
     return true
   }
   const host = url.hostname.toLowerCase()
-  if (BLOCKED_HOSTS.has(host)) return true
-  if (PLACEHOLDER_HOST_RE.test(host)) return true
+  if (isReservedHost(host)) return true
   if (/todo|changeme|your-game|placeholder|invalid/i.test(url.href)) return true
   return false
 }
@@ -69,7 +97,9 @@ function assertValidHttpsUrl(value: string, code: string, label: string): void {
     fail(code, `${label} must be an absolute https URL`)
   }
   if (isPlaceholderUrl(value)) {
-    fail('CATALOG_LAUNCH_URL_PLACEHOLDER', `${label} must not use a placeholder or fictitious host`)
+    const placeholderCode =
+      code === 'CATALOG_LAUNCH_URL_INVALID' ? 'CATALOG_LAUNCH_URL_PLACEHOLDER' : code
+    fail(placeholderCode, `${label} must not use a placeholder or fictitious host`)
   }
 }
 
@@ -331,12 +361,12 @@ export function isLaunchVerified(
   return launch.verification === 'verified'
 }
 
-/** JSON-LD Offer eligibility — requires validated verified freeOffer + verified launch (not embed/copy). */
+/** JSON-LD Offer eligibility — full verified freeOffer + verified launch (throws on malformed verified). */
 export function isVerifiedFreeOfferEligible(game: CatalogGame): boolean {
-  if (game.freeOffer?.status !== 'verified') return false
-  if (!isLaunchVerified(game.launch)) return false
-  const verified = game.freeOffer
-  return verified.sourceUrl === game.launch.primaryUrl
+  if (!game.freeOffer) return false
+  if (game.freeOffer.status === 'unverified') return false
+  assertFreeOfferEvidence(game)
+  return game.freeOffer.status === 'verified' && isLaunchVerified(game.launch)
 }
 
 export function isPublishedForHome(game: CatalogGame): boolean {

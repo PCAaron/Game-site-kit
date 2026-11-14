@@ -119,3 +119,9 @@
 | Ballgames R1 Product Acceptance | **CONDITIONAL ACCEPTANCE** |
 | Production iframe | **BLOCKED** |
 | R1 Production Release | **NOT VERIFIED** |
+
+## Commit Status Update（2026-11-14）
+
+BG-1.2.3 was committed to main as `c04ae75bdc8108cb60b05504fb9212f11fdb4604`.  
+Original local validation baseline: `129961e`.  
+Historical test evidence in §D–F **remains unchanged**（未在 `c04ae75` 上重跑后覆写原表）。

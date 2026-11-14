@@ -11,16 +11,22 @@ import { fromHtmlIsomorphic } from 'hast-util-from-html-isomorphic'
 import type { Element, Root } from 'hast'
 import { visit } from 'unist-util-visit'
 
+import { isVerifiedFreeOfferEligible } from '../lib/catalog/validate'
 import { hockeyBrosDetail } from '../lib/catalog/instances/hockey-bros-detail'
 import { getPortalHomeContent } from '../lib/site/get-portal-home-content'
-import { ballgamesSiteInstance } from '../lib/site/index'
+import { ballgamesSiteInstance, type SiteInstance } from '../lib/site/index'
+import { isVerifiedOrganizationEvidenceEligible } from '../lib/site/validate-site-instance'
 import { PORTAL_HOME_SECTION_HEADINGS } from '../lib/site/portal-home-editorial-contract'
 import {
   assertJsonLdBlocksMeetEvidenceContract,
   assertMinimalVerifiedOfferShape,
   assertNoForbiddenJsonLdFields,
+  buildGameDetailJsonLdBlocks,
   buildGameDetailPageDescriptor,
+  buildPortalHomeJsonLdBlocks,
   findProductionRoutableGame,
+  serializeJsonLd,
+  serializeJsonLdForHtml,
   serializeSitemapUrlsetXml,
 } from '../lib/seo/index'
 import { assertExportHtmlHeadMatches } from '../lib/seo/validate-export-html-meta'
@@ -94,9 +100,9 @@ function assertExactJsonLdTypeMultiset(blocks: Record<string, unknown>[], expect
   assert.deepEqual([...types].sort(), [...expected].sort())
 }
 
-function expectedHomeJsonLdTypes(): string[] {
+function expectedHomeJsonLdTypes(site: SiteInstance = ballgamesSiteInstance): string[] {
   const types = ['WebSite', 'ItemList', 'FAQPage']
-  if (ballgamesSiteInstance.organizationEvidence?.status === 'verified') {
+  if (isVerifiedOrganizationEvidenceEligible(site)) {
     types.push('Organization')
   }
   return types
@@ -379,7 +385,15 @@ test('P46-09 detail JSON-LD types breadcrumb and FAQ parity', () => {
   assert.equal(video.name, game.title)
   assert.equal(video.url, gameUrl('hockey-bros'))
   assert.equal('aggregateRating' in video, false)
-  assert.equal('offers' in video, false)
+  assert.equal('review' in video, false)
+  const offerEligible = isVerifiedFreeOfferEligible(game)
+  if (offerEligible) {
+    assert.ok('offers' in video)
+    assertMinimalVerifiedOfferShape(video.offers)
+  } else {
+    assert.equal('offers' in video, false)
+  }
+  assert.equal(blocks.some((b) => b['@type'] === 'Organization'), false)
 
   const faqBlock = blocks.find((b) => b['@type'] === 'FAQPage')!
   const entities = faqBlock.mainEntity as Array<{ name: string; acceptedAnswer: { text: string } }>
@@ -784,4 +798,71 @@ test('SEO-N09 img alt Hockey Bros does not add product-visible phrase count', ()
 test('SEO-N10 duplicate footer elements fails FOOTER-01 gate', () => {
   const html = `${homeSeoFixtureHtml({})}<footer>A</footer><footer>B</footer>`
   assert.equal(countFooterElements(html), 2)
+})
+
+const EVIDENCE_ON_TEST_MARK = 'BG1231_TEST_FIXTURE_NOT_PRODUCTION'
+
+function syntheticVerifiedFreeOfferGame() {
+  const base = findProductionRoutableGame('hockey-bros')!
+  return {
+    ...base,
+    freeOffer: {
+      status: 'verified' as const,
+      price: '0' as const,
+      priceCurrency: 'USD' as const,
+      evidenceUrl: `https://www.hockeybros.io/${EVIDENCE_ON_TEST_MARK}-free`,
+      verifiedAt: '2026-11-01',
+      sourceUrl:
+        base.launch.verification === 'verified' ? base.launch.primaryUrl : 'https://www.hockeybros.io/',
+    },
+  }
+}
+
+function syntheticVerifiedOrganizationSite(): SiteInstance {
+  return {
+    ...ballgamesSiteInstance,
+    organizationEvidence: {
+      status: 'verified',
+      name: 'Evidence-On Fixture Portal',
+      url: ballgamesSiteInstance.canonicalOrigin,
+      evidenceUrl: `https://ballgames.io/${EVIDENCE_ON_TEST_MARK}-org`,
+      verifiedAt: '2026-11-01',
+    },
+  }
+}
+
+test('PATH-B-01 TEST FIXTURE ONLY homepage JSON-LD with Organization', () => {
+  const site = syntheticVerifiedOrganizationSite()
+  const { portal, game } = buildR1ExactTwoContractFixtures()
+  const blocks = buildPortalHomeJsonLdBlocks({ portal, qualifiedGameDetail: game, site })
+  assertExactJsonLdTypeMultiset(blocks, expectedHomeJsonLdTypes(site))
+  assertJsonLdBlocksMeetEvidenceContract(blocks, { site, page: 'portal_home' })
+})
+
+test('PATH-B-02 TEST FIXTURE ONLY detail JSON-LD with VideoGame.offers', () => {
+  const game = syntheticVerifiedFreeOfferGame()
+  const blocks = buildGameDetailJsonLdBlocks({ game, site: ballgamesSiteInstance })
+  const video = blocks.find((b) => b['@type'] === 'VideoGame')!
+  assertMinimalVerifiedOfferShape(video.offers)
+  assertJsonLdBlocksMeetEvidenceContract(blocks, {
+    site: ballgamesSiteInstance,
+    detailGame: game,
+    page: 'game_detail',
+  })
+})
+
+test('PATH-B-03 export HTML copy with injected fixture JSON-LD parses and gates', () => {
+  const site = syntheticVerifiedOrganizationSite()
+  const { portal, game } = buildR1ExactTwoContractFixtures()
+  const homeBlocks = buildPortalHomeJsonLdBlocks({ portal, qualifiedGameDetail: game, site })
+  const exportHtml = readExport('index.html')
+  const injected = exportHtml.replace(
+    /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
+    `<script type="application/ld+json">${serializeJsonLdForHtml(homeBlocks)}</script>`
+  )
+  const blocks = parseJsonLdScripts(injected)
+  assertExactJsonLdTypeMultiset(blocks, expectedHomeJsonLdTypes(site))
+  assertJsonLdBlocksMeetEvidenceContract(blocks, { site, page: 'portal_home' })
+  const parsedRoundTrip = JSON.parse(serializeJsonLd(homeBlocks))
+  assert.ok(parsedRoundTrip)
 })

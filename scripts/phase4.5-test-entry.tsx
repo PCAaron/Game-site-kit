@@ -309,7 +309,7 @@ function testGameWithVerifiedFreeOffer(): CatalogGame {
       status: 'verified',
       price: '0',
       priceCurrency: 'USD',
-      evidenceUrl: `https://audit-fixture.example/${JSON_LD_TEST_MARK}-free`,
+      evidenceUrl: `https://www.hockeybros.io/${JSON_LD_TEST_MARK}-free`,
       verifiedAt: '2026-11-01',
       sourceUrl: base.launch.verification === 'verified' ? base.launch.primaryUrl : '',
     },
@@ -323,7 +323,7 @@ function testSiteWithVerifiedOrganization(): SiteInstance {
       status: 'verified',
       name: 'Audit Fixture Portal',
       url: ballgamesSiteInstance.canonicalOrigin,
-      evidenceUrl: `https://audit-fixture.example/${JSON_LD_TEST_MARK}-org`,
+      evidenceUrl: `https://ballgames.io/${JSON_LD_TEST_MARK}-org`,
       verifiedAt: '2026-11-01',
     },
   }
@@ -455,7 +455,7 @@ test('ORG-N-05 organization url not matching canonicalOrigin fails', () => {
         organizationEvidence: {
           status: 'verified',
           name: 'Brand',
-          url: 'https://other.example',
+          url: 'https://other-brand.io',
           evidenceUrl: `https://audit-fixture.example/${JSON_LD_TEST_MARK}`,
           verifiedAt: '2026-11-01',
         },
@@ -474,5 +474,76 @@ test('LD-N02b unevidenced Organization fails evidence contract', () => {
       site: ballgamesSiteInstance,
       page: 'portal_home',
     })
+  )
+})
+
+test('ORG-C-P03 homepage with synthetic verified Organization passes evidence contract', () => {
+  const site = testSiteWithVerifiedOrganization()
+  const { portal, game } = buildR1ExactTwoContractFixtures()
+  const blocks = buildPortalHomeJsonLdBlocks({ portal, qualifiedGameDetail: game, site })
+  assertJsonLdBlocksMeetEvidenceContract(blocks, { site, page: 'portal_home' })
+  const org = blocks.find((b) => b['@type'] === 'Organization')!
+  assert.equal(org.name, 'Audit Fixture Portal')
+  assert.equal(org.url, site.canonicalOrigin)
+})
+
+test('OFF-C-P03 game detail blocks with synthetic Offer pass evidence contract', () => {
+  const game = testGameWithVerifiedFreeOffer()
+  const blocks = buildGameDetailJsonLdBlocks({ game, site: ballgamesSiteInstance })
+  assertJsonLdBlocksMeetEvidenceContract(blocks, {
+    site: ballgamesSiteInstance,
+    detailGame: game,
+    page: 'game_detail',
+  })
+  const video = blocks.find((b) => b['@type'] === 'VideoGame')!
+  assertMinimalVerifiedOfferShape(video.offers)
+})
+
+test('ORG-C-N08 JSON-LD Organization name mismatch fails evidence contract', () => {
+  const site = testSiteWithVerifiedOrganization()
+  const blocks = [
+    { '@context': 'https://schema.org', '@type': 'WebSite', url: siteUrl() },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Different Brand',
+      url: site.canonicalOrigin,
+    },
+  ]
+  assert.throws(() =>
+    assertJsonLdBlocksMeetEvidenceContract(blocks, { site, page: 'portal_home' })
+  )
+})
+
+test('ORG-C-N09 JSON-LD Organization url mismatch fails evidence contract', () => {
+  const site = testSiteWithVerifiedOrganization()
+  const blocks = [
+    { '@context': 'https://schema.org', '@type': 'WebSite', url: siteUrl() },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Audit Fixture Portal',
+      url: 'https://not-canonical-origin.io',
+    },
+  ]
+  assert.throws(() =>
+    assertJsonLdBlocksMeetEvidenceContract(blocks, { site, page: 'portal_home' })
+  )
+})
+
+test('ORG-C-N07 verified organization evidenceUrl on .example fails site validation', () => {
+  assert.throws(
+    () =>
+      validateSiteInstance({
+        ...ballgamesSiteInstance,
+        organizationEvidence: {
+          status: 'verified',
+          name: 'Brand',
+          url: ballgamesSiteInstance.canonicalOrigin,
+          evidenceUrl: 'https://audit-fixture.example/org-evidence',
+          verifiedAt: '2026-11-01',
+        },
+      }),
+    SiteConfigError
   )
 })

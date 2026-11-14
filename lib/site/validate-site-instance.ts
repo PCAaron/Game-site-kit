@@ -1,4 +1,4 @@
-import { isValidIsoCalendarDate } from '../catalog/validate'
+import { isReservedHost, isValidIsoCalendarDate } from '../catalog/validate'
 import {
   SiteConfigError,
   type OrganizationEvidence,
@@ -6,7 +6,6 @@ import {
   type VerifiedOrganizationEvidence,
 } from './types'
 
-const PLACEHOLDER_HOST_RE = /(^|\.)(example\.(com|org|net)|localhost|invalid|placeholder)$/i
 const BLOCKED_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1'])
 
 function isHttpsAbsoluteUrl(value: string): boolean {
@@ -29,8 +28,7 @@ function isPlaceholderUrl(value: string): boolean {
     return true
   }
   const host = url.hostname.toLowerCase()
-  if (BLOCKED_HOSTS.has(host)) return true
-  if (PLACEHOLDER_HOST_RE.test(host)) return true
+  if (isReservedHost(host)) return true
   if (/todo|changeme|your-game|placeholder|invalid/i.test(url.href)) return true
   return false
 }
@@ -159,7 +157,10 @@ export function validateSiteInstance(instance: SiteInstance): void {
   }
 }
 
-/** Whether production site config has audited Organization JSON-LD eligibility. */
+/** Whether production site config has audited Organization JSON-LD eligibility (throws on malformed verified). */
 export function isVerifiedOrganizationEvidenceEligible(site: SiteInstance): boolean {
-  return site.organizationEvidence?.status === 'verified'
+  if (!site.organizationEvidence) return false
+  if (site.organizationEvidence.status === 'unverified') return false
+  assertOrganizationEvidence(site)
+  return site.organizationEvidence.status === 'verified'
 }

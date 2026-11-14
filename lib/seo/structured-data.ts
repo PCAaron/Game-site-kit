@@ -160,6 +160,18 @@ export function assertJsonLdBlocksMeetEvidenceContract(
         throw new Error('Organization JSON-LD without verified organizationEvidence')
       }
       assertMinimalOrganizationShape(block)
+      const evidence = input.site.organizationEvidence
+      if (evidence?.status === 'verified') {
+        const verified = evidence as VerifiedOrganizationEvidence
+        const expectedName = verified.name.trim()
+        const expectedUrl = verified.url.trim()
+        if (block.name !== expectedName) {
+          throw new Error('Organization name does not match verified organizationEvidence')
+        }
+        if (block.url !== expectedUrl) {
+          throw new Error('Organization url does not match verified organizationEvidence')
+        }
+      }
       assertJsonLdFieldsWithContext(block, { allowOrganizationRoot: true }, 0)
       continue
     }
@@ -228,10 +240,9 @@ export function buildItemListJsonLdForPortalHome(
 }
 
 export function buildOrganizationJsonLd(site: SiteInstance): JsonLdObject | undefined {
-  const evidence = site.organizationEvidence
-  if (evidence?.status !== 'verified') return undefined
+  if (!isVerifiedOrganizationEvidenceEligible(site)) return undefined
 
-  const verified = evidence as VerifiedOrganizationEvidence
+  const verified = site.organizationEvidence as VerifiedOrganizationEvidence
   const block: JsonLdObject = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
