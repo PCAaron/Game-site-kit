@@ -11,13 +11,6 @@ export function PortalHomeSiteFooter() {
         <Link href="/" className="hover:text-primary-600 dark:hover:text-primary-400 font-medium">
           Ball Games
         </Link>
-        <span aria-hidden>・</span>
-        <Link
-          href="/about"
-          className="hover:text-primary-600 dark:hover:text-primary-400 font-medium"
-        >
-          About
-        </Link>
       </nav>
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">
         © 2026 BallGames.io · Launched November 2026

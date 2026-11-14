@@ -4,6 +4,35 @@
 
 ---
 
+## 2026-11-14 — BG-1.2.2.1：Homepage closeout（Footer/Header/Legacy 隔离）
+
+**范围：** 唯一站点 Footer（`resolveSiteChrome`）；Ballgames 隐藏 Legacy Search 与 About 导航；`PortalHome` 移除重复页脚；双游戏 granted iframe 换源测试；Level-2 产品可见词频与 Footer 结构测试；`isValidIsoCalendarDate`；人工产品能力门禁文档。**未**改冻结正文、生产 Catalog embed、CSP、BG-1.2.3。
+
+**分支：** `main` · **基线 HEAD：** `200280fc93492e16fd389ed5f3d52e4c9ebb398c`
+
+### 交付
+
+- Chrome：`lib/site/types.ts`、`lib/site/resolve-site-chrome.ts`
+- UI：`Footer.tsx`、`Header.tsx`、`MobileNav.tsx`、`SearchButton.tsx`、`PortalHome.tsx`、`PortalHomeSiteFooter.tsx`
+- Catalog：`lib/catalog/validate.ts`（`isValidIsoCalendarDate`）
+- 测试：`phase4.3-component-tests.tsx`、`phase4.6-test-entry.ts`、`catalog-test-entry.ts`
+- 报告：[`ballgames-v1.2.2.1-homepage-closeout.md`](reports/ballgames-v1.2.2.1-homepage-closeout.md)
+
+### 验证
+
+- 全量 typecheck、batch、catalog、phase4.3–4.6、validators — **exit 0**
+- 全新 static export + `validate:seo --export-dir=out` — **exit 0**
+
+### 结论
+
+- **BG-1.2.2.1：** PASS WITH MANUAL REVIEW
+- **BG-1.2.2 Closeout：** CLOSED（产品 manual gates 保留）
+- **BG-1.2.3：** NOT STARTED
+- **Production iframe：** BLOCKED
+- **未 commit/push**
+
+---
+
 ## 2026-11-14 — BG-1.2.2：Homepage / Launcher / v1.2 文案
 
 **范围：** Catalog 默认玩家与 technical embed 校验；homepage-r1 正文/TDK/H2/FAQ；副标题与 Portal 页脚；Launcher 默认 Football Bros；`iframe#player`；SEO-HOME 导出词频测试；phase4.3/4.5/4.6 与 catalog 负面用例。**未**改 Hockey Bros 详情、Offer JSON-LD、生产 embed 授权、15–20 卡片数据。

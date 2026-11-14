@@ -16,6 +16,7 @@ import {
   validateCatalog,
   validateCatalogSeo,
   collectDefaultPlayerGameIssues,
+  isValidIsoCalendarDate,
   type Catalog,
   type CatalogGame,
   type GameDetailContent,
@@ -536,6 +537,40 @@ test('CAT-N05 illegal technical testedAt fails schema', () => {
   football.technicalEmbedVerification = {
     status: 'reported',
     testedAt: 'not-a-date',
+  }
+  assertCatalogError(() => validateCatalog(catalog), 'CATALOG_TECH_EMBED_TESTED_AT_INVALID')
+})
+
+test('isValidIsoCalendarDate accepts valid calendar dates', () => {
+  assert.equal(isValidIsoCalendarDate('2026-11-12'), true)
+  assert.equal(isValidIsoCalendarDate('2024-02-29'), true)
+  assert.equal(isValidIsoCalendarDate('2026-12-31'), true)
+})
+
+test('isValidIsoCalendarDate rejects invalid calendar dates', () => {
+  const invalid = [
+    '2026-02-29',
+    '2026-02-30',
+    '2026-04-31',
+    '2026-13-01',
+    '2026-00-10',
+    '2026-11-00',
+    '2026-11-32',
+    'not-a-date',
+    '2026/11/12',
+    '2026-11-12T00:00:00Z',
+  ]
+  for (const value of invalid) {
+    assert.equal(isValidIsoCalendarDate(value), false, `expected invalid: ${value}`)
+  }
+})
+
+test('CAT-N05b nonexistent calendar testedAt fails schema', () => {
+  const catalog = clone(getBallgamesCatalog())
+  const football = catalog.games.find((g) => g.slug === 'football-bros')!
+  football.technicalEmbedVerification = {
+    status: 'reported',
+    testedAt: '2026-02-30',
   }
   assertCatalogError(() => validateCatalog(catalog), 'CATALOG_TECH_EMBED_TESTED_AT_INVALID')
 })

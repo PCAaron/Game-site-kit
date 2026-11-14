@@ -4,6 +4,17 @@ export type PublicationStatus = 'draft' | 'published' | 'archived'
 
 export type UrlPathStyle = 'no-trailing-slash'
 
+export type SiteFooterVariant = 'portal' | 'legacy'
+
+/** Per-instance chrome (header/footer/search). Omitted fields use archetype defaults in `resolveSiteChrome`. */
+export interface SiteInstanceChrome {
+  footerVariant?: SiteFooterVariant
+  /** Legacy blog search (kbar/algolia). Ballgames R1: false. */
+  searchEnabled?: boolean
+  /** Legacy template About page in header/footer nav. Ballgames R1: false until About is product-aligned. */
+  includeLegacyAboutNav?: boolean
+}
+
 export interface SiteInstance {
   siteId: string
   archetype: 'game-portal'
@@ -11,6 +22,7 @@ export interface SiteInstance {
   urlPathStyle: UrlPathStyle
   defaultIndexable: false
   enabledPageTypes: PageType[]
+  chrome?: SiteInstanceChrome
   metadata: {
     title: string
     description: string

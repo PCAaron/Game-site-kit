@@ -51,6 +51,7 @@ export {
   collectDefaultPlayerGameIssues,
   isLaunchVerified,
   isPublishedForHome,
+  isValidIsoCalendarDate,
   validateCatalog,
   validateCatalogSeo,
   validateGame,

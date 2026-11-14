@@ -531,27 +531,78 @@ test('SEO-N05 missing required H2 fails extraction', () => {
   assert.throws(() => extractPortalSeoBodyFromExportHtml(html))
 })
 
-function visibleDomText(html: string): string {
+const SKIP_PRODUCT_VISIBLE_TAGS = new Set([
+  'script',
+  'style',
+  'noscript',
+  'meta',
+  'link',
+  'head',
+  'title',
+])
+
+const VISUALLY_HIDDEN_CLASS_TOKENS = new Set([
+  'sr-only',
+  'screen-reader-only',
+  'visually-hidden',
+  'invisible',
+])
+
+function elementHasHiddenSemantics(el: Element): boolean {
+  if (el.properties?.hidden != null) return true
+  const ariaHidden = el.properties?.ariaHidden ?? el.properties?.['aria-hidden']
+  if (ariaHidden === true || ariaHidden === 'true') return true
+  const tokens = elementClassTokens(el)
+  for (const token of tokens) {
+    if (VISUALLY_HIDDEN_CLASS_TOKENS.has(token)) return true
+  }
+  return false
+}
+
+/** Level 2 — product-visible text from SSR HTML (excludes hidden/a11y-only; not computed-style Level 3). */
+function productVisibleDomText(html: string): string {
   const tree = fromHtmlIsomorphic(html, { fragment: false }) as Root
   const chunks: string[] = []
-  const skipTags = new Set(['script', 'style', 'noscript'])
 
-  function walk(node: Root | Element | import('hast').Text, skipAncestors: boolean) {
+  function walk(
+    node: Root | Element | import('hast').Text,
+    ctx: { skip: boolean; hiddenAncestor: boolean }
+  ) {
     if (node.type === 'root' || node.type === 'element') {
-      const nextSkip =
-        node.type === 'element' ? skipAncestors || skipTags.has(node.tagName) : skipAncestors
+      const el = node.type === 'element' ? (node as Element) : undefined
+      const tagSkip = el ? SKIP_PRODUCT_VISIBLE_TAGS.has(el.tagName) : false
+      const hiddenHere = el ? elementHasHiddenSemantics(el) : false
+      const nextCtx = {
+        skip: ctx.skip || tagSkip,
+        hiddenAncestor: ctx.hiddenAncestor || hiddenHere,
+      }
       for (const child of node.children ?? []) {
-        walk(child as Element | import('hast').Text, nextSkip)
+        walk(child as Element | import('hast').Text, nextCtx)
       }
       return
     }
-    if (!skipAncestors && node.type === 'text' && 'value' in node) {
+    if (
+      !ctx.skip &&
+      !ctx.hiddenAncestor &&
+      node.type === 'text' &&
+      'value' in node &&
+      typeof node.value === 'string'
+    ) {
       chunks.push(node.value)
     }
   }
 
-  walk(tree, false)
+  walk(tree, { skip: false, hiddenAncestor: false })
   return normalizeWs(chunks.join(' '))
+}
+
+function countFooterElements(html: string): number {
+  const tree = fromHtmlIsomorphic(html, { fragment: false }) as Root
+  let count = 0
+  visit(tree, (node) => {
+    if (node.type === 'element' && (node as Element).tagName === 'footer') count++
+  })
+  return count
 }
 
 function countPhraseInsensitive(text: string, phrase: string): number {
@@ -584,10 +635,20 @@ function firstGameCardAnchorText(html: string): string | undefined {
   return found
 }
 
-test('SEO-HOME-01 visible hockey bros phrase count is exactly one', () => {
+test('SEO-HOME-01 product-visible hockey bros phrase count is exactly one', () => {
   const html = readExport('index.html')
-  const visible = visibleDomText(html)
+  const visible = productVisibleDomText(html)
   assert.equal(countPhraseInsensitive(visible, 'hockey bros'), 1)
+})
+
+test('FOOTER-01 homepage has exactly one footer element', () => {
+  const html = readExport('index.html')
+  assert.equal(countFooterElements(html), 1)
+})
+
+test('FOOTER-02 export homepage excludes Tailwind Nextjs Theme link text', () => {
+  const html = readExport('index.html')
+  assert.equal(html.toLowerCase().includes('tailwind nextjs theme'), false)
 })
 
 test('SEO-HOME-02 first GameCard anchor text is Hockey Bros', () => {
@@ -618,4 +679,41 @@ test('SEO-HOME-05 title and description exclude Hockey Bros', () => {
   const portal = getPortalHomeContent()
   assert.equal(portal.seo.title.toLowerCase().includes('hockey bros'), false)
   assert.equal(portal.seo.description.toLowerCase().includes('hockey bros'), false)
+})
+
+test('SEO-HOME-06 sr-only phrase does not inflate product-visible hockey bros count', () => {
+  const html = `${homeSeoFixtureHtml({ includeCard: true })}
+<span class="sr-only">Hockey Bros</span>`
+  assert.equal(countPhraseInsensitive(productVisibleDomText(html), 'hockey bros'), 1)
+})
+
+test('SEO-N06 second visible GameCard with Hockey Bros fails product-visible count', () => {
+  const html = `${homeSeoFixtureHtml({ includeCard: true })}
+<article><a href="/x">Hockey Bros</a></article>`
+  assert.throws(() => {
+    assert.equal(countPhraseInsensitive(productVisibleDomText(html), 'hockey bros'), 1)
+  })
+})
+
+test('SEO-N07 footer Hockey Bros fails product-visible count gate', () => {
+  const html = `${homeSeoFixtureHtml({ includeCard: true })}
+<footer>About Hockey Bros</footer>`
+  assert.notEqual(countPhraseInsensitive(productVisibleDomText(html), 'hockey bros'), 1)
+})
+
+test('SEO-N08 JSON-LD Hockey Bros does not add product-visible phrase count', () => {
+  const html = `${homeSeoFixtureHtml({ includeCard: true })}
+<script type="application/ld+json">{"name":"Hockey Bros"}</script>`
+  assert.equal(countPhraseInsensitive(productVisibleDomText(html), 'hockey bros'), 1)
+})
+
+test('SEO-N09 img alt Hockey Bros does not add product-visible phrase count', () => {
+  const html = `${homeSeoFixtureHtml({ includeCard: true })}
+<img alt="Hockey Bros poster" src="/x.png" />`
+  assert.equal(countPhraseInsensitive(productVisibleDomText(html), 'hockey bros'), 1)
+})
+
+test('SEO-N10 duplicate footer elements fails FOOTER-01 gate', () => {
+  const html = `${homeSeoFixtureHtml({})}<footer>A</footer><footer>B</footer>`
+  assert.equal(countFooterElements(html), 2)
 })

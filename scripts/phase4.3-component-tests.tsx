@@ -214,6 +214,119 @@ test('PLAY-01 Launcher default presentation title is Football Bros', () => {
   assert.equal(isProductionEmbedAllowed(football, catalog), false)
 })
 
+const CATALOG_TEST_FIXTURE_MARK = 'CATALOG_TEST_FIXTURE_NOT_PRODUCTION'
+
+function buildGrantedIframeLauncherCatalog(): Catalog {
+  return {
+    providers: [{ id: 'prov-fixture', name: 'Fixture Provider', verification: 'verified' }],
+    embedPermissions: [
+      {
+        id: 'embed-fixture-a',
+        providerId: 'prov-fixture',
+        gameSlug: 'fixture-game-a',
+        sourceUrl: 'https://embed.example.com/a',
+        status: 'granted',
+        permissionBasis: `${CATALOG_TEST_FIXTURE_MARK}: granted iframe A`,
+        cspFrameSrcVerified: true,
+      },
+      {
+        id: 'embed-fixture-b',
+        providerId: 'prov-fixture',
+        gameSlug: 'fixture-game-b',
+        sourceUrl: 'https://embed.example.com/b',
+        status: 'granted',
+        permissionBasis: `${CATALOG_TEST_FIXTURE_MARK}: granted iframe B`,
+        cspFrameSrcVerified: true,
+      },
+    ],
+    games: [
+      {
+        id: 'fixture-game-a',
+        slug: 'fixture-game-a',
+        title: 'Fixture Game A',
+        providerId: 'prov-fixture',
+        launch: {
+          verification: 'verified',
+          mode: 'iframe-official',
+          primaryUrl: 'https://embed.example.com/a',
+        },
+        publicationStatus: 'published',
+        showOnHome: true,
+        homeSort: 1,
+        embedPermissionId: 'embed-fixture-a',
+        cardAction: 'launcher-select',
+      },
+      {
+        id: 'fixture-game-b',
+        slug: 'fixture-game-b',
+        title: 'Fixture Game B',
+        providerId: 'prov-fixture',
+        launch: {
+          verification: 'verified',
+          mode: 'iframe-official',
+          primaryUrl: 'https://embed.example.com/b',
+        },
+        publicationStatus: 'published',
+        showOnHome: true,
+        homeSort: 2,
+        embedPermissionId: 'embed-fixture-b',
+        cardAction: 'launcher-select',
+      },
+    ],
+    defaultPlayerGameSlug: 'fixture-game-a',
+  }
+}
+
+test('PLAY-02 dual granted fixture: switch A→B keeps single player iframe', () => {
+  enableDomFakeTimers()
+  const catalog = buildGrantedIframeLauncherCatalog()
+  const homeGames = catalog.games
+  render(<Launcher homeGames={homeGames} catalog={catalog} />)
+
+  assert.equal(screen.getByRole('status').textContent, 'Fixture Game A')
+  assert.equal(document.querySelectorAll('iframe').length, 1)
+  const iframeA = document.querySelector('iframe#player')!
+  assert.equal(iframeA.getAttribute('src'), 'https://embed.example.com/a')
+
+  const pathnameBefore = window.location.pathname
+  const hashBefore = window.location.hash
+
+  fireEvent.click(screen.getByRole('button', { name: 'Fixture Game B' }))
+
+  assert.equal(window.location.pathname, pathnameBefore)
+  assert.equal(window.location.hash, hashBefore)
+  assert.equal(screen.getByRole('status').textContent, 'Fixture Game B')
+  assert.equal(document.querySelectorAll('iframe').length, 1)
+  const iframeB = document.querySelector('iframe#player')!
+  assert.equal(iframeB.getAttribute('src'), 'https://embed.example.com/b')
+
+  fireEvent.load(iframeA)
+  assert.equal(screen.getByRole('status').textContent, 'Fixture Game B')
+  assert.ok(screen.getByText('Loading game…'))
+
+  tickFakeTimers(8000)
+  const fallback = screen.getByText(/taking longer than usual/i).parentElement!
+  const link = fallback.querySelector('a[href="https://embed.example.com/b"]')
+  assert.ok(link)
+  assert.equal(link?.getAttribute('target'), '_blank')
+  assert.match(link?.getAttribute('rel') ?? '', /noopener/)
+  assert.match(link?.getAttribute('rel') ?? '', /noreferrer/)
+})
+
+test('PLAY-N01 ungranted fixture-game-b does not mount iframe when selected', () => {
+  const catalog = buildGrantedIframeLauncherCatalog()
+  catalog.embedPermissions[1] = {
+    ...catalog.embedPermissions[1]!,
+    status: 'unknown',
+    permissionBasis: `${CATALOG_TEST_FIXTURE_MARK}: ungranted B`,
+    cspFrameSrcVerified: false,
+  }
+  render(<Launcher homeGames={catalog.games} catalog={catalog} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Fixture Game B' }))
+  assert.equal(document.querySelector('iframe'), null)
+  assert.equal(screen.getByRole('status').textContent, 'Fixture Game B')
+})
+
 test('PLAY-04 granted fixture renders exactly one iframe with id player', () => {
   const catalog: Catalog = {
     providers: [{ id: 'prov-a', name: 'Prov A', verification: 'verified' }],

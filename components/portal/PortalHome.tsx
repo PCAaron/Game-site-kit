@@ -5,8 +5,6 @@ import { Launcher } from './Launcher'
 import { PortalHomeFaq } from './PortalHomeFaq'
 import { PortalHomeIntro } from './PortalHomeIntro'
 import { PortalHomeSeoSections } from './PortalHomeSeoSections'
-import { PortalHomeSiteFooter } from './PortalHomeSiteFooter'
-
 /** Frozen copy — ballgames-specs-v1.2 §4 / homepage-r1.md (not SEO description). */
 export const PORTAL_HOME_FROZEN_H1 = 'Ball Games'
 export const PORTAL_HOME_FROZEN_SUBTITLE =
@@ -42,7 +40,6 @@ export function PortalHome({ portal, homeGames, catalog }: PortalHomeProps) {
           <PortalHomeFaq items={portal.faq!} />
         </>
       ) : null}
-      <PortalHomeSiteFooter />
     </div>
   )
 }

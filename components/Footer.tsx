@@ -1,8 +1,11 @@
 import Link from './Link'
 import siteMetadata from '@/data/siteMetadata'
 import SocialIcon from '@/components/social-icons'
+import { PortalHomeSiteFooter } from '@/components/portal/PortalHomeSiteFooter'
+import { getSiteInstance } from '@/lib/site/get-site-instance'
+import { resolveSiteChrome } from '@/lib/site/resolve-site-chrome'
 
-export default function Footer() {
+function LegacyStarterFooter() {
   return (
     <footer>
       <div className="mt-16 flex flex-col items-center">
@@ -34,4 +37,13 @@ export default function Footer() {
       </div>
     </footer>
   )
+}
+
+export default function Footer() {
+  const site = getSiteInstance()
+  const { footerVariant } = resolveSiteChrome(site)
+  if (footerVariant === 'portal') {
+    return <PortalHomeSiteFooter />
+  }
+  return <LegacyStarterFooter />
 }

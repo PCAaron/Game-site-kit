@@ -393,6 +393,21 @@ export function validateGame(game: CatalogGame, catalog: Catalog): void {
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
+/** Strict YYYY-MM-DD calendar date (UTC); rejects invalid dates like 2026-02-30. */
+export function isValidIsoCalendarDate(value: string): boolean {
+  if (!ISO_DATE_RE.test(value)) return false
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return false
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  if (month < 1 || month > 12 || day < 1 || day > 31) return false
+  const utc = new Date(Date.UTC(year, month - 1, day))
+  return (
+    utc.getUTCFullYear() === year && utc.getUTCMonth() === month - 1 && utc.getUTCDate() === day
+  )
+}
+
 function assertTechnicalEmbedVerification(game: CatalogGame): void {
   const record = game.technicalEmbedVerification as TechnicalEmbedVerification
   if (
@@ -408,17 +423,10 @@ function assertTechnicalEmbedVerification(game: CatalogGame): void {
   }
 
   if (record.testedAt !== undefined) {
-    if (typeof record.testedAt !== 'string' || !ISO_DATE_RE.test(record.testedAt)) {
+    if (typeof record.testedAt !== 'string' || !isValidIsoCalendarDate(record.testedAt)) {
       fail(
         'CATALOG_TECH_EMBED_TESTED_AT_INVALID',
-        `${game.slug}: technicalEmbedVerification.testedAt must be YYYY-MM-DD`
-      )
-    }
-    const parsed = Date.parse(`${record.testedAt}T00:00:00.000Z`)
-    if (Number.isNaN(parsed)) {
-      fail(
-        'CATALOG_TECH_EMBED_TESTED_AT_INVALID',
-        `${game.slug}: technicalEmbedVerification.testedAt is not a valid date`
+        `${game.slug}: technicalEmbedVerification.testedAt must be a valid YYYY-MM-DD calendar date`
       )
     }
   }

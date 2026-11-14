@@ -1,8 +1,13 @@
 import { AlgoliaButton } from 'pliny/search/AlgoliaButton'
 import { KBarButton } from 'pliny/search/KBarButton'
 import siteMetadata from '@/data/siteMetadata'
+import { getSiteInstance } from '@/lib/site/get-site-instance'
+import { resolveSiteChrome } from '@/lib/site/resolve-site-chrome'
 
 const SearchButton = () => {
+  if (!resolveSiteChrome(getSiteInstance()).searchEnabled) {
+    return null
+  }
   if (
     siteMetadata.search &&
     (siteMetadata.search.provider === 'algolia' || siteMetadata.search.provider === 'kbar')

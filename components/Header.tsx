@@ -1,12 +1,17 @@
 import siteMetadata from '@/data/siteMetadata'
-import headerNavLinks from '@/data/headerNavLinks'
 import Logo from '@/data/logo.svg'
 import Link from './Link'
 import MobileNav from './MobileNav'
 import ThemeSwitch from './ThemeSwitch'
 import SearchButton from './SearchButton'
+import { getSiteInstance } from '@/lib/site/get-site-instance'
+import { resolveHeaderNavLinks, resolveSiteChrome } from '@/lib/site/resolve-site-chrome'
 
 const Header = () => {
+  const site = getSiteInstance()
+  const navLinks = resolveHeaderNavLinks(site)
+  const { searchEnabled } = resolveSiteChrome(site)
+
   let headerClass = 'flex items-center w-full bg-white dark:bg-gray-950 justify-between py-10'
   if (siteMetadata.stickyNav) {
     headerClass += ' sticky top-0 z-50'
@@ -30,7 +35,7 @@ const Header = () => {
       </Link>
       <div className="flex items-center space-x-4 leading-5 sm:-mr-6 sm:space-x-6">
         <div className="no-scrollbar hidden max-w-40 items-center gap-x-4 overflow-x-auto sm:flex md:max-w-72 lg:max-w-96">
-          {headerNavLinks
+          {navLinks
             .filter((link) => link.href !== '/')
             .map((link) => (
               <Link
@@ -42,7 +47,7 @@ const Header = () => {
               </Link>
             ))}
         </div>
-        <SearchButton />
+        {searchEnabled ? <SearchButton /> : null}
         <ThemeSwitch />
         <MobileNav />
       </div>
