@@ -8,7 +8,7 @@
 | HEAD（任务起始/结束） | `18b43bab112f2db4f14ebe5301cc26067a8538e3`                     |
 | BG-1.2.3.1            | **ON MAIN** @ `18b43bab`                                       |
 | 起始工作区            | 干净                                                           |
-| 结束状态              | BG-1.2.3.2 白名单变更，本地未提交/未推送                       |
+| 结束状态              | implementation `b5c26fe` 已推送 `origin/main`                  |
 | Runtime               | Windows / PowerShell；Node 24.9.0；npm 11.6.0；Yarn CLI 不可用 |
 | 验证日期              | 2026-11-14                                                     |
 
@@ -22,7 +22,7 @@
 | `scripts/catalog-test-entry.ts`      | OFF-C-N11–N17、P04–P05                                       |
 | `scripts/phase4.5-test-entry.tsx`    | ORG-C-N10–N20、P04                                           |
 | `scripts/phase4.6-test-entry.ts`     | PATH-B-04 Detail export HTML + Offer + FAQ parity            |
-| `docs/agent/STATUS.md`               | main SHA、BG-1.2.3.2 本地状态与验证结果                      |
+| `docs/agent/STATUS.md`               | main SHA、BG-1.2.3.2 提交状态与验证结果                      |
 | `docs/agent/WORKLOG.md`              | 独立工作记录                                                 |
 | 本报告                               | 收口证据                                                     |
 
@@ -136,4 +136,4 @@ PowerShell 直接解析 `npm` 时被本机 execution policy 拦截在 `npm.ps1`�
 | Production iframe               | **BLOCKED**                   |
 | R1 Production Release           | **NOT VERIFIED**              |
 
-**BG-1.2.3.2 最终结论：PASS WITH MANUAL REVIEW。** 本任务未 commit、未 push、未建 PR、未部署，也未解除 MR-01–MR-08。
+**BG-1.2.3.2 最终结论：PASS WITH MANUAL REVIEW。** implementation commit `b5c26fe` 已推送 `origin/main`；未建 PR、未部署，也未解除 MR-01–MR-08。

@@ -8,7 +8,7 @@
 
 **范围：** Offer / Organization 直接生成器门禁、递归嵌套 Organization、Reserved Host DNS 根点、PATH-B Detail HTML + FAQ parity；**未**改生产 instances、冻结正文、UI、embed/CSP、依赖或 workflow。
 
-**分支：** `main` · **基线/当前 HEAD：** `18b43bab112f2db4f14ebe5301cc26067a8538e3`（BG-1.2.3.1 已在 main）· **Git 状态：** 本地未提交/未推送
+**分支：** `main` · **基线：** `18b43bab112f2db4f14ebe5301cc26067a8538e3` · **实现提交：** `b5c26fe`（已推送 `origin/main`）
 
 ### 交付
 
@@ -27,7 +27,7 @@
 ### 未解决 / 人工门禁
 
 - MR-01–MR-08 全部保留；生产 Organization / freeOffer 仍无入库证据；生产 iframe/CSP 仍 BLOCKED；Cloudflare/live HTTPS 未验证。
-- 未 commit、未 push、未建 PR、未部署；GitHub Pages `configure-pages@v5` 已知阻塞不在本任务范围。
+- 实现已 commit/push；未建 PR、未部署；GitHub Pages `configure-pages@v5` 已知阻塞不在本任务范围。
 
 ### 结论
 

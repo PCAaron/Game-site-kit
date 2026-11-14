@@ -1,7 +1,7 @@
 # Agent Project Status
 
 - **Current phase：** Phase 4 **ENGINEERING COMPLETE — READY WITH MANUAL BLOCKERS** @ `339250db53cbd48e7b816b10a73f4730146ca89b`（历史工程指针 **保留**）
-- **Product alignment：** **BG-1.2.3** @ `c04ae75`；**BG-1.2.3.1** @ `18b43bab`（**ON MAIN**）；**BG-1.2.3.2** Evidence Gate Final Hardening（本地已验证，**未提交/未推送**）
+- **Product alignment：** **BG-1.2.3** @ `c04ae75`；**BG-1.2.3.1** @ `18b43bab`；**BG-1.2.3.2** @ `b5c26fe`（**ON MAIN**）
 - **Prior：** **BG-1.2.2.1** @ `129961e`；**BG-1.2.2** @ `200280f`；**BG-1.2.1** @ `7521011`；**BG-1.2.0** @ `a8b4f59`
 - **Active product Spec：** [`specs/ballgames/ballgames-specs-v1.2.md`](../specs/ballgames/ballgames-specs-v1.2.md)
 - **Phase 4.7：** Final acceptance report on `main`；见 [`phase-4-final-validation.md`](reports/phase-4-final-validation.md)
@@ -9,8 +9,8 @@
 - **BG-1.2.3 evidence：** [`ballgames-v1.2.3-offer-organization.md`](reports/ballgames-v1.2.3-offer-organization.md)
 - **BG-1.2.3.1 evidence：** [`ballgames-v1.2.3.1-evidence-gate-closeout.md`](reports/ballgames-v1.2.3.1-evidence-gate-closeout.md)
 - **BG-1.2.3.2 evidence：** [`ballgames-v1.2.3.2-evidence-gate-final-hardening.md`](reports/ballgames-v1.2.3.2-evidence-gate-final-hardening.md)
-- **Last updated:** 2026-11-14（BG-1.2.3.2 本地验证）
-- **Current reviewed branch:** `main` @ `18b43bab112f2db4f14ebe5301cc26067a8538e3` + BG-1.2.3.2 白名单本地未提交变更
+- **Last updated:** 2026-11-14（BG-1.2.3.2 已提交并推送）
+- **Current reviewed branch:** `main`，BG-1.2.3.2 implementation @ `b5c26fe`
 
 ## Phase summary
 
@@ -21,7 +21,7 @@
 | 4.6 | Export / SEO integration validation | **ON MAIN** @ `8bdb3e8` | [`phase4.6-validation.md`](reports/phase4.6-validation.md) |
 | 4.7 | 最终验收 | **DONE (local report)** | [`phase-4-final-validation.md`](reports/phase-4-final-validation.md) |
 
-## BG-1.2.3.2 摘要（本地未提交）
+## BG-1.2.3.2 摘要（main @ b5c26fe）
 
 | 项 | 状态 |
 | --- | --- |
@@ -31,7 +31,7 @@
 | Reserved Host 尾随 DNS 根点规范化 | **PASS** |
 | PATH-A 生产无证据静态导出 | **PASS** |
 | PATH-B-04 Detail HTML Offer + FAQ parity | **PASS**（**TEST FIXTURE ONLY，非生产证据**） |
-| Git 状态 | **本地未提交 / 未推送** |
+| Git 状态 | **已提交并推送至 `origin/main`** |
 
 ## BG-1.2.3.1 摘要（main @ 18b43bab）
 
@@ -62,7 +62,7 @@
 | Phase 4 Engineering Acceptance | **PASS WITH MANUAL REVIEW**（未覆盖） |
 | BG-1.2.3 Engineering | **PASS WITH MANUAL REVIEW**（`c04ae75` on main） |
 | BG-1.2.3.1 Engineering | **PASS WITH MANUAL REVIEW**（`18b43bab` on main） |
-| BG-1.2.3.2 Engineering | **PASS WITH MANUAL REVIEW**（本地未提交） |
+| BG-1.2.3.2 Engineering | **PASS WITH MANUAL REVIEW**（`b5c26fe` on main） |
 | BG-1.2.2.1 Engineering | **PASS WITH MANUAL REVIEW**（`129961e` on main） |
 | BG-1.2.2 Closeout | **CLOSED**（产品 manual gates 保留） |
 | Ballgames R1 Product Acceptance | **CONDITIONAL ACCEPTANCE** |
@@ -81,10 +81,10 @@
 
 ## Recommended next action
 
-1. 审阅 BG-1.2.3.2 收口报告与本地 diff；如需进入 Git 流程，另行授权 commit / push。
+1. 审阅 BG-1.2.3.2 收口报告与 `b5c26fe` 实现提交。
 2. 产品侧提供经审计的 `freeOffer` / `organizationEvidence` 入库依据（单独授权，非本任务默认）。
 3. Embed/CSP 外部证据；补充 verified 首页卡片（不虚构）。
 
-## Last verified checks（2026-11-14，Node 24.9.0 / npm 11.6.0，`main` @ `18b43bab` + BG-1.2.3.2 本地变更）
+## Last verified checks（2026-11-14，Node 24.9.0 / npm 11.6.0，BG-1.2.3.2 implementation @ `b5c26fe`）
 
 `npm.cmd run typecheck`、`test:batch1/2`、`test:catalog`、`test:phase4.3/4/4.5/4.6`、`validate:catalog`、`validate:seo`、`EXPORT=1 UNOPTIMIZED=1 npm.cmd run build`、`validate:seo -- --export-dir=out`、`git diff --check` — **exit 0**。详见 [`ballgames-v1.2.3.2-evidence-gate-final-hardening.md`](reports/ballgames-v1.2.3.2-evidence-gate-final-hardening.md) §E–H。
